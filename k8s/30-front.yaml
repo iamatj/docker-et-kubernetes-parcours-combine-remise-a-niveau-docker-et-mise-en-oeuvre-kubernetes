@@ -6,7 +6,7 @@ metadata:
   labels:
     partie-de: cordee
   annotations:
-    kubernetes.io/change-cause: "site 1.0 : sondes"
+    kubernetes.io/change-cause: "site 1.0 : durcissement (SecurityContext, ServiceAccount)"
 spec:
   replicas: 2
   strategy:
@@ -25,6 +25,13 @@ spec:
         tier: front
         partie-de: cordee
     spec:
+      serviceAccountName: front
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: front
           image: ghcr.io/iamatj/cordee-front:1.0
@@ -40,12 +47,23 @@ spec:
               path: /healthz
               port: 8080
             periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 20m
               memory: 32Mi
             limits:
               memory: 128Mi
+      volumes:
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

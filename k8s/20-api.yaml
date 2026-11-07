@@ -6,7 +6,7 @@ metadata:
   labels:
     partie-de: cordee
   annotations:
-    kubernetes.io/change-cause: "API 1.1 : configuration externalisée et sondes"
+    kubernetes.io/change-cause: "API 1.1 : durcissement (SecurityContext, ServiceAccount)"
     cordee.lab/responsable: "Karim Benali"
 spec:
   replicas: 3
@@ -26,6 +26,13 @@ spec:
         tier: back
         partie-de: cordee
     spec:
+      serviceAccountName: api
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api
           image: ghcr.io/iamatj/cordee-api:1.1
@@ -57,12 +64,23 @@ spec:
               port: 8000
             periodSeconds: 5
             failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 50m
               memory: 64Mi
             limits:
               memory: 256Mi
+      volumes:
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

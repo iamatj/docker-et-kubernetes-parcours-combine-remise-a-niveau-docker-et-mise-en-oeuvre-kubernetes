@@ -4,3 +4,6 @@ metadata:
   name: cordee
   labels:
     partie-de: cordee
+    # Pod Security Admission : on refuse ce qui n'est pas « baseline », on avertit pour « restricted ».
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

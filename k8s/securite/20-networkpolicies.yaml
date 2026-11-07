@@ -1,0 +1,62 @@
+# Par défaut, plus rien n'entre dans les pods de cordee…
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: refus-par-defaut
+  namespace: cordee
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress"]
+---
+# … sauf le site, ouvert à tous sur 8080 (NodePort, LoadBalancer, Ingress)…
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: front-ouvert
+  namespace: cordee
+spec:
+  podSelector:
+    matchLabels:
+      tier: front
+  policyTypes: ["Ingress"]
+  ingress:
+    - ports:
+        - port: 8080
+---
+# … l'API, joignable seulement depuis le site…
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-depuis-front
+  namespace: cordee
+spec:
+  podSelector:
+    matchLabels:
+      tier: back
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              tier: front
+      ports:
+        - port: 8000
+---
+# … et la base, joignable seulement depuis l'API.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-depuis-api
+  namespace: cordee
+spec:
+  podSelector:
+    matchLabels:
+      tier: donnees
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              tier: back
+      ports:
+        - port: 5432
