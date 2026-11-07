@@ -1,0 +1,18 @@
+# Adresses que MetalLB peut donner aux Services de type LoadBalancer.
+# 192.168.56.200 est réservée à Traefik (Ingress et Gateway API).
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: lab
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.56.200-192.168.56.220
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: lab
+  namespace: metallb-system
+spec:
+  ipAddressPools: [lab]

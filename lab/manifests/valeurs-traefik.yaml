@@ -1,0 +1,18 @@
+# Traefik sert à la fois de contrôleur Ingress (IngressClass « traefik ») et de contrôleur Gateway API
+# (GatewayClass « traefik »). Les Gateway sont créées par les participants au TP 11.
+service:
+  annotations:
+    metallb.io/loadBalancerIPs: 192.168.56.200
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+providers:
+  kubernetesIngress:
+    enabled: true
+  kubernetesGateway:
+    enabled: true
+gateway:
+  enabled: false
+gatewayClass:
+  enabled: true
+  name: traefik
