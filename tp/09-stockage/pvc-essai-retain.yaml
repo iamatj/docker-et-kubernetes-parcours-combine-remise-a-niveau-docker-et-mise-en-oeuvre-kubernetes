@@ -1,0 +1,30 @@
+# Étape C : un volume dont les données survivent à la suppression de la demande.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: essai-retain
+  namespace: cordee
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path-retain
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: essai-retain
+  namespace: cordee
+spec:
+  containers:
+    - name: ecrivain
+      image: mirror.gcr.io/library/busybox:1.37
+      command: ["sh", "-c", "date > /donnees/preuve.txt; sleep 3600"]
+      volumeMounts:
+        - name: donnees
+          mountPath: /donnees
+  volumes:
+    - name: donnees
+      persistentVolumeClaim:
+        claimName: essai-retain

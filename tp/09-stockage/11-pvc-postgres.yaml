@@ -1,0 +1,12 @@
+# Étape B : une demande de volume persistant pour la base (tp/09-stockage/README.md).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: donnees-postgres
+  namespace: cordee
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
