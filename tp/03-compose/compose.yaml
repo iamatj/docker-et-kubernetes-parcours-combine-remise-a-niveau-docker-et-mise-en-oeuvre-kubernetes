@@ -1,0 +1,49 @@
+# Squelette de app/compose.yaml (tp/03-compose/README.md, partie C).
+# Copiez-le dans app/compose.yaml, complétez les TODO, puis supprimez le service « a-completer ».
+name: cordee
+
+services:
+  a-completer:
+    image: mirror.gcr.io/library/busybox:1.37
+    command: ["sh", "-c", "echo 'TODO : complétez app/compose.yaml (tp/03-compose/README.md, partie C), puis supprimez ce service'; exit 1"]
+
+  db:
+    image: mirror.gcr.io/library/postgres:17-alpine
+    environment:
+      POSTGRES_DB: cordee
+      POSTGRES_USER: cordee
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-moi}
+    # TODO C3 : un volume nommé « donnees-db » monté sur /var/lib/postgresql/data
+    # TODO C4 : le réseau « arriere »
+    # TODO C2 : un healthcheck avec pg_isready -U cordee -d cordee (interval 5s, timeout 3s, retries 10, start_period 5s)
+
+  api:
+    build:
+      context: ./api
+      args:
+        APP_VERSION: "1.0"
+    image: cordee-api:1.0
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: ${DB_PASSWORD:-change-moi}
+      MESSAGE_ACCUEIL: "Bienvenue sur Cordée (Compose)"
+    # TODO C5 : un tmpfs sur /tmp
+    # TODO C4 : les réseaux « arriere » et « avant »
+    depends_on:
+      - db        # TODO C2 : attendre que db soit « healthy », pas seulement démarrée
+
+  front:
+    build:
+      context: ./front
+      args:
+        APP_VERSION: "1.0"
+    image: cordee-front:1.0
+    ports:
+      - "8080:8080"
+    # TODO C4 : le réseau « avant »
+    depends_on:
+      - api
+    restart: unless-stopped
+
+# TODO C4 : déclarer les réseaux « avant » et « arriere »
+# TODO C3 : déclarer le volume « donnees-db »
