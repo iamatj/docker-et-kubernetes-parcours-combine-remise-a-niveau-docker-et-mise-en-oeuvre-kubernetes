@@ -1,12 +1,13 @@
-# Le mot de passe vient du Secret. Les données sont encore dans un emptyDir (TP 09).
+# PostgreSQL en StatefulSet : un pod au nom stable (postgres-0) et son propre volume persistant.
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: postgres
   namespace: cordee
   labels:
     partie-de: cordee
 spec:
+  serviceName: postgres-headless
   replicas: 1
   selector:
     matchLabels:
@@ -18,6 +19,7 @@ spec:
         tier: donnees
         partie-de: cordee
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: postgres
           image: mirror.gcr.io/library/postgres:17-alpine
@@ -37,6 +39,8 @@ spec:
                 secretKeyRef:
                   name: cordee-db
                   key: DB_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           ports:
             - containerPort: 5432
           readinessProbe:
@@ -46,9 +50,15 @@ spec:
           volumeMounts:
             - name: donnees
               mountPath: /var/lib/postgresql/data
-      volumes:
-        - name: donnees
-          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: donnees
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path-retain
+        resources:
+          requests:
+            storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
@@ -58,6 +68,22 @@ metadata:
   labels:
     partie-de: cordee
 spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+# Service « headless » : pas d'IP virtuelle, un nom DNS par pod (postgres-0.postgres-headless).
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+  namespace: cordee
+  labels:
+    partie-de: cordee
+spec:
+  clusterIP: None
   selector:
     app: postgres
   ports:
