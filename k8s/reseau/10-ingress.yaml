@@ -1,0 +1,25 @@
+# https://cordee.lab : Traefik termine le TLS avec le certificat du Secret cordee-tls
+# (créé au TP 11 avec openssl, il n'est pas dans Git).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cordee
+  namespace: cordee
+  labels:
+    partie-de: cordee
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["cordee.lab"]
+      secretName: cordee-tls
+  rules:
+    - host: cordee.lab
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: front
+                port:
+                  number: 8080
