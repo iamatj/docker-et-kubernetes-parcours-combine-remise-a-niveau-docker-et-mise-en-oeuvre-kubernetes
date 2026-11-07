@@ -3,8 +3,11 @@ kind: Deployment
 metadata:
   name: api
   namespace: cordee
+  labels:
+    partie-de: cordee
   annotations:
-    kubernetes.io/change-cause: "API 1.1 : rolling update sans indisponibilité"
+    kubernetes.io/change-cause: "API 1.1 : configuration externalisée et sondes"
+    cordee.lab/responsable: "Karim Benali"
 spec:
   replicas: 3
   strategy:
@@ -20,19 +23,40 @@ spec:
     metadata:
       labels:
         app: api
+        tier: back
+        partie-de: cordee
     spec:
       containers:
         - name: api
           image: ghcr.io/iamatj/cordee-api:1.1
+          envFrom:
+            - configMapRef:
+                name: cordee-config
+            - secretRef:
+                name: cordee-db
           env:
-            - name: DB_HOST
-              value: postgres
-            - name: DB_PASSWORD
-              value: Neige-2026
-            - name: MESSAGE_ACCUEIL
-              value: "Bienvenue sur Cordée"
+            - name: DELAI_DEMARRAGE
+              value: "5"
           ports:
             - containerPort: 8000
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8000
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            periodSeconds: 5
+            failureThreshold: 3
           resources:
             requests:
               cpu: 50m
@@ -45,6 +69,8 @@ kind: Service
 metadata:
   name: api
   namespace: cordee
+  labels:
+    partie-de: cordee
 spec:
   selector:
     app: api

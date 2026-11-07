@@ -3,8 +3,10 @@ kind: Deployment
 metadata:
   name: front
   namespace: cordee
+  labels:
+    partie-de: cordee
   annotations:
-    kubernetes.io/change-cause: "site 1.0 : stratégie de mise à jour sans indisponibilité"
+    kubernetes.io/change-cause: "site 1.0 : sondes"
 spec:
   replicas: 2
   strategy:
@@ -20,12 +22,24 @@ spec:
     metadata:
       labels:
         app: front
+        tier: front
+        partie-de: cordee
     spec:
       containers:
         - name: front
           image: ghcr.io/iamatj/cordee-front:1.0
           ports:
             - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 10
           resources:
             requests:
               cpu: 20m
@@ -38,6 +52,8 @@ kind: Service
 metadata:
   name: front
   namespace: cordee
+  labels:
+    partie-de: cordee
 spec:
   type: NodePort
   selector:
