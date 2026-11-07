@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cordee-config
+  labels:
+    {{- include "cordee.labels" . | nindent 4 }}
+data:
+  DB_HOST: postgres
+  DB_NAME: {{ .Values.db.nom | quote }}
+  MESSAGE_ACCUEIL: {{ .Values.messageAccueil | quote }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cordee-db
+  labels:
+    {{- include "cordee.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  DB_USER: {{ .Values.db.utilisateur | quote }}
+  DB_PASSWORD: {{ .Values.db.motDePasse | quote }}

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front
+  labels:
+    {{- include "cordee.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.front.replicas }}
+  strategy:
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector:
+    matchLabels:
+      app: front
+  template:
+    metadata:
+      labels:
+        app: front
+        tier: front
+        {{- include "cordee.labels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: front
+          image: {{ include "cordee.image" .Values.front }}
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }
+            limits: { memory: 128Mi }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: front
+  labels:
+    {{- include "cordee.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.front.service.type }}
+  selector:
+    app: front
+  ports:
+    - port: 8080
+      {{- if eq .Values.front.service.type "NodePort" }}
+      nodePort: {{ .Values.front.service.nodePort }}
+      {{- end }}
