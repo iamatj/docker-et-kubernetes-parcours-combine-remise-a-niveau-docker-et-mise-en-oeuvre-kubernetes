@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cordee-config
+  namespace: cordee
+  labels:
+    partie-de: cordee
+data:
+  DB_HOST: postgres
+  DB_NAME: cordee
+  MESSAGE_ACCUEIL: "Ouverture des réservations de Noël !"

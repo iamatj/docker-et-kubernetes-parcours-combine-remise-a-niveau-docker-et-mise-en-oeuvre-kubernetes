@@ -1,0 +1,12 @@
+# Squelette de la ConfigMap (tp/08-configuration/README.md, étape B1). Copiez-le dans k8s/.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cordee-config
+  namespace: cordee
+  labels:
+    partie-de: cordee
+data:
+  DB_HOST: postgres
+  DB_NAME: cordee
+  MESSAGE_ACCUEIL: "TODO : écrivez le message d'ouverture des réservations de Noël"
