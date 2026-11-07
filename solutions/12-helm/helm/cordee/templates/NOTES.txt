@@ -1,0 +1,10 @@
+Cordée {{ .Values.api.image.tag }} est installée dans le namespace {{ .Release.Namespace }} (release {{ .Release.Name }}, révision {{ .Release.Revision }}).
+
+{{- if eq .Values.front.service.type "NodePort" }}
+Site : http://192.168.56.30:{{ .Values.front.service.nodePort }}/
+{{- end }}
+{{- if .Values.ingress.enabled }}
+Site : http://{{ .Values.ingress.host }}/
+{{- end }}
+
+Suivre le démarrage : kubectl -n {{ .Release.Namespace }} get pods -w

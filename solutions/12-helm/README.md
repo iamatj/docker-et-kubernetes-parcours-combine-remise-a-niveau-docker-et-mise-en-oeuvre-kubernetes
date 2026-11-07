@@ -1,0 +1,19 @@
+# Correction du TP 12 – Industrialiser avec Helm
+
+Le chart complet est dans `solutions/12-helm/helm/cordee/` (avec `values-preprod.yaml`). Comparer : `diff -r solutions/12-helm/helm/cordee helm/cordee`. Installer depuis la correction : `helm install cordee solutions/12-helm/helm/cordee -n cordee-preprod --create-namespace -f solutions/12-helm/helm/cordee/values-preprod.yaml --set db.motDePasse=Preprod-2026`.
+
+**1.** Un **chart** est un paquet de modèles de manifests et de valeurs par défaut (un dossier ou une archive `.tgz`). Une **release** est une installation d'un chart dans un namespace, sous un nom, avec des valeurs ; elle a des révisions, une par `install`, `upgrade` ou `rollback`. Un **repository** est un endroit d'où l'on télécharge des charts (un site HTTP avec un `index.yaml`, comme `traefik.github.io/charts`, ou un registre OCI). `get values` montre les valeurs **données** à l'installation (ici le fichier `lab/manifests/valeurs-traefik.yaml`) ; `get values --all` y ajoute les valeurs par défaut du chart. Helm range l'état de chaque révision dans un Secret du namespace (`kubectl -n traefik get secrets -l owner=helm`).
+
+**2.** Du plus faible au plus fort : `values.yaml` du chart, puis chaque fichier `-f` dans l'ordre de la ligne de commande, puis les `--set` (dans l'ordre). La dernière valeur gagne, clé par clé : `values-preprod.yaml` ne redéfinit que ce qui change.
+
+**3.** Un `upgrade` repart des valeurs par défaut du chart et n'applique que ce qu'on lui donne. Sans `-f` ni `--set db.motDePasse`, la préproduction reviendrait au message par défaut, à 2 API, au NodePort 30090, et au mot de passe `change-moi` (que PostgreSQL ignorerait, la base étant déjà initialisée : l'API ne pourrait plus se connecter). `--reuse-values` reprend les valeurs de la révision précédente, mais ignore alors les nouvelles valeurs par défaut d'une nouvelle version du chart. La pratique sûre : des fichiers de valeurs par environnement dans Git, et les secrets injectés par la chaîne de déploiement.
+
+**4.** Oui : le gabarit de l'API porte l'annotation `checksum/configuration`, l'empreinte SHA-256 du fichier `configuration.yaml` rendu. Le message change, l'empreinte change, donc le gabarit de pod change, donc Kubernetes lance une mise à jour progressive. Sans elle, la ConfigMap changerait sans que les pods le voient (TP 08, question 3).
+
+**5.** C'est voulu, et plutôt un bien : un `helm uninstall` par erreur ne détruit pas les données. Pour le supprimer : `kubectl -n cordee-preprod delete pvc donnees-postgres-0` (ou supprimer le namespace, comme à la fin du TP). Avec la StorageClass `local-path` (politique `Delete`), le volume part avec le PVC ; pour garder les données même après la suppression du PVC, il fallait `db.storageClass=local-path-retain`. Kubernetes 1.32 a aussi ajouté au StatefulSet `persistentVolumeClaimRetentionPolicy` (`whenDeleted: Delete`) pour choisir explicitement.
+
+**6.** Pour Cordée, le chart : un seul modèle pour la préproduction, la production et les environnements de test, des différences explicites dans des fichiers de valeurs, un historique et un rollback par release, et un paquet versionné (`version: 0.1.0`). Les manifests de `k8s/` ont servi à apprendre chaque objet ; en production, deux sources de vérité pour la même application finiraient par diverger. Kustomize (intégré à kubectl, `kubectl apply -k`) est l'alternative sans modèles, par surcouches.
+
+**7.** Dans un registre OCI (`ghcr.io`, Docker Hub, Harbor, Azure Container Registry…), à côté des images : `helm push` puis `helm install cordee oci://ghcr.io/<compte>/charts/cordee --version 0.1.0`. Ou dans un dépôt HTTP classique (GitHub Pages avec `chart-releaser`), à déclarer avec `helm repo add`.
+
+**Bonus.** `helm upgrade --install` installe si la release n'existe pas, met à jour sinon. `helm diff upgrade …` (plugin `databus23/helm-diff`) affiche le diff des manifests avant de les appliquer.

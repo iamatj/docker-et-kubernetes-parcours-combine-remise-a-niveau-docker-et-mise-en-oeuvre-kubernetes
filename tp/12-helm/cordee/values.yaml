@@ -1,0 +1,31 @@
+# Valeurs par défaut : un environnement de démonstration. Surchargez-les avec -f values-<env>.yaml ou --set.
+
+messageAccueil: "Bienvenue sur Cordée"
+
+db:
+  nom: cordee
+  utilisateur: cordee
+  # À fournir à l'installation : --set db.motDePasse=… (jamais dans Git).
+  motDePasse: change-moi
+  image: mirror.gcr.io/library/postgres:17-alpine
+  stockage: 1Gi
+  storageClass: local-path
+
+api:
+  image:
+    repository: ghcr.io/iamatj/cordee-api
+    tag: "1.0"
+  replicas: 2
+
+front:
+  image:
+    repository: ghcr.io/iamatj/cordee-front
+    tag: "1.0"
+  replicas: 1
+  service:
+    type: NodePort
+    nodePort: 30090
+
+ingress:
+  enabled: false
+  host: cordee.lab
