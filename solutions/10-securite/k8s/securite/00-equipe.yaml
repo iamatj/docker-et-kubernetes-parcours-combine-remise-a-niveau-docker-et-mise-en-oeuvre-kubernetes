@@ -1,0 +1,24 @@
+# Les identités de l'équipe Cordée. Dans un vrai cluster, ce seraient des utilisateurs
+# d'un annuaire (OIDC) ; ici, des ServiceAccounts dont on tire des jetons.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: equipe
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: karim
+  namespace: equipe
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sophie
+  namespace: equipe
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lea
+  namespace: equipe

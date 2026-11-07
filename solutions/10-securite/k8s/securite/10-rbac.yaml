@@ -1,0 +1,80 @@
+# Développeur : lit tout dans cordee, suit les logs, relance une livraison ; ne voit pas les Secrets,
+# ne supprime rien.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: developpeur
+  namespace: cordee
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "endpoints", "configmaps", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: developpeur-karim
+  namespace: cordee
+subjects:
+  - kind: ServiceAccount
+    name: karim
+    namespace: equipe
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: developpeur
+---
+# Opérateur : voit tout le cluster, redémarre des pods, ajuste le nombre de replicas, vide un nœud ;
+# ne modifie ni les droits ni les Secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operateur
+rules:
+  - apiGroups: ["", "apps", "batch", "networking.k8s.io", "storage.k8s.io"]
+    resources: ["pods", "pods/log", "services", "endpoints", "configmaps", "events", "namespaces",
+                "nodes", "persistentvolumes", "persistentvolumeclaims", "deployments", "replicasets",
+                "statefulsets", "daemonsets", "jobs", "ingresses", "networkpolicies", "storageclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale", "statefulsets/scale"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["patch"]
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: operateur-sophie
+subjects:
+  - kind: ServiceAccount
+    name: sophie
+    namespace: equipe
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: operateur
+---
+# Administratrice : tous les droits (rôle prédéfini cluster-admin). À réserver à très peu de comptes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-lea
+subjects:
+  - kind: ServiceAccount
+    name: lea
+    namespace: equipe
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
