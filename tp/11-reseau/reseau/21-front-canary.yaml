@@ -1,0 +1,68 @@
+# La version 1.1 du site, en un seul exemplaire, pour la tester sur une partie du trafic.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-canary
+  namespace: cordee
+  labels:
+    partie-de: cordee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: front-canary
+  template:
+    metadata:
+      labels:
+        app: front-canary
+        tier: front
+        partie-de: cordee
+    spec:
+      serviceAccountName: front
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: front
+          image: ghcr.io/iamatj/cordee-front:1.1
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-canary
+  namespace: cordee
+  labels:
+    partie-de: cordee
+spec:
+  selector:
+    app: front-canary
+  ports:
+    - port: 8080
+      targetPort: 8080

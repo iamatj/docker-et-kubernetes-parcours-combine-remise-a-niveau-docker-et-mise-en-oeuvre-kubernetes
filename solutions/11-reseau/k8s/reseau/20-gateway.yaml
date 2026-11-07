@@ -1,0 +1,17 @@
+# Une Gateway (le « point d'entrée », gérée par l'équipe plateforme) dans le namespace cordee.
+# Le port 8000 est celui de l'entrée « web » de Traefik : le Service Traefik le publie sur le port 80.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: cordee
+  namespace: cordee
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 8000
+      hostname: beta.cordee.lab
+      allowedRoutes:
+        namespaces:
+          from: Same
