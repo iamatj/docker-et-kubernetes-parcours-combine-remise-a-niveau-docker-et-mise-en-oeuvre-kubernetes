@@ -1,0 +1,31 @@
+# Squelette du site (tp/06-deploiement/README.md, étape 5). Écrivez les parties « TODO »,
+# puis copiez le fichier dans k8s/.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front
+  namespace: cordee
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: front
+  template:
+    metadata:
+      labels:
+        app: front
+    spec:
+      containers:
+        - name: front
+          image: TODO-image-du-site       # ghcr.io/iamatj/cordee-front, version 1.0
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+---
+# TODO : un Service « front » de type NodePort, qui sélectionne les pods app=front,
+#        port 8080 vers le port 8080 des pods, et nodePort 30080.

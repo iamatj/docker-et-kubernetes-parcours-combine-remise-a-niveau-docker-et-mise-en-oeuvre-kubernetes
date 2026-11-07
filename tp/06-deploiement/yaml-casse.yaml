@@ -1,0 +1,20 @@
+# Ce fichier contient 4 erreurs de YAML ou de schéma. Trouvez-les avec :
+#   kubectl apply --dry-run=server -f tp/06-deploiement/yaml-casse.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: essai-yaml
+  namespace: cordee
+  labels:
+    app: essai
+spec:
+  containers:
+  - name: essai
+     image: ghcr.io/nginx/nginx-unprivileged:1.28-alpine
+    ports:
+      - containerPort: "8080"
+    env:
+      - name: MODE
+        value: yes
+      - name: NIVEAU
+        value: 3

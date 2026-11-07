@@ -1,0 +1,47 @@
+# Fourni par Karim : la base de Cordée. Deux défauts volontaires, traités plus tard :
+# le mot de passe est en clair (TP 08) et les données sont dans un emptyDir (TP 09).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: cordee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: mirror.gcr.io/library/postgres:17-alpine
+          env:
+            - name: POSTGRES_DB
+              value: cordee
+            - name: POSTGRES_USER
+              value: cordee
+            - name: POSTGRES_PASSWORD
+              value: Neige-2026
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: donnees
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: donnees
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: cordee
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
