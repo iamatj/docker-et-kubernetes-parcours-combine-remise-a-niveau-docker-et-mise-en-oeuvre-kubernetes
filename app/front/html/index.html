@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cordée · Réservez votre nuit en refuge</title>
+<style>
+  :root { --nuit:#1F2A44; --neige:#F4F6F8; --roche:#5B6676; --lichen:#7FB069; --balise:#E4572E; --carte:#FFFFFF; }
+  body.v11 { --lichen:#3E8EDE; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--neige); color:var(--nuit); }
+  header { background:var(--nuit); color:var(--neige); padding:20px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  header h1 { margin:0; font-size:26px; letter-spacing:.5px; }
+  header h1 span { color:var(--lichen); }
+  #bandeau { background:var(--lichen); color:#fff; padding:10px 24px; font-weight:600; }
+  main { max-width:960px; margin:0 auto; padding:24px 16px; display:grid; gap:24px; }
+  .grille { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; }
+  .refuge { background:var(--carte); border-radius:10px; padding:16px; border-left:6px solid var(--lichen); }
+  .refuge h3 { margin:0 0 6px; font-size:17px; }
+  .refuge p { margin:2px 0; color:var(--roche); font-size:14px; }
+  form, .liste { background:var(--carte); border-radius:10px; padding:16px; }
+  form { display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); align-items:end; }
+  label { font-size:13px; color:var(--roche); display:grid; gap:4px; }
+  input, select, button { font:inherit; padding:8px; border:1px solid #C9CFD6; border-radius:6px; }
+  button { background:var(--balise); color:#fff; border:0; cursor:pointer; font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  td, th { text-align:left; padding:6px; border-bottom:1px solid #E3E7EB; }
+  footer { text-align:center; color:var(--roche); font-size:12px; padding:16px; }
+  .erreur { color:var(--balise); font-weight:600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Cor<span>dée</span></h1>
+  <div>Réservez votre nuit en refuge</div>
+</header>
+<div id="bandeau">Chargement…</div>
+<main>
+  <section>
+    <h2>Les refuges</h2>
+    <div class="grille" id="refuges"></div>
+  </section>
+  <section>
+    <h2>Réserver</h2>
+    <form id="formulaire">
+      <label>Refuge <select id="refuge" required></select></label>
+      <label>Votre nom <input id="nom" required maxlength="80"></label>
+      <label>Nuit du <input id="nuit" type="date" required></label>
+      <label>Personnes <input id="personnes" type="number" min="1" max="12" value="2" required></label>
+      <button type="submit">Réserver</button>
+    </form>
+    <p id="resultat"></p>
+  </section>
+  <section class="liste">
+    <h2>Dernières réservations</h2>
+    <table><thead><tr><th>N°</th><th>Refuge</th><th>Nom</th><th>Nuit</th><th>Pers.</th></tr></thead><tbody id="reservations"></tbody></table>
+  </section>
+</main>
+<footer id="pied">Cordée</footer>
+<script>
+const esc = (t) => String(t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function json(url, options) {
+  const r = await fetch(url, options);
+  if (!r.ok) throw new Error(url + " : HTTP " + r.status);
+  return r.json();
+}
+async function charger() {
+  let versionFront = "?";
+  try { versionFront = (await (await fetch("/version.txt")).text()).trim(); } catch (e) {}
+  if (versionFront.startsWith("1.1")) document.body.classList.add("v11");
+  try {
+    const info = await json("/api/info");
+    document.getElementById("bandeau").textContent = info.message;
+    document.getElementById("pied").textContent =
+      "Cordée · site " + versionFront + " · API " + info.version + " · servi par " + info.hote;
+  } catch (e) {
+    document.getElementById("bandeau").innerHTML = '<span>API injoignable</span>';
+    document.getElementById("pied").textContent = "Cordée · site " + versionFront + " · " + e.message;
+    return;
+  }
+  const refuges = await json("/api/refuges");
+  document.getElementById("refuges").innerHTML = refuges.map(r =>
+    `<div class="refuge"><h3>${r.nom}</h3><p>${r.massif} · ${r.altitude} m</p>` +
+    `<p>${r.reservees} / ${r.places} places réservées</p></div>`).join("");
+  document.getElementById("refuge").innerHTML = refuges.map(r => `<option value="${r.id}">${r.nom}</option>`).join("");
+  const resas = await json("/api/reservations");
+  document.getElementById("reservations").innerHTML = resas.map(b =>
+    `<tr><td>${b.id}</td><td>${b.refuge}</td><td>${esc(b.nom)}</td><td>${b.nuit}</td><td>${b.personnes}</td></tr>`).join("");
+}
+document.getElementById("formulaire").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const sortie = document.getElementById("resultat");
+  try {
+    const r = await json("/api/reservations", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        refuge_id: Number(document.getElementById("refuge").value),
+        nom: document.getElementById("nom").value,
+        nuit: document.getElementById("nuit").value,
+        personnes: Number(document.getElementById("personnes").value),
+      }),
+    });
+    sortie.className = ""; sortie.textContent = "Réservation n° " + r.id + " enregistrée.";
+    charger();
+  } catch (e) { sortie.className = "erreur"; sortie.textContent = "Échec : " + e.message; }
+});
+charger();
+</script>
+</body>
+</html>
