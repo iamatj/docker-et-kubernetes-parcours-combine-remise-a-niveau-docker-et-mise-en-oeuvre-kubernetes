@@ -1,0 +1,124 @@
+{
+  "title": "Docker et Kubernetes · Cordée",
+  "order": [
+    "cover",
+    "entreprise",
+    "personnages",
+    "principe",
+    "programme",
+    "branches",
+    "lab",
+    "j1-debut",
+    "c1-incident",
+    "c1-solution",
+    "c1-conteneur-vm",
+    "c1-architecture",
+    "c1-tp",
+    "c2-incident",
+    "c2-solution",
+    "c2-images",
+    "c2-run",
+    "c2-tp",
+    "pause-j1-matin",
+    "c3-incident",
+    "c3-solution",
+    "c3-instructions",
+    "c3-multistage",
+    "c3-tp",
+    "dejeuner-j1",
+    "c4-incident",
+    "c4-solution",
+    "c4-volumes-reseaux",
+    "c4-compose",
+    "c4-tp",
+    "pause-j1-aprem",
+    "c5-incident",
+    "c5-orchestration",
+    "c5-tp",
+    "qcm-j1",
+    "fin-j1",
+    "j2-debut",
+    "c6-incident",
+    "c6-architecture",
+    "c6-objets",
+    "c6-tp",
+    "pause-j2-matin",
+    "c7-incident",
+    "c7-solution",
+    "c7-yaml",
+    "c7-services",
+    "c7-tp",
+    "dejeuner-j2",
+    "c7b-incident",
+    "c7b-rolling",
+    "c7b-tp",
+    "c8-incident",
+    "c8-config",
+    "c8-sondes",
+    "pause-j2-aprem",
+    "c8-tp",
+    "qcm-j2",
+    "fin-j2",
+    "j3-debut",
+    "c9-incident",
+    "c9-stockage",
+    "c9-tp",
+    "c10-incident",
+    "c10-rbac",
+    "c10-reseau-durcissement",
+    "pause-j3-matin",
+    "c10-tp",
+    "dejeuner-j3",
+    "c11-incident",
+    "c11-ingress",
+    "c11-tp",
+    "c12-incident",
+    "c12-helm",
+    "pause-j3-aprem",
+    "c12-tp",
+    "epilogue",
+    "qcm-j3",
+    "fin"
+  ],
+  "sections": [
+    {
+      "title": "Introduction",
+      "description": "Cordée, le programme, le lab",
+      "start": 0
+    },
+    {
+      "title": "Jour 1 · Docker",
+      "description": "Remise à niveau Docker",
+      "start": 7
+    },
+    {
+      "title": "Jour 2 · Kubernetes",
+      "description": "Fondamentaux et exploitation",
+      "start": 36
+    },
+    {
+      "title": "Jour 3 · Production",
+      "description": "Stockage, sécurité, réseau et Helm",
+      "start": 58
+    },
+    {
+      "title": "Clôture",
+      "description": "QCM, synthèse, évaluation",
+      "start": 75
+    }
+  ],
+  "faces": {
+    "titre": {
+      "family": "Fraunces",
+      "href": "https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700&display=swap"
+    },
+    "texte": {
+      "family": "DM Sans",
+      "href": "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap"
+    },
+    "code": {
+      "family": "JetBrains Mono",
+      "href": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+    }
+  }
+}

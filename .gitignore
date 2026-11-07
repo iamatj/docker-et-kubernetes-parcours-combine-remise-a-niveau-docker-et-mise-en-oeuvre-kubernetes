@@ -1,0 +1,10 @@
+# Secrets locaux, jamais dans Git
+.env
+*.key
+tls/
+# Python
+__pycache__/
+*.pyc
+.venv/
+# Helm
+*.tgz

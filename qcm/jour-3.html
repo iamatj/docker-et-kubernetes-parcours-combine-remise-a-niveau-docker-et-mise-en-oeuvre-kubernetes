@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QCM du jour 3 – Production</title>
+<style>
+  :root {
+    --fond: #F4F6F8;
+    --carte: #ffffff;
+    --texte: #1b2631;
+    --secondaire: #4a5a6a;
+    --accent: #E4572E;
+    --sombre: #1F2A44;
+    --bon: #2a9d8f;
+    --faux: #c0392b;
+    --bord: #ded6c8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 17px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { background: var(--sombre); color: #fff; padding: 28px 16px; }
+  header > div, main, .actions, #score { max-width: 860px; margin: 0 auto; }
+  .surtitre { margin: 0; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+  h1 { margin: 6px 0 8px; font-size: 30px; line-height: 1.2; }
+  header p.consigne { margin: 0; color: #d7dee6; }
+  main { padding: 24px 16px 8px; display: grid; gap: 16px; }
+  .question { background: var(--carte); border: 1px solid var(--bord); border-radius: 12px; padding: 18px 20px; }
+  .question h2 { margin: 0 0 4px; font-size: 18px; line-height: 1.4; }
+  .question .num { color: var(--accent); margin-right: 6px; }
+  .question .plusieurs { margin: 0 0 8px; font-size: 14px; color: var(--secondaire); }
+  label.choix { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; }
+  label.choix:hover { background: #f4efe6; }
+  label.choix input { margin-top: 5px; flex: none; }
+  code { font: 15px/1.4 ui-monospace, Consolas, monospace; background: #f1ece3; padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  .corrige label.choix { cursor: default; }
+  .corrige label.choix:hover { background: none; }
+  label.choix.attendue { background: #e3f2ef; font-weight: 600; }
+  label.choix.erreur { background: #fbe9e7; text-decoration: line-through; }
+  .question.juste { border-left: 6px solid var(--bon); }
+  .question.fausse { border-left: 6px solid var(--faux); }
+  .verdict { font-weight: 700; margin: 10px 0 4px; }
+  .juste .verdict { color: var(--bon); }
+  .fausse .verdict { color: var(--faux); }
+  .explication { margin: 0; color: var(--secondaire); }
+  .actions { padding: 8px 16px 0; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  button { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer; background: var(--accent); color: #fff; }
+  button.secondaire { background: var(--sombre); }
+  #rappel { color: var(--faux); margin: 0; }
+  #score { margin: 20px auto 48px; padding: 20px 16px; background: var(--sombre); color: #fff; border-radius: 14px; text-align: center; }
+  #score .note { font-size: 44px; font-weight: 800; margin: 0; }
+  #score p { margin: 6px 0 0; }
+</style>
+</head>
+<body>
+<header><div>
+  <p class="surtitre">Docker et Kubernetes · Cordée · Jour 3</p>
+  <h1>QCM du jour 3 – Production</h1>
+  <p class="consigne">Une seule bonne réponse par question, sauf mention contraire. Le score et les explications s'affichent quand vous validez.</p>
+</div></header>
+<main id="qcm"></main>
+<div class="actions">
+  <button id="valider" type="button">Valider mes réponses</button>
+  <button id="recommencer" class="secondaire" type="button" hidden>Recommencer</button>
+  <p id="rappel" hidden></p>
+</div>
+<section id="score" hidden aria-live="polite"></section>
+<script>
+  // Les questions sont encodées pour ne pas lire les réponses d'un coup d'œil dans la source.
+  const DONNEES = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob("eyJxdWVzdGlvbnMiOiBbeyJxIjogIlBvdXJxdW9pIGxhIGJhc2UgZGUgQ29yZMOpZSBwZXJkYWl0LWVsbGUgc2VzIHLDqXNlcnZhdGlvbnMgcXVhbmQgc29uIHBvZCDDqXRhaXQgcmVjcsOpw6kgPyIsICJjaG9peCI6IFsic2VzIGRvbm7DqWVzIMOpdGFpZW50IGRhbnMgdW4gYGVtcHR5RGlyYCwgc3VwcHJpbcOpIGF2ZWMgbGUgcG9kIiwgImwnQVBJIGVmZmHDp2FpdCBsZXMgdGFibGVzIiwgImxlIFBWQyDDqXRhaXQgZW4gYFJldGFpbmAiLCAibGUgU3RhdGVmdWxTZXQgY2hhbmdlYWl0IGRlIG5vbSJdLCAiYm9ubmVzIjogWzBdLCAiZXhwbGljYXRpb24iOiAiVW4gYGVtcHR5RGlyYCBzdXJ2aXQgYXUgcmVkw6ltYXJyYWdlIGQndW4gY29udGVuZXVyLCBwYXMgw6AgbGEgZGlzcGFyaXRpb24gZHUgcG9kIChUUCAwOSwgcXVlc3Rpb24gMSkuIn0sIHsicSI6ICJPbiBzdXBwcmltZSB1biBQVkMgZG9udCBsYSBTdG9yYWdlQ2xhc3MgYSBgcmVjbGFpbVBvbGljeTogUmV0YWluYC4gUXVlIGRldmllbnQgbGUgUFYgPyIsICJjaG9peCI6IFsiaWwgZXN0IHN1cHByaW3DqSBhdmVjIHNlcyBkb25uw6llcyIsICJpbCBwYXNzZSDDoCBgUmVsZWFzZWRgIGV0IGdhcmRlIHNlcyBkb25uw6llcyIsICJpbCBlc3QgcsOpdXRpbGlzw6kgcGFyIGxlIHByb2NoYWluIFBWQyIsICJpbCBwYXNzZSDDoCBgQXZhaWxhYmxlYCJdLCAiYm9ubmVzIjogWzFdLCAiZXhwbGljYXRpb24iOiAiTGVzIGRvbm7DqWVzIHJlc3RlbnQsIG1haXMgbGUgdm9sdW1lIG4nZXN0IHBsdXMgcsOpdXRpbGlzw6kgYXV0b21hdGlxdWVtZW50IDogaWwgZmF1dCBsZSBuZXR0b3llciDDoCBsYSBtYWluIChUUCAwOSwgcGFydGllIEMpLiJ9LCB7InEiOiAiUXUnYXBwb3J0ZSB1biBTdGF0ZWZ1bFNldCDDoCBQb3N0Z3JlU1FMIHBhciByYXBwb3J0IMOgIHVuIERlcGxveW1lbnQgYXZlYyB1biBQVkMgPyIsICJjaG9peCI6IFsidW4gbm9tIGRlIHBvZCBzdGFibGUgKGBwb3N0Z3Jlcy0wYCkiLCAidW4gdm9sdW1lIHBhciBwb2QsIGNyw6nDqSBwYXIgYHZvbHVtZUNsYWltVGVtcGxhdGVzYCIsICJsYSByw6lwbGljYXRpb24gZGUgbGEgYmFzZSIsICJ1biBub20gRE5TIHBhciBwb2QgdmlhIHVuIFNlcnZpY2UgaGVhZGxlc3MiXSwgImJvbm5lcyI6IFswLCAxLCAzXSwgImV4cGxpY2F0aW9uIjogIkxhIHLDqXBsaWNhdGlvbiBkZW1hbmRlIHVuZSBjb25maWd1cmF0aW9uIGRlIGxhIGJhc2UgZWxsZS1tw6ptZSAob3DDqXJhdGV1ciBvdSBzZXJ2aWNlIG1hbmFnw6kpIDogYC0tcmVwbGljYXM9M2AgZmVyYWl0IHRyb2lzIGJhc2VzIGluZMOpcGVuZGFudGVzIChUUCAwOSwgcXVlc3Rpb24gNykuIn0sIHsicSI6ICJLYXJpbSBhIGxlIFJvbGUgYGRldmVsb3BwZXVyYCBkYW5zIGBjb3JkZWVgLiBRdWUgcGV1dC1pbCBmYWlyZSA/IiwgImNob2l4IjogWyJsaXJlIGxlcyBsb2dzIGRlcyBwb2RzIiwgInJlbGFuY2VyIHVuZSBsaXZyYWlzb24gKGByb2xsb3V0IHJlc3RhcnRgKSIsICJsaXJlIGxlIFNlY3JldCBgY29yZGVlLWRiYCIsICJzdXBwcmltZXIgbGUgRGVwbG95bWVudCBgYXBpYCJdLCAiYm9ubmVzIjogWzAsIDFdLCAiZXhwbGljYXRpb24iOiAiTGUgUm9sZSBkb25uZSBgZ2V0YCwgYGxpc3RgLCBgd2F0Y2hgIHN1ciBsZXMgcG9kcyBldCBsZXVycyBsb2dzLCBldCBgcGF0Y2hgIHN1ciBsZXMgRGVwbG95bWVudHMgOyBuaSBTZWNyZXRzIG5pIGBkZWxldGVgIChUUCAxMCwgdGFibGVhdSBBMykuIn0sIHsicSI6ICJQb3VycXVvaSB0ZXN0ZS10LW9uIGxlcyBkcm9pdHMgZGUgS2FyaW0gYXZlYyB1biBjb250ZXh0ZSBga2FyaW1gIHBsdXTDtHQgcXUnYXZlYyBgLS10b2tlbmAgc3VyIGxlIGNvbnRleHRlIGQnYWRtaW5pc3RyYXRpb24gPyIsICJjaG9peCI6IFsiYC0tdG9rZW5gIGVzdCBpbnRlcmRpdCBwYXIga3ViZWFkbSIsICJsZSBjZXJ0aWZpY2F0IGQnYWRtaW5pc3RyYXRldXIgZHUga3ViZWNvbmZpZyBzZXJhaXQgdXRpbGlzw6kgZW4gcHJlbWllciIsICJ1biBqZXRvbiBuZSBmb25jdGlvbm5lIHF1J2F2ZWMgSGVhZGxhbXAiLCAibGUgY29udGV4dGUgZXN0IHBsdXMgcmFwaWRlIl0sICJib25uZXMiOiBbMV0sICJleHBsaWNhdGlvbiI6ICJBdmVjIGxlIGNlcnRpZmljYXQgY2xpZW50IHByw6lzZW50LCBvbiBzZXJhaXQgYXV0aGVudGlmacOpIGNvbW1lIGFkbWluaXN0cmF0ZXVyIGV0IG9uIHRlc3RlcmFpdCBsZXMgbWF1dmFpcyBkcm9pdHMgKFRQIDEwLCBwYXJ0aWUgQTQpLiJ9LCB7InEiOiAiSnVzdGUgYXByw6hzIGF2b2lyIGFwcGxpcXXDqSBgcmVmdXMtcGFyLWRlZmF1dGAgZXQgYGZyb250LW91dmVydGAsIGxlIHNpdGUgcsOpcG9uZCA1MDIgb3UgNTA0LiBQb3VycXVvaSA/IiwgImNob2l4IjogWyJsZSBzaXRlIG5lIHBldXQgcGx1cyBqb2luZHJlIGwnQVBJIiwgIlRyYWVmaWsgZXN0IGJsb3F1w6kiLCAibGVzIHNvbmRlcyBkdSBrdWJlbGV0IHNvbnQgYmxvcXXDqWVzIiwgIkNvcmVETlMgbmUgcsOpcG9uZCBwbHVzIl0sICJib25uZXMiOiBbMF0sICJleHBsaWNhdGlvbiI6ICJQbHVzIHJpZW4gbidlbnRyZSBkYW5zIGxlcyBwb2RzIGRlIGwnQVBJIHRhbnQgcXVlIGBhcGktZGVwdWlzLWZyb250YCBuJ2V4aXN0ZSBwYXMuIExlcyBzb25kZXMgZHUgbsWTdWQsIGVsbGVzLCByZXN0ZW50IHBlcm1pc2VzIChUUCAxMCwgcGFydGllcyBDMiBldCBDMykuIn0sIHsicSI6ICJQb3VycXVvaSBsJ0FQSSBhLXQtZWxsZSBiZXNvaW4gZCd1biBgZW1wdHlEaXJgIHN1ciBgL3RtcGAgYXZlYyBgcmVhZE9ubHlSb290RmlsZXN5c3RlbTogdHJ1ZWAgPyIsICJjaG9peCI6IFsiZ3VuaWNvcm4gZG9pdCDDqWNyaXJlIGRlcyBmaWNoaWVycyBkZSB0cmF2YWlsIiwgInBvdXIgc3RvY2tlciBsYSBiYXNlIiwgInBvdXIgbGVzIGxvZ3MgSlNPTiIsICJLdWJlcm5ldGVzIGwnZXhpZ2UgcG91ciB0b3V0IFNlY3VyaXR5Q29udGV4dCJdLCAiYm9ubmVzIjogWzBdLCAiZXhwbGljYXRpb24iOiAiTGUgc3lzdMOobWUgZGUgZmljaGllcnMgZGUgbCdpbWFnZSBkZXZpZW50IGVuIGxlY3R1cmUgc2V1bGUgOyBjZSBxdWkgZG9pdCDDqnRyZSDDqWNyaXQgdmEgZGFucyB1biB2b2x1bWUgdGVtcG9yYWlyZSAoVFAgMTAsIHF1ZXN0aW9uIDYpLiJ9LCB7InEiOiAiUXVlbGxlcyBzb250IGRlcyBsaW1pdGVzIGRlIGwnQVBJIEluZ3Jlc3MgPyIsICJjaG9peCI6IFsicGFzIGRlIHLDqXBhcnRpdGlvbiBwb25kw6lyw6llICg5MCAvIDEwKSBlbiBzdGFuZGFyZCIsICJwYXMgZGUgVExTIiwgImJlYXVjb3VwIGRlIHLDqWdsYWdlcyBwYXNzZW50IHBhciBkZXMgYW5ub3RhdGlvbnMgcHJvcHJlcyDDoCBjaGFxdWUgY29udHLDtGxldXIiLCAidW4gc2V1bCBub20gZCdow7R0ZSBwYXIgY2x1c3RlciJdLCAiYm9ubmVzIjogWzAsIDJdLCAiZXhwbGljYXRpb24iOiAiSW5ncmVzcyBnw6hyZSBiaWVuIFRMUyBldCBwbHVzaWV1cnMgaMO0dGVzIDsgY2Ugc29udCBsZXMgcG9pZHMsIGxlcyBlbi10w6p0ZXMgZXQgbGEgcG9ydGFiaWxpdMOpIHF1aSBtYW5xdWVudC4gR2F0ZXdheSBBUEkgcsOpcG9uZCDDoCBjZXMgbGltaXRlcyAoVFAgMTEsIHF1ZXN0aW9uIDQpLiJ9LCB7InEiOiAiRGFucyBHYXRld2F5IEFQSSwgcXVpIGfDqHJlIHF1b2kgPyIsICJjaG9peCI6IFsibGEgYEdhdGV3YXlDbGFzc2AgOiBsZSBmb3Vybmlzc2V1ciBkdSBjb250csO0bGV1ciIsICJsYSBgR2F0ZXdheWAgOiBsJ8OpcXVpcGUgcGxhdGVmb3JtZSAocG9ydHMsIG5vbXMpIiwgImwnYEhUVFBSb3V0ZWAgOiBsJ8OpcXVpcGUgYXBwbGljYXRpdmUgKHLDqGdsZXMgdmVycyBzZXMgU2VydmljZXMpIiwgImwnYEhUVFBSb3V0ZWAgOiBsZSBmb3Vybmlzc2V1ciBkdSBjbG91ZCJdLCAiYm9ubmVzIjogWzAsIDEsIDJdLCAiZXhwbGljYXRpb24iOiAiVHJvaXMgb2JqZXRzLCB0cm9pcyByw7RsZXMgOiBjJ2VzdCB1bmUgZGVzIGRpZmbDqXJlbmNlcyBtYWpldXJlcyBhdmVjIEluZ3Jlc3MgKFRQIDExLCBwYXJ0aWUgQzEpLiJ9LCB7InEiOiAiRGFucyBxdWVsIG9yZHJlIEhlbG0gY29tYmluZS10LWlsIGxlcyB2YWxldXJzIChkZSBsYSBwbHVzIGZhaWJsZSDDoCBsYSBwbHVzIGZvcnRlKSA/IiwgImNob2l4IjogWyJgLS1zZXRgLCBwdWlzIGAtZmAsIHB1aXMgYHZhbHVlcy55YW1sYCIsICJgdmFsdWVzLnlhbWxgLCBwdWlzIGAtZmAsIHB1aXMgYC0tc2V0YCIsICJgLWZgLCBwdWlzIGB2YWx1ZXMueWFtbGAsIHB1aXMgYC0tc2V0YCIsICJzZXVsIGxlIGRlcm5pZXIgZmljaGllciBjb21wdGUiXSwgImJvbm5lcyI6IFsxXSwgImV4cGxpY2F0aW9uIjogIkxhIGRlcm5pw6hyZSB2YWxldXIgZ2FnbmUsIGNsw6kgcGFyIGNsw6kgOiBgdmFsdWVzLXByZXByb2QueWFtbGAgbmUgcmVkw6lmaW5pdCBxdWUgY2UgcXVpIGNoYW5nZSAoVFAgMTIsIHF1ZXN0aW9uIDIpLiJ9XX0="), c => c.charCodeAt(0))));
+  const $ = id => document.getElementById(id);
+  const echapper = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  // `code` entre accents graves
+  const enrichir = s => echapper(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+
+  function afficher() {
+    $("qcm").innerHTML = DONNEES.questions.map((q, i) => {
+      const multiple = q.bonnes.length > 1;
+      const type = multiple ? "checkbox" : "radio";
+      return `<section class="question" id="q${i}">
+        <h2><span class="num">${i + 1}.</span>${enrichir(q.q)}</h2>
+        ${multiple ? `<p class="plusieurs">Plusieurs réponses attendues (${q.bonnes.length}).</p>` : ""}
+        ${q.choix.map((c, j) => `<label class="choix" id="q${i}c${j}"><input type="${type}" name="q${i}" value="${j}"> <span>${enrichir(c)}</span></label>`).join("")}
+        <div class="retour"></div>
+      </section>`;
+    }).join("");
+  }
+
+  function reponses(i) {
+    return [...document.querySelectorAll(`input[name="q${i}"]:checked`)].map(e => Number(e.value));
+  }
+
+  function valider() {
+    const vides = DONNEES.questions.filter((_, i) => reponses(i).length === 0).length;
+    if (vides && $("rappel").dataset.vu !== "1") {
+      $("rappel").textContent = `${vides} question(s) sans réponse. Cliquez de nouveau pour valider quand même.`;
+      $("rappel").hidden = false;
+      $("rappel").dataset.vu = "1";
+      return;
+    }
+    let total = 0;
+    DONNEES.questions.forEach((q, i) => {
+      const r = reponses(i).sort().join(",");
+      const juste = r === [...q.bonnes].sort().join(",");
+      if (juste) total++;
+      const bloc = $(`q${i}`);
+      bloc.classList.add("corrige", juste ? "juste" : "fausse");
+      q.choix.forEach((_, j) => {
+        const l = $(`q${i}c${j}`);
+        l.querySelector("input").disabled = true;
+        if (q.bonnes.includes(j)) l.classList.add("attendue");
+        else if (l.querySelector("input").checked) l.classList.add("erreur");
+      });
+      bloc.querySelector(".retour").innerHTML =
+        `<p class="verdict">${juste ? "Bonne réponse" : (r ? "Réponse incorrecte" : "Pas de réponse")}</p>` +
+        `<p class="explication">${enrichir(q.explication)}</p>`;
+    });
+    const n = DONNEES.questions.length;
+    const message = total === n ? "Parfait !" : total >= Math.ceil(n * 0.7) ? "Bien joué : relisez les explications des questions manquées."
+      : "Relisez les explications : on reprend ces points ensemble.";
+    $("score").innerHTML = `<p class="note">${total} / ${n}</p><p>${message}</p>`;
+    $("score").hidden = false;
+    $("rappel").hidden = true;
+    $("valider").hidden = true;
+    $("recommencer").hidden = false;
+    $("score").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function recommencer() {
+    afficher();
+    $("score").hidden = true;
+    $("valider").hidden = false;
+    $("recommencer").hidden = true;
+    $("rappel").dataset.vu = "";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  $("valider").addEventListener("click", valider);
+  $("recommencer").addEventListener("click", recommencer);
+  afficher();
+</script>
+</body>
+</html>

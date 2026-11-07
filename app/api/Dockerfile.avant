@@ -1,0 +1,8 @@
+# Dockerfile historique de Cordée : il fonctionne, mais il est lourd, lent à reconstruire et tourne en root.
+FROM mirror.gcr.io/library/python:3.13
+WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt
+ENV APP_VERSION=1.0
+EXPOSE 8000
+CMD gunicorn --bind 0.0.0.0:8000 --workers 2 --preload app:app
