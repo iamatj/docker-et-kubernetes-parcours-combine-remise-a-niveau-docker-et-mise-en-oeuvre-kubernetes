@@ -3,8 +3,16 @@ kind: Deployment
 metadata:
   name: api
   namespace: cordee
+  annotations:
+    kubernetes.io/change-cause: "API 1.1 : rolling update sans indisponibilité"
 spec:
   replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 5
   selector:
     matchLabels:
       app: api
@@ -15,7 +23,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: ghcr.io/iamatj/cordee-api:1.0
+          image: ghcr.io/iamatj/cordee-api:1.1
           env:
             - name: DB_HOST
               value: postgres

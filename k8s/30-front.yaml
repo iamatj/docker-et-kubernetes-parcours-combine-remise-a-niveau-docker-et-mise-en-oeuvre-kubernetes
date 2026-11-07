@@ -3,8 +3,16 @@ kind: Deployment
 metadata:
   name: front
   namespace: cordee
+  annotations:
+    kubernetes.io/change-cause: "site 1.0 : stratégie de mise à jour sans indisponibilité"
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 5
   selector:
     matchLabels:
       app: front
