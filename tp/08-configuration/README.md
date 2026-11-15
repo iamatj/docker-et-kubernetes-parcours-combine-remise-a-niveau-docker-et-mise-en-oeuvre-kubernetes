@@ -274,6 +274,8 @@ kubectl -n diagnostic get pods
 
 Quatre applications sont en panne : `billetterie`, `meteo`, `vitrine`, `statistiques`. Pour chacune, suivez la méthode, dans cet ordre, et arrêtez-vous dès que vous avez la cause :
 
+Si le temps manque, traitez au moins deux pannes, en commençant par `billetterie` et `vitrine` : la correction détaille les quatre.
+
 | Étape | Commande | Ce qu'on cherche |
 |-------|----------|------------------|
 | 1. État | `kubectl -n diagnostic get pods -o wide` | `STATUS`, `READY`, `RESTARTS` |

@@ -75,6 +75,8 @@ kubectl apply -R -f k8s/securite/
 
 Complétez le tableau avec `oui` / `non`, en lançant pour chaque case `kubectl auth can-i <verbe> <ressource> -n <namespace> --as=system:serviceaccount:equipe:<nom>` :
 
+Si le temps manque, ne remplissez que la colonne `karim` : la correction donne le tableau complet.
+
 | Action | karim | sophie | lea |
 |--------|-------|--------|-----|
 | `list pods -n cordee` | | | |
