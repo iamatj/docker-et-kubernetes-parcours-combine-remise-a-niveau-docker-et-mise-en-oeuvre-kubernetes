@@ -40,13 +40,18 @@ Rien n'est créé (`--dry-run=client`) : kubectl affiche le YAML qu'il aurait en
 
 ### 2. Corriger un YAML cassé (10 min)
 
+Le pod de cet exercice va dans le namespace `cordee` : créez-le d'abord.
+
 ```bash
+mkdir -p k8s
+cp tp/06-deploiement/00-namespace.yaml k8s/
+kubectl apply -f k8s/00-namespace.yaml
 kubectl apply --dry-run=server -f tp/06-deploiement/yaml-casse.yaml
 ```
 
 Le fichier contient quatre erreurs. Corrigez-les une par une dans `tp/06-deploiement/yaml-casse.yaml` en relançant la commande après chaque correction, jusqu'à obtenir `pod/essai-yaml created (server dry run)`.
 
-> Le `--dry-run=server` envoie l'objet à l'API Server, qui le valide sans le créer. Il échouera tant que le namespace `cordee` n'existe pas : créez-le d'abord à l'étape 3, puis revenez ici si besoin.
+> Le `--dry-run=server` envoie l'objet à l'API Server, qui le valide sans le créer.
 
 **Question 1** – Quelles étaient les quatre erreurs ? Lesquelles sont des erreurs de syntaxe YAML, et lesquelles des erreurs de schéma Kubernetes ?
 
