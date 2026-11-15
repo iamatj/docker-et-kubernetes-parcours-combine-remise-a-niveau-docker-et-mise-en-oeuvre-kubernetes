@@ -48,6 +48,8 @@ helm -n traefik get values traefik
 
 ### 2. La structure d'un chart (7 min)
 
+Si vous êtes en retard, sautez ce premier bloc et passez directement au chart de Cordée, plus bas.
+
 ```bash
 cd /tmp && helm create demo && find demo -type f | sort && cd ~/cordee
 helm template essai /tmp/demo | head -30
