@@ -39,7 +39,7 @@ trivy image --quiet --scanners vuln --severity HIGH,CRITICAL cordee-api:avant 2>
 trivy image --quiet --scanners vuln --severity HIGH,CRITICAL cordee-api:1.0 2>/dev/null | grep -E '^(Total|cordee|Python)'
 ```
 
-Le premier lancement télécharge la base de vulnérabilités (1 à 2 min) ; elle reste dans le volume `trivy-cache`.
+La base de vulnérabilités a été téléchargée pendant la préparation du lab, dans le volume `trivy-cache`. Si Trivy la juge trop ancienne, il la met à jour au premier lancement (1 à 2 min).
 
 Chaque cible a une ligne `Total: N (HIGH: x, CRITICAL: y)` : une pour les paquets du système (Debian), une pour les paquets Python.
 
