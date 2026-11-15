@@ -48,7 +48,7 @@ Le script demande le mot de passe du compte `formation` une fois par nœud (copi
 | 6 | `kubeadm join` des deux workers | workers |
 | 7 | local-path-provisioner 0.0.37 (StorageClass par défaut `local-path`, et `local-path-retain`), MetalLB 0.16.2 (pool .200 – .220), metrics-server 0.9.0 | cluster |
 | 8 | CRD Gateway API 1.6.2, Traefik (IngressClass et GatewayClass `traefik`, IP .200), Headlamp (interface web) | cluster |
-| 9 | téléchargement à l'avance des images des TP, sur le client et sur les workers | client, workers |
+| 9 | téléchargement à l'avance des images des TP, sur le client et sur les workers ; base de vulnérabilités de Trivy (TP 04) sur le client | client, workers |
 
 Il est relançable sans risque : une étape déjà faite est vérifiée puis sautée. Il se termine par le bilan de la section 4. **Fermez ensuite la session du participant et rouvrez-la** (bureau compris), sinon `docker` demande `sudo`.
 
