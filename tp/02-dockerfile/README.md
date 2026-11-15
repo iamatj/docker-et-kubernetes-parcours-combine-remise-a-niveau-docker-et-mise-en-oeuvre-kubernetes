@@ -141,7 +141,7 @@ docker run --rm --entrypoint python cordee-api:1.0 -c 'import flask; print(flask
 
 **Question 5** – `COPY` ou `ADD` : lequel utiliser pour copier `app.py`, et que fait `ADD` de plus ?
 
-### 7. BuildKit (3 min)
+### 7. BuildKit (3 min, à sauter si vous êtes en retard)
 
 ```bash
 docker buildx ls
@@ -149,6 +149,8 @@ docker buildx du | tail -3
 ```
 
 **Question 6** – Depuis quelle version de Docker Engine BuildKit est-il le builder par défaut ? Citez deux choses qu'il fait mieux que l'ancien builder.
+
+> **En retard à 14h20 ?** Arrêtez-vous ici : les étapes 8 et 9 ne bloquent pas la suite. La branche du TP 03 contient les deux Dockerfile corrigés, et Compose y reconstruit les deux images.
 
 ### 8. L'image du site (7 min)
 

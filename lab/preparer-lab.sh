@@ -144,6 +144,9 @@ IMAGES_CLIENT=(
   ghcr.io/aquasecurity/trivy:latest
 )
 for img in "${IMAGES_CLIENT[@]}"; do sg docker -c "docker pull -q $img" >/dev/null || echo "  échec : $img"; done
+# Base de vulnérabilités de Trivy (TP 04) : téléchargée une fois ici, dans le volume que le TP réutilise.
+sg docker -c "docker run --rm -v trivy-cache:/root/.cache ghcr.io/aquasecurity/trivy:latest image --download-db-only" >/dev/null 2>&1 \
+  || echo "  base Trivy non préchargée (elle sera téléchargée au TP 04)"
 IMAGES_NOEUDS="mirror.gcr.io/library/postgres:17-alpine mirror.gcr.io/library/busybox:1.37 \
   ghcr.io/$COMPTE_IMAGES/cordee-api:1.0 ghcr.io/$COMPTE_IMAGES/cordee-api:1.1 \
   ghcr.io/$COMPTE_IMAGES/cordee-front:1.0 ghcr.io/$COMPTE_IMAGES/cordee-front:1.1"
