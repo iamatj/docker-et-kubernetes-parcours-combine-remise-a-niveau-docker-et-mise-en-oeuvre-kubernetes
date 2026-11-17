@@ -2,7 +2,7 @@
 
 | Durée | Branche | Correction |
 |-------|---------|------------|
-| 30 min (9h30 – 10h00) | `tp-00-prise-en-main` | `solutions/00-prise-en-main/README.md` |
+| 30 min (9h40 – 10h10) | `tp-00-prise-en-main` | `solutions/00-prise-en-main/README.md` |
 
 ## L'incident
 

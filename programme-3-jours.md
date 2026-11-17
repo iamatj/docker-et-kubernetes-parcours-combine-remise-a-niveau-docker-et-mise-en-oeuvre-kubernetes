@@ -14,10 +14,10 @@ Une journée de 7 h compte 30 min de pauses, soit **390 min de contenu**.
 
 | Jour | Pratique (TP) | Théorie | Autre (accueil, récapitulatif, QCM, clôture) | Part de pratique |
 |------|---------------|---------|----------------------------------------------|------------------|
-| 1 | 285 min | 75 min | 30 min | 73,1 % |
+| 1 | 275 min | 85 min | 30 min | 70,5 % |
 | 2 | 295 min | 70 min | 25 min | 75,6 % |
 | 3 | 290 min | 60 min | 40 min | 74,4 % |
-| **Total** | **870 min (14 h 30)** | **205 min** | **95 min** | **74,4 %** |
+| **Total** | **860 min (14 h 20)** | **215 min** | **95 min** | **73,5 %** |
 
 La théorie d'un chapitre tient en 10 à 25 min : l'incident chez Huiteo, le concept, puis le TP. Les QCM sont comptés dans « autre ».
 
@@ -67,23 +67,24 @@ Tout se passe sur la machine `client`.
 | Heure | Type | Contenu |
 |-------|------|---------|
 | 9h00 – 9h15 | Autre | Accueil, tour de table, présentation du lab |
-| 9h15 – 9h30 | Théorie | Chapitre 1 : conteneurs vs VM, Docker dans le DevOps, daemon / client / API, Engine vs Desktop, `docker compose` sans tiret |
-| 9h30 – 10h00 | Pratique | **TP 00** : prise en main du poste et de Docker (30 min) |
-| 10h00 – 10h15 | Théorie | Chapitre 2 : couches et cache, registres et nommage, options de `docker run`, cycle de vie |
-| 10h15 – 10h45 | Pratique | **TP 01** : conteneurs, images et registres (1/2) |
+| 9h15 – 9h20 | Théorie | L'application Huiteo RDV vue d'un admin système : site, API, base, HTTP, ports, variables d'environnement |
+| 9h20 – 9h40 | Théorie | Chapitre 1 : conteneurs vs VM, Docker dans le DevOps, client / `dockerd` / `containerd` / `runc`, le groupe `docker`, Engine vs Desktop, `docker compose` sans tiret |
+| 9h40 – 10h10 | Pratique | **TP 00** : prise en main du poste et de Docker (30 min) |
+| 10h10 – 10h20 | Théorie | Chapitre 2 : couches et cache, registres et nommage, options de `docker run`, cycle de vie |
+| 10h20 – 10h45 | Pratique | **TP 01** : conteneurs, images et registres (1/2) |
 | 10h45 – 11h00 | Pause | |
-| 11h00 – 12h00 | Pratique | **TP 01** (2/2) – 90 min au total |
+| 11h00 – 12h00 | Pratique | **TP 01** (2/2) – 85 min au total |
 | 12h00 – 12h20 | Théorie | Chapitre 3 : instructions du Dockerfile, multi-stage, slim / alpine / distroless, non-root, `.dockerignore`, BuildKit |
 | 12h20 – 12h30 | Pratique | **TP 02** : Dockerfile multi-stage (1/2) |
 | 12h30 – 13h30 | Déjeuner | |
 | 13h30 – 14h30 | Pratique | **TP 02** (2/2) – 70 min au total |
-| 14h30 – 14h45 | Théorie | Chapitre 4 : bind mount / volume / tmpfs, réseaux bridge / host / none, DNS interne, Compose V2 |
-| 14h45 – 15h15 | Pratique | **TP 03** : stack Compose (1/2) |
+| 14h30 – 14h50 | Théorie | Chapitre 4 : où vont les données d'un conteneur, volume nommé / anonyme / bind mount / tmpfs, sauvegarde, réseaux bridge / host / none, DNS interne, Compose V2 et ce qu'il crée |
+| 14h50 – 15h15 | Pratique | **TP 03** : volumes, réseaux et stack Compose (1/2) |
 | 15h15 – 15h30 | Pause | |
-| 15h30 – 16h15 | Pratique | **TP 03** (2/2) – 75 min au total |
+| 15h30 – 16h15 | Pratique | **TP 03** (2/2) – 70 min au total |
 | 16h15 – 16h25 | Théorie | Chapitre 5 : limites de Compose en multi-hôte, Swarm et Kubernetes, surface d'attaque |
 | 16h25 – 16h45 | Pratique | **TP 04** : scanner et durcir ses images (20 min) |
-| 16h45 – 17h00 | Autre | **QCM du jour 1** (10 questions, 15 min) |
+| 16h45 – 17h00 | Autre | **QCM du jour 1** (12 questions, 15 min) |
 
 ## Jour 2 – Kubernetes : fondamentaux et exploitation
 
@@ -128,7 +129,7 @@ Les 30 dernières minutes sont la clôture : le TP 12 se termine à 16h30.
 
 ## QCM
 
-Un QCM de 10 questions par jour, sur les chapitres du jour, en page HTML autocorrigée : <https://iamatj.github.io/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes/qcm/>
+Un QCM de 10 questions par jour (12 le jour 1), sur les chapitres du jour, en page HTML autocorrigée : <https://iamatj.github.io/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes/qcm/>
 
 - jours 1 et 2 : en fin de journée (16h45 – 17h00), 15 min prises sur le dernier module ; le récapitulatif du lendemain matin part des questions les plus ratées ;
 - jour 3 : dans la clôture (16h30 – 16h45).
@@ -139,10 +140,10 @@ Les durées officielles incluent leur part de pauses ; les durées prévues auss
 
 | Module officiel | Durée officielle | Créneau prévu | Durée prévue | dont TP |
 |-----------------|------------------|---------------|--------------|---------|
-| 1 – Positionnement et architecture de Docker | 1 h | J1 9h00 – 10h00 | 1 h (dont accueil 15 min) | 30 min |
-| 2 – Conteneurs, images et registres | 2 h | J1 10h00 – 12h00 | 2 h | 90 min |
+| 1 – Positionnement et architecture de Docker | 1 h | J1 9h00 – 10h10 | 1 h 10 (dont accueil 15 min) | 30 min |
+| 2 – Conteneurs, images et registres | 2 h | J1 10h10 – 12h00 | 1 h 50 | 85 min |
 | 3 – Dockerfile et bonnes pratiques | 1 h 30 | J1 12h00 – 12h30, 13h30 – 14h30 | 1 h 30 | 70 min |
-| 4 – Volumes, réseau et Compose V2 | 2 h | J1 14h30 – 16h15 | 1 h 45 | 75 min |
+| 4 – Volumes, réseau et Compose V2 | 2 h | J1 14h30 – 16h15 | 1 h 45 | 70 min |
 | 5 – Ouverture sur l'orchestration | 30 min | J1 16h15 – 16h45 | 30 min | 20 min |
 | QCM du jour 1 | – | J1 16h45 – 17h00 | 15 min (pris sur le module 4) | – |
 | 6 – Positionnement et architecture de Kubernetes | 2 h | J2 9h00 – 11h00 | 2 h (dont récapitulatif 10 min) | 70 min |
@@ -161,10 +162,10 @@ Les modules 4 et 8 cèdent chacun 15 min au QCM de fin de journée. Le module 4 
 
 | Module | Points du programme officiel | Chapitre et horaires | Slides | TP (branche) |
 |--------|------------------------------|----------------------|--------|--------------|
-| 1 | conteneur vs VM, DevOps, daemon / client / API, Engine vs Desktop, `docker compose`, vocabulaire | Ch. 1, J1 9h15 – 10h00 | `c1-incident` à `c1-tp` | TP 00 (`tp-00-prise-en-main`) : `docker version`, `info`, API par le socket, contextes |
-| 2 | couches, cache, historique, Docker Hub et registres privés, options du run, cycle de vie, exec / logs / inspect / stats | Ch. 2, J1 10h00 – 12h00 | `c2-incident` à `c2-tp` | TP 01 (`tp-01-conteneurs`) : site vitrine dans nginx, PostgreSQL limité en ressources, registre privé local |
+| 1 | conteneur vs VM, DevOps, daemon / client / API, Engine vs Desktop, `docker compose`, vocabulaire | Ch. 1, J1 9h15 – 10h10 | `application`, puis `c1-incident` à `c1-tp` | TP 00 (`tp-00-prise-en-main`) : `docker version`, `info`, le conteneur vu comme un processus, l'arrêt du daemon, le groupe `docker` équivalent à `root`, API par le socket, contextes |
+| 2 | couches, cache, historique, Docker Hub et registres privés, options du run, cycle de vie, exec / logs / inspect / stats | Ch. 2, J1 10h10 – 12h00 | `c2-incident` à `c2-tp` | TP 01 (`tp-01-conteneurs`) : site vitrine dans nginx, PostgreSQL limité en ressources, registre privé local |
 | 3 | FROM, RUN, CMD, ENTRYPOINT, COPY, ADD, EXPOSE, ENV, ARG, multi-stage, distroless / alpine, non-root, `.dockerignore`, BuildKit | Ch. 3, J1 12h00 – 14h30 | `c3-incident` à `c3-tp` | TP 02 (`tp-02-dockerfile`) : de 1 Go à une image slim multi-stage non root |
-| 4 | bind mount, volumes nommés, tmpfs, nettoyage, bridge / host / none, ports, DNS interne, `compose.yaml`, up / down / ps / logs / exec / build, `service_healthy` | Ch. 4, J1 14h30 – 16h15 | `c4-incident` à `c4-tp` | TP 03 (`tp-03-compose`) : Huiteo complète avec volume et deux réseaux |
+| 4 | bind mount, volumes nommés, tmpfs, nettoyage, bridge / host / none, ports, DNS interne, `compose.yaml`, up / down / ps / logs / exec / build, `service_healthy` | Ch. 4, J1 14h30 – 16h15 | `c4-incident` à `c4-tp` | TP 03 (`tp-03-compose`) : perte de données sans volume, volume nommé, sauvegarde et restauration, puis Huiteo RDV complète avec volume et deux réseaux |
 | 5 | limites de Compose, Swarm, Kubernetes, surface d'attaque, scan, moindre privilège | Ch. 5, J1 16h15 – 16h45 | `c5-incident` à `c5-tp` | TP 04 (`tp-04-securite-images`) : Trivy, `--read-only`, `--cap-drop` |
 | 6 | Cloud Native, CNCF, distributions, control plane, nœuds, objets, kubectl / interface web / API REST | Ch. 6, J2 9h10 – 10h45 | `c6-incident` à `c6-tp` | TP 05 (`tp-05-cluster`) : nœuds, pods système, Pod → ReplicaSet → Deployment, API REST, Headlamp |
 | 7 | déploiement manuel et YAML, syntaxe YAML, replicas, rolling update, rollback, ClusterIP / NodePort / LoadBalancer, exposition externe | Ch. 7a et 7b, J2 11h00 – 15h00 | `c7-incident` à `c7b-tp` | TP 06 (`tp-06-deploiement`) et TP 07 (`tp-07-mise-a-jour`) |

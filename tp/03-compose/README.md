@@ -2,7 +2,7 @@
 
 | Durée | Branche | Correction |
 |-------|---------|------------|
-| 75 min (14h45 – 15h15, pause, 15h30 – 16h15) | `tp-03-compose` | `solutions/03-compose/` (`README.md` et `app/compose.yaml`) |
+| 70 min (14h50 – 15h15, pause, 15h30 – 16h15) | `tp-03-compose` | `solutions/03-compose/` (`README.md` et `app/compose.yaml`) |
 
 La pause tombe après la partie B : on reprend à la partie C à 15h30.
 
@@ -12,7 +12,8 @@ La pause tombe après la partie B : on reprend à la partie C à 15h30.
 
 ## Objectifs
 
-- Garder des données au-delà de la vie d'un conteneur : volume nommé, bind mount, tmpfs.
+- Comprendre où un conteneur écrit ses données, et pourquoi `docker rm` les perd.
+- Garder des données au-delà de la vie d'un conteneur : volume nommé, volume anonyme, bind mount, tmpfs ; sauvegarder et restaurer un volume.
 - Comprendre les réseaux Docker : bridge par défaut, réseau dédié et son DNS, `host`, `none`.
 - Décrire Huiteo dans un `compose.yaml` : services, réseaux, volumes, `depends_on` avec `service_healthy`.
 - Piloter la stack : `up`, `down`, `ps`, `logs`, `exec`, `build`.
