@@ -25,7 +25,7 @@ RUN echo "TODO : complétez app/api/Dockerfile (tp/02-dockerfile/README.md, éta
 #     PYTHONUNBUFFERED=1 \
 #     PYTHONDONTWRITEBYTECODE=1
 
-# TODO 4 : créer l'utilisateur cordee : useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin cordee
+# TODO 4 : créer l'utilisateur huiteo : useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin huiteo
 
 # TODO 5 : se placer dans /app, copier /opt/venv depuis l'étape « construction », puis copier app.py
 

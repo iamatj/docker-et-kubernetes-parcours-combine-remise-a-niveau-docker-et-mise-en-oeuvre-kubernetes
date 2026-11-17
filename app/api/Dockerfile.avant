@@ -1,4 +1,4 @@
-# Dockerfile historique de Cordée : il fonctionne, mais il est lourd, lent à reconstruire et tourne en root.
+# Dockerfile historique de Huiteo : il fonctionne, mais il est lourd, lent à reconstruire et tourne en root.
 FROM mirror.gcr.io/library/python:3.13
 WORKDIR /app
 COPY . .
