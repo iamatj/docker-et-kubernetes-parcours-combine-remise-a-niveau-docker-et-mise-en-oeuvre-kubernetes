@@ -8,4 +8,4 @@ metadata:
 data:
   DB_HOST: postgres
   DB_NAME: huiteo
-  MESSAGE_ACCUEIL: "Ouverture des réservations de Noël !"
+  MESSAGE_ACCUEIL: "Rendez-vous de décembre : réservez votre créneau !"

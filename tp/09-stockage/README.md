@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Jeudi, 6h50. Le nœud `worker-2` a redémarré pendant la nuit (mise à jour de sécurité). Le pod PostgreSQL a été recréé ailleurs, tout neuf : 47 réservations de Noël ont disparu. Léa a passé la matinée au téléphone avec des familles en colère.
+> Jeudi, 6h50. Le nœud `worker-2` a redémarré pendant la nuit (mise à jour de sécurité). Le pod PostgreSQL a été recréé ailleurs, tout neuf : 47 rendez-vous de signature ont disparu. Léa a passé la matinée au téléphone avec des études en colère : des clients se sont déplacés pour rien.
 
 ## Objectifs
 
@@ -33,14 +33,14 @@ Deux StorageClass existent : `local-path` (par défaut) et `local-path-retain`. 
 
 ### A. Constater la perte (8 min)
 
-Faites deux réservations dans Firefox (<http://192.168.56.201>), puis :
+Prenez deux rendez-vous dans Firefox (<http://192.168.56.201>), puis :
 
 ```bash
-curl -s http://192.168.56.201/api/reservations | jq length
+curl -s http://192.168.56.201/api/rendez-vous | jq length
 kubectl -n huiteo delete pod -l app=postgres
 kubectl -n huiteo rollout status deployment postgres
 sleep 5
-curl -s http://192.168.56.201/api/reservations | jq length
+curl -s http://192.168.56.201/api/rendez-vous | jq length
 ```
 
 Attendu : `2`, puis `0`.
@@ -91,14 +91,14 @@ kubectl get pv
 
 Le PVC est `Bound` à un PV créé automatiquement (`pvc-…`), de classe `local-path`, politique `Delete`.
 
-Faites une réservation, puis recommencez la panne :
+Prenez un rendez-vous, puis recommencez la panne :
 
 ```bash
-curl -s http://192.168.56.201/api/reservations | jq length
+curl -s http://192.168.56.201/api/rendez-vous | jq length
 kubectl -n huiteo delete pod -l app=postgres
 kubectl -n huiteo rollout status deployment postgres
 sleep 5
-curl -s http://192.168.56.201/api/reservations | jq length
+curl -s http://192.168.56.201/api/rendez-vous | jq length
 ```
 
 Le nombre est le même avant et après. Allez voir le volume sur le disque :
@@ -139,7 +139,7 @@ Un Deployment avec un PVC marche pour **une** base. Un StatefulSet donne à chaq
 
 Lisez `tp/09-stockage/10-postgres-statefulset.yaml` : repérez `serviceName`, `volumeClaimTemplates`, `storageClassName: local-path-retain`, et le Service `postgres-headless`.
 
-Le StatefulSet aura un **nouveau** volume. Pour garder les réservations, on sauvegarde la base, puis on la restaure :
+Le StatefulSet aura un **nouveau** volume. Pour garder les rendez-vous, on sauvegarde la base, puis on la restaure :
 
 ```bash
 kubectl -n huiteo exec deployment/postgres -- pg_dump -U huiteo huiteo > /tmp/huiteo.sql
@@ -165,10 +165,10 @@ Le PVC s'appelle `donnees-postgres-0` (le nom du gabarit + le nom du pod). **Ne 
 kubectl -n huiteo exec -i postgres-0 -- psql -U huiteo -d huiteo -v ON_ERROR_STOP=1 < /tmp/huiteo.sql
 kubectl -n huiteo rollout restart deployment api
 kubectl -n huiteo rollout status deployment api
-curl -s http://192.168.56.201/api/reservations | jq length
+curl -s http://192.168.56.201/api/rendez-vous | jq length
 ```
 
-Les réservations sont revenues. Si `psql` s'est arrêté sur `relation "refuge" already exists`, l'API a recréé les tables entre-temps : videz la base (`kubectl -n huiteo exec postgres-0 -- psql -U huiteo -d huiteo -c 'DROP TABLE reservation, refuge;'`) et relancez la restauration.
+Les rendez-vous sont revenus. Si `psql` s'est arrêté sur `relation "etude" already exists`, l'API a recréé les tables entre-temps : videz la base (`kubectl -n huiteo exec postgres-0 -- psql -U huiteo -d huiteo -c 'DROP TABLE rendez_vous, etude;'`) et relancez la restauration.
 
 Testez la résistance :
 
@@ -177,7 +177,7 @@ kubectl -n huiteo delete pod postgres-0
 kubectl -n huiteo get pods -l app=postgres -w
 ```
 
-Le pod revient **sous le même nom**, avec le même volume. Ctrl+C, puis vérifiez le nombre de réservations.
+Le pod revient **sous le même nom**, avec le même volume. Ctrl+C, puis vérifiez le nombre de rendez-vous.
 
 ```bash
 kubectl -n huiteo run test --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- nslookup postgres-0.postgres-headless.huiteo.svc.cluster.local

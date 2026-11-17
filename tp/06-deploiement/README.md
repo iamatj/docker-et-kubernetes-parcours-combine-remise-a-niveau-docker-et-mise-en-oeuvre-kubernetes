@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Mardi, 10h. L'ouverture des réservations de Noël est vendredi. Léa veut Huiteo sur le cluster avant, « et avec plusieurs exemplaires de l'API, au cas où ». Karim a déjà écrit le manifest de la base ; il reste l'API et le site.
+> Mardi, 10h. Vendredi, les études ouvrent leurs agendas de décembre. Léa veut Huiteo RDV sur le cluster avant, « et avec plusieurs exemplaires de l'API, au cas où ». Karim a déjà écrit le manifest de la base ; il reste l'API et le site.
 
 ## Objectifs
 
@@ -131,7 +131,7 @@ for ip in 192.168.56.20 192.168.56.30 192.168.56.40; do curl -s -m 2 -o /dev/nul
 
 Attendu : `200` sur les trois adresses, même `control-plane`, qui ne fait tourner aucun pod du site.
 
-Ouvrez <http://192.168.56.30:30080> dans Firefox : les refuges s'affichent, le pied de page indique `site 1.0 · API 1.0 · servi par api-…`. Faites une réservation.
+Ouvrez <http://192.168.56.30:30080> dans Firefox : les études s'affichent, le pied de page indique `site 1.0 · API 1.0 · servi par api-…`. Prenez un rendez-vous.
 
 **Question 3** – Pourquoi le site répond-il sur l'IP de `control-plane` ? Quel composant rend cela possible ?
 
@@ -172,10 +172,10 @@ Faites-le : mettez `replicas: 3` dans `k8s/20-api.yaml`, puis `kubectl apply -f 
 ```bash
 kubectl -n huiteo delete pod -l app=postgres
 kubectl -n huiteo rollout status deployment postgres
-curl -s http://192.168.56.30:30080/api/reservations
+curl -s http://192.168.56.30:30080/api/rendez-vous
 ```
 
-**Question 6** – Où est passée votre réservation ? (On le corrigera au TP 09.) Pourquoi le site a-t-il continué à afficher les refuges ?
+**Question 6** – Où est passé votre rendez-vous ? (On le corrigera au TP 09.) Pourquoi le site a-t-il continué à afficher les études ?
 
 Gardez tout en place : le TP 07 part de cet état.
 
