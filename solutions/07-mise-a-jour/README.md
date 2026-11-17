@@ -12,7 +12,7 @@ Fichiers corrigés : `solutions/07-mise-a-jour/k8s/20-api.yaml`, `30-front.yaml`
 
 **5.** MetalLB, installé sur le lab, qui annonce l'adresse sur le réseau (mode L2, ARP) ; l'annotation `metallb.io/loadBalancerIPs` demande une adresse précise du pool. Sans MetalLB, sur un cluster « nu », le Service reste en `<pending>` : personne ne sait fabriquer une adresse externe. Sur un cluster managé, le contrôleur du cloud crée un vrai répartiteur de charge (Azure Load Balancer, AWS NLB…) avec une IP publique, facturé à part.
 
-**6.** ClusterIP : une IP virtuelle joignable seulement depuis le cluster (l'API, la base). NodePort : un port ouvert sur chaque nœud, joignable par quiconque atteint un nœud ; il s'appuie sur une ClusterIP. LoadBalancer : une adresse externe stable devant les nœuds ; il s'appuie sur un NodePort et une ClusterIP (regardez `kubectl -n cordee get svc front-lb` : il a aussi un port `80:3xxxx`).
+**6.** ClusterIP : une IP virtuelle joignable seulement depuis le cluster (l'API, la base). NodePort : un port ouvert sur chaque nœud, joignable par quiconque atteint un nœud ; il s'appuie sur une ClusterIP. LoadBalancer : une adresse externe stable devant les nœuds ; il s'appuie sur un NodePort et une ClusterIP (regardez `kubectl -n huiteo get svc front-lb` : il a aussi un port `80:3xxxx`).
 
 **7.** `kubectl rollout pause deployment/api` : les modifications suivantes du gabarit (image, variables) s'accumulent sans déclencher de nouvelle mise à jour ; `kubectl rollout resume` reprend. Pour une vraie livraison progressive (quelques pourcents du trafic), on utilisera des poids sur deux Services avec Gateway API (TP 11), ou un outil comme Argo Rollouts.
 

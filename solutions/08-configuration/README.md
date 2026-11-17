@@ -31,7 +31,7 @@ Piège classique : mettre la base dans la liveness probe. Si la base tombe, tout
 
 La méthode : on part de l'état (`get`), on lit ce que Kubernetes a fait (`describe`, `events`), puis ce que l'application dit (`logs`). Une erreur **avant** le démarrage du conteneur (image, configuration) se lit dans les événements ; une erreur **de** l'application, dans les logs ; une erreur **de câblage**, dans les endpoints.
 
-**7.** Un DaemonSet fait tourner **un pod par nœud** (ou par nœud sélectionné), et en ajoute un quand un nœud rejoint le cluster : agents réseau (Calico, kube-proxy), collecteurs de logs (Fluent Bit), agents de supervision (node-exporter). Cordée en écrirait un pour collecter les logs JSON de ses API sur chaque nœud, pas pour son application.
+**7.** Un DaemonSet fait tourner **un pod par nœud** (ou par nœud sélectionné), et en ajoute un quand un nœud rejoint le cluster : agents réseau (Calico, kube-proxy), collecteurs de logs (Fluent Bit), agents de supervision (node-exporter). Huiteo en écrirait un pour collecter les logs JSON de ses API sur chaque nœud, pas pour son application.
 
 **8.** Une **anti-affinité** de pods (`affinity.podAntiAffinity`, `requiredDuringSchedulingIgnoredDuringExecution` sur `topologyKey: kubernetes.io/hostname` et l'étiquette `app: api`) : le scheduler refuse de placer deux pods `api` sur le même nœud. Avec 3 replicas et 2 workers, le troisième resterait `Pending` : on préfère souvent la version « preferred », ou `topologySpreadConstraints` pour répartir au mieux.
 

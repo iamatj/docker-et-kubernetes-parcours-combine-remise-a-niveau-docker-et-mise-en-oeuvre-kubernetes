@@ -1,4 +1,4 @@
-# Les identités de l'équipe Cordée. Dans un vrai cluster, ce seraient des utilisateurs
+# Les identités de l'équipe Huiteo. Dans un vrai cluster, ce seraient des utilisateurs
 # d'un annuaire (OIDC) ; ici, des ServiceAccounts dont on tire des jetons.
 apiVersion: v1
 kind: Namespace

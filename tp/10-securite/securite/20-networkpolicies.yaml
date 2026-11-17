@@ -1,9 +1,9 @@
-# Par défaut, plus rien n'entre dans les pods de cordee…
+# Par défaut, plus rien n'entre dans les pods de huiteo…
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: refus-par-defaut
-  namespace: cordee
+  namespace: huiteo
 spec:
   podSelector: {}
   policyTypes: ["Ingress"]
@@ -13,7 +13,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: front-ouvert
-  namespace: cordee
+  namespace: huiteo
 spec:
   podSelector:
     matchLabels:
