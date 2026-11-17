@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Lundi, 8h12. Karim a livré l'API de Cordée sur le serveur de l'hébergeur. Elle refuse de démarrer : le serveur a Python 3.9, son poste Python 3.13, et une bibliothèque manque. « Chez moi, ça marche. » Léa décide que Cordée livrera désormais des conteneurs.
+> Lundi, 8h12. Karim a livré l'API de Huiteo sur le serveur de l'hébergeur. Elle refuse de démarrer : le serveur a Python 3.9, son poste Python 3.13, et une bibliothèque manque. « Chez moi, ça marche. » Léa décide que Huiteo livrera désormais des conteneurs.
 
 ## Objectifs
 
@@ -30,8 +30,8 @@ PS0=''
 Récupérez le dépôt et placez-vous sur la branche du TP :
 
 ```bash
-cd ~/cordee 2>/dev/null || git clone https://github.com/iamatj/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes.git ~/cordee
-cd ~/cordee
+cd ~/huiteo 2>/dev/null || git clone https://github.com/iamatj/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes.git ~/huiteo
+cd ~/huiteo
 git fetch
 git checkout tp-00-prise-en-main
 ls
@@ -124,7 +124,7 @@ Un contexte dit au client **à quel daemon** parler. Sur ce poste, `default` poi
 ## Questions de fin
 
 7. Remettez dans l'ordre et définissez en une phrase : *Dockerfile, image, conteneur, registry, daemon, Compose*.
-8. Conteneur ou machine virtuelle : lequel embarque un noyau ? Pour Cordée, que faut-il choisir pour isoler deux clients qui ne se font pas confiance ?
+8. Conteneur ou machine virtuelle : lequel embarque un noyau ? Pour Huiteo, que faut-il choisir pour isoler deux clients qui ne se font pas confiance ?
 
 ## Bonus
 

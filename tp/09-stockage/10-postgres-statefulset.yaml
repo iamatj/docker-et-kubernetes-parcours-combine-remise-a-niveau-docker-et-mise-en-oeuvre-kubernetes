@@ -3,9 +3,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
-  namespace: cordee
+  namespace: huiteo
   labels:
-    partie-de: cordee
+    partie-de: huiteo
 spec:
   serviceName: postgres-headless
   replicas: 1
@@ -17,7 +17,7 @@ spec:
       labels:
         app: postgres
         tier: donnees
-        partie-de: cordee
+        partie-de: huiteo
     spec:
       terminationGracePeriodSeconds: 30
       containers:
@@ -27,17 +27,17 @@ spec:
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
-                  name: cordee-config
+                  name: huiteo-config
                   key: DB_NAME
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: cordee-db
+                  name: huiteo-db
                   key: DB_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: cordee-db
+                  name: huiteo-db
                   key: DB_PASSWORD
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
@@ -64,9 +64,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: cordee
+  namespace: huiteo
   labels:
-    partie-de: cordee
+    partie-de: huiteo
 spec:
   selector:
     app: postgres
@@ -79,9 +79,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-headless
-  namespace: cordee
+  namespace: huiteo
   labels:
-    partie-de: cordee
+    partie-de: huiteo
 spec:
   clusterIP: None
   selector:

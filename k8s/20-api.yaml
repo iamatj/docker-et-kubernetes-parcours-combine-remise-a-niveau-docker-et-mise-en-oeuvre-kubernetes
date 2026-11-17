@@ -2,12 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api
-  namespace: cordee
+  namespace: huiteo
   labels:
-    partie-de: cordee
+    partie-de: huiteo
   annotations:
     kubernetes.io/change-cause: "API 1.1 : configuration externalisée et sondes"
-    cordee.lab/responsable: "Karim Benali"
+    huiteo.lab/responsable: "Karim Benali"
 spec:
   replicas: 3
   strategy:
@@ -24,16 +24,16 @@ spec:
       labels:
         app: api
         tier: back
-        partie-de: cordee
+        partie-de: huiteo
     spec:
       containers:
         - name: api
-          image: ghcr.io/iamatj/cordee-api:1.1
+          image: ghcr.io/iamatj/huiteo-api:1.1
           envFrom:
             - configMapRef:
-                name: cordee-config
+                name: huiteo-config
             - secretRef:
-                name: cordee-db
+                name: huiteo-db
           env:
             - name: DELAI_DEMARRAGE
               value: "5"
@@ -68,9 +68,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: api
-  namespace: cordee
+  namespace: huiteo
   labels:
-    partie-de: cordee
+    partie-de: huiteo
 spec:
   selector:
     app: api

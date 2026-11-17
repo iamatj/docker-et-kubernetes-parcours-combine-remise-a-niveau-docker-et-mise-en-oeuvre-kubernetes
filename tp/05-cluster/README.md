@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Lundi, 9h. Cordée a loué un cluster Kubernetes de trois machines chez un hébergeur, monté avec kubeadm. Sophie reçoit un fichier `kubeconfig` et un mail : « Votre cluster est prêt. » Avant d'y mettre la moindre réservation, elle veut savoir ce qui tourne, où, et qui décide de quoi.
+> Lundi, 9h. Huiteo a loué un cluster Kubernetes de trois machines chez un hébergeur, monté avec kubeadm. Sophie reçoit un fichier `kubeconfig` et un mail : « Votre cluster est prêt. » Avant d'y mettre la moindre réservation, elle veut savoir ce qui tourne, où, et qui décide de quoi.
 
 ## Objectifs
 
@@ -18,7 +18,7 @@
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git stash -u
 git checkout tp-05-cluster
@@ -175,7 +175,7 @@ jobs                     # aucune tâche en arrière-plan ne doit rester
 ## Questions de fin
 
 6. Où est stocké l'état du cluster ? Que se passe-t-il pour les applications déjà lancées si `control-plane` s'arrête ? Et si `worker-1` s'arrête ?
-7. Minikube, kubeadm, K3s, EKS / AKS / GKE : lequel choisir pour un poste de développeur, un cluster sur ses propres serveurs, un objet connecté, la production de Cordée chez un cloud ?
+7. Minikube, kubeadm, K3s, EKS / AKS / GKE : lequel choisir pour un poste de développeur, un cluster sur ses propres serveurs, un objet connecté, la production de Huiteo chez un cloud ?
 
 ## Bonus
 

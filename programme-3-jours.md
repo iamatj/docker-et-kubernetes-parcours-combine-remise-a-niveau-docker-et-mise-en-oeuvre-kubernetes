@@ -19,11 +19,11 @@ Une journée de 7 h compte 30 min de pauses, soit **390 min de contenu**.
 | 3 | 290 min | 60 min | 40 min | 74,4 % |
 | **Total** | **870 min (14 h 30)** | **205 min** | **95 min** | **74,4 %** |
 
-La théorie d'un chapitre tient en 10 à 25 min : l'incident chez Cordée, le concept, puis le TP. Les QCM sont comptés dans « autre ».
+La théorie d'un chapitre tient en 10 à 25 min : l'incident chez Huiteo, le concept, puis le TP. Les QCM sont comptés dans « autre ».
 
-## Le fil rouge : Cordée
+## Le fil rouge : Huiteo
 
-**Cordée** est une jeune entreprise grenobloise qui vend en ligne les nuitées de cinq refuges de montagne (Belledonne, Mont-Blanc, Grandes Rousses, Écrins). L'hiver arrive, et avec lui la ruée des réservations de Noël.
+**Huiteo** est une jeune entreprise grenobloise qui vend en ligne les nuitées de cinq refuges de montagne (Belledonne, Mont-Blanc, Grandes Rousses, Écrins). L'hiver arrive, et avec lui la ruée des réservations de Noël.
 
 L'application, au début de la formation :
 
@@ -42,20 +42,20 @@ Les personnages :
 
 ## Les chapitres
 
-| Ch. | Incident chez Cordée | Concept | Module officiel | TP et branche |
+| Ch. | Incident chez Huiteo | Concept | Module officiel | TP et branche |
 |-----|----------------------|---------|-----------------|---------------|
 | 1 | « Chez moi ça marche » : l'API refuse de démarrer sur le serveur, pas la même version de Python | conteneur vs VM, architecture Docker (daemon, client, API) | 1 | TP 00 `tp-00-prise-en-main` |
 | 2 | Le site vitrine est tombé dans la nuit, personne ne sait le relancer ni quelle version tournait | images, couches, registres, cycle de vie d'un conteneur | 2 | TP 01 `tp-01-conteneurs` |
 | 3 | L'image de l'API pèse plus d'1 Go, chaque build prend des minutes, et elle tourne en root | Dockerfile, multi-stage, BuildKit, non-root | 3 | TP 02 `tp-02-dockerfile` |
 | 4 | Après un redémarrage, toutes les réservations ont disparu, et l'API démarre avant la base | volumes, réseaux, Compose V2, `service_healthy` | 4 | TP 03 `tp-03-compose` |
 | 5 | Un audit trouve des centaines de CVE dans l'image ; et un seul serveur pour toute la saison | limites de Compose, orchestration, scan | 5 | TP 04 `tp-04-securite-images` |
-| 6 | Cordée loue un cluster de 3 machines ; Sophie doit comprendre ce que l'hébergeur a monté | control plane, nœuds, objets, kubectl, API REST, interface web | 6 | TP 05 `tp-05-cluster` |
-| 7a | Il faut mettre Cordée en ligne sur le cluster avant vendredi | Deployment, YAML, scaling, ClusterIP / NodePort | 7 | TP 06 `tp-06-deploiement` |
+| 6 | Huiteo loue un cluster de 3 machines ; Sophie doit comprendre ce que l'hébergeur a monté | control plane, nœuds, objets, kubectl, API REST, interface web | 6 | TP 05 `tp-05-cluster` |
+| 7a | Il faut mettre Huiteo en ligne sur le cluster avant vendredi | Deployment, YAML, scaling, ClusterIP / NodePort | 7 | TP 06 `tp-06-deploiement` |
 | 7b | La mise à jour 1.1 de samedi 8h a coupé le site ; et quelqu'un a livré une 1.2 qui n'existe pas | rolling update, rollback, LoadBalancer | 7 | TP 07 `tp-07-mise-a-jour` |
 | 8 | Le mot de passe de la base est en clair dans Git ; un pod répond alors que la base est en panne | labels, ConfigMap, Secret, sondes, méthode de diagnostic | 8 | TP 08 `tp-08-configuration` |
 | 9 | Le pod PostgreSQL a redémarré : 47 réservations perdues | PV, PVC, StorageClass, rétention, StatefulSet | 9 | TP 09 `tp-09-stockage` |
 | 10 | Un stagiaire a supprimé un déploiement en production ; un pod compromis pouvait joindre la base | RBAC, ServiceAccounts, Network Policies, SecurityContext | 10 | TP 10 `tp-10-securite` |
-| 11 | Le partenaire Office de tourisme exige `https://cordee.lab` ; Karim veut tester la 1.1 sur 10 % des visiteurs | DNS, Ingress, TLS, limites d'Ingress, Gateway API | 11 | TP 11 `tp-11-reseau` |
+| 11 | Le partenaire Office de tourisme exige `https://huiteo.lab` ; Karim veut tester la 1.1 sur 10 % des visiteurs | DNS, Ingress, TLS, limites d'Ingress, Gateway API | 11 | TP 11 `tp-11-reseau` |
 | 12 | Créer une préproduction a demandé de recopier et retoucher 12 fichiers YAML à la main | Helm : chart, values, releases | 12 | TP 12 `tp-12-helm` |
 
 Les bugs de départ sont dans le code des branches : le Dockerfile historique (`app/api/Dockerfile.avant`), le mot de passe en clair dans `k8s/` (TP 06 à 07), PostgreSQL sur un `emptyDir` (TP 06 à 08), l'absence de toute restriction réseau (jusqu'au TP 10).
@@ -96,7 +96,7 @@ Le cluster `control-plane` / `worker-1` / `worker-2` est déjà monté par les s
 | 9h35 – 10h45 | Pratique | **TP 05** : explorer le cluster (70 min) |
 | 10h45 – 11h00 | Pause | |
 | 11h00 – 11h20 | Théorie | Chapitre 7a : impératif vs déclaratif, YAML, Deployment, replicas, ClusterIP / NodePort |
-| 11h20 – 12h30 | Pratique | **TP 06** : déployer Cordée (70 min) |
+| 11h20 – 12h30 | Pratique | **TP 06** : déployer Huiteo (70 min) |
 | 12h30 – 13h30 | Déjeuner | |
 | 13h30 – 13h40 | Théorie | Chapitre 7b : rolling update, `maxSurge` / `maxUnavailable`, historique et rollback, LoadBalancer |
 | 13h40 – 15h00 | Pratique | **TP 07** : mettre à jour sans couper (80 min) |
@@ -164,13 +164,13 @@ Les modules 4 et 8 cèdent chacun 15 min au QCM de fin de journée. Le module 4 
 | 1 | conteneur vs VM, DevOps, daemon / client / API, Engine vs Desktop, `docker compose`, vocabulaire | Ch. 1, J1 9h15 – 10h00 | `c1-incident` à `c1-tp` | TP 00 (`tp-00-prise-en-main`) : `docker version`, `info`, API par le socket, contextes |
 | 2 | couches, cache, historique, Docker Hub et registres privés, options du run, cycle de vie, exec / logs / inspect / stats | Ch. 2, J1 10h00 – 12h00 | `c2-incident` à `c2-tp` | TP 01 (`tp-01-conteneurs`) : site vitrine dans nginx, PostgreSQL limité en ressources, registre privé local |
 | 3 | FROM, RUN, CMD, ENTRYPOINT, COPY, ADD, EXPOSE, ENV, ARG, multi-stage, distroless / alpine, non-root, `.dockerignore`, BuildKit | Ch. 3, J1 12h00 – 14h30 | `c3-incident` à `c3-tp` | TP 02 (`tp-02-dockerfile`) : de 1 Go à une image slim multi-stage non root |
-| 4 | bind mount, volumes nommés, tmpfs, nettoyage, bridge / host / none, ports, DNS interne, `compose.yaml`, up / down / ps / logs / exec / build, `service_healthy` | Ch. 4, J1 14h30 – 16h15 | `c4-incident` à `c4-tp` | TP 03 (`tp-03-compose`) : Cordée complète avec volume et deux réseaux |
+| 4 | bind mount, volumes nommés, tmpfs, nettoyage, bridge / host / none, ports, DNS interne, `compose.yaml`, up / down / ps / logs / exec / build, `service_healthy` | Ch. 4, J1 14h30 – 16h15 | `c4-incident` à `c4-tp` | TP 03 (`tp-03-compose`) : Huiteo complète avec volume et deux réseaux |
 | 5 | limites de Compose, Swarm, Kubernetes, surface d'attaque, scan, moindre privilège | Ch. 5, J1 16h15 – 16h45 | `c5-incident` à `c5-tp` | TP 04 (`tp-04-securite-images`) : Trivy, `--read-only`, `--cap-drop` |
 | 6 | Cloud Native, CNCF, distributions, control plane, nœuds, objets, kubectl / interface web / API REST | Ch. 6, J2 9h10 – 10h45 | `c6-incident` à `c6-tp` | TP 05 (`tp-05-cluster`) : nœuds, pods système, Pod → ReplicaSet → Deployment, API REST, Headlamp |
 | 7 | déploiement manuel et YAML, syntaxe YAML, replicas, rolling update, rollback, ClusterIP / NodePort / LoadBalancer, exposition externe | Ch. 7a et 7b, J2 11h00 – 15h00 | `c7-incident` à `c7b-tp` | TP 06 (`tp-06-deploiement`) et TP 07 (`tp-07-mise-a-jour`) |
 | 8 | labels / selectors / annotations, ConfigMap, Secret et ses limites, liveness / readiness / startup, troubleshooting, DaemonSets et affinités | Ch. 8, J2 15h00 – 16h45 | `c8-incident` à `c8-tp` | TP 08 (`tp-08-configuration`) : configuration externalisée, sondes, trois pannes à diagnostiquer |
 | 9 | volumes, PV / PVC, StorageClass, rétention, StatefulSet | Ch. 9, J3 9h10 – 10h30 | `c9-incident` à `c9-tp` | TP 09 (`tp-09-stockage`) : PVC, `Retain` vs `Delete`, PostgreSQL en StatefulSet |
 | 10 | Roles, ClusterRoles, bindings, profils dev / opérateur / admin, ServiceAccounts, Network Policies, SecurityContext | Ch. 10, J3 10h30 – 12h30 | `c10-incident` à `c10-tp` | TP 10 (`tp-10-securite`) |
-| 11 | pod-to-pod, pod-to-service, DNS, variables d'environnement, Ingress Controller, HTTP / HTTPS, TLS, limites d'Ingress, Gateway API | Ch. 11, J3 13h30 – 15h00 | `c11-incident` à `c11-tp` | TP 11 (`tp-11-reseau`) : Traefik, `https://cordee.lab`, HTTPRoute pondérée 90 / 10 |
-| 12 | charts, releases, repositories, installation, templates / values / helpers, `values.yaml`, install / upgrade / rollback / uninstall | Ch. 12, J3 15h00 – 16h30 | `c12-incident` à `c12-tp` | TP 12 (`tp-12-helm`) : chart Cordée, préproduction |
+| 11 | pod-to-pod, pod-to-service, DNS, variables d'environnement, Ingress Controller, HTTP / HTTPS, TLS, limites d'Ingress, Gateway API | Ch. 11, J3 13h30 – 15h00 | `c11-incident` à `c11-tp` | TP 11 (`tp-11-reseau`) : Traefik, `https://huiteo.lab`, HTTPRoute pondérée 90 / 10 |
+| 12 | charts, releases, repositories, installation, templates / values / helpers, `values.yaml`, install / upgrade / rollback / uninstall | Ch. 12, J3 15h00 – 16h30 | `c12-incident` à `c12-tp` | TP 12 (`tp-12-helm`) : chart Huiteo, préproduction |
 | Atelier final | packaging vs orchestration, autoscaling / HA / monitoring, managé vs on-premise, retours | Clôture, J3 16h30 – 17h00 | `epilogue`, `qcm-j3`, `fin` | – |

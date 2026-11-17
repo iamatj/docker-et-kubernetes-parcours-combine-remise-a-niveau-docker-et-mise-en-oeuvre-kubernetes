@@ -35,7 +35,7 @@ ACCEPTEE=$(kubectl get gatewayclass traefik -o jsonpath='{.status.conditions[?(@
 teste "metrics-server (kubectl top)"      "attendre 1 min après l'installation" kubectl top nodes
 
 echo "Images de la formation (ghcr.io/$COMPTE_IMAGES)"
-for image in cordee-api:1.0 cordee-api:1.1 cordee-front:1.0 cordee-front:1.1; do
+for image in huiteo-api:1.0 huiteo-api:1.1 huiteo-front:1.0 huiteo-front:1.1; do
   depot=${image%%:*}; tag=${image#*:}
   JETON=$(curl -fs -m 10 "https://ghcr.io/token?scope=repository:$COMPTE_IMAGES/$depot:pull" | jq -r .token 2>/dev/null)
   CODE=$(curl -s -m 10 -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $JETON" \
