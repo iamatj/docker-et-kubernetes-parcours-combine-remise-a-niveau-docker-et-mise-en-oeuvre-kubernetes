@@ -4,7 +4,7 @@
 |-------|---------|------------|
 | 70 min (14h50 – 15h15, pause, 15h30 – 16h15) | `tp-03-compose` | `solutions/03-compose/` (`README.md` et `app/compose.yaml`) |
 
-La pause tombe après la partie B : on reprend à la partie C à 15h30.
+La pause tombe vers la fin de la partie B : on la termine à 15h30, puis on enchaîne sur la partie C.
 
 ## L'incident
 
@@ -280,7 +280,7 @@ Ajoutez à `api` :
 docker compose up -d
 docker compose ps
 docker compose logs api --tail 3
-docker compose exec db psql -U huiteo -c 'SELECT count(*) FROM reservation;'
+docker compose exec db psql -U huiteo -c 'SELECT count(*) FROM rendez_vous;'
 docker compose exec api sh -c 'df -h /tmp'
 docker compose top api
 ```
