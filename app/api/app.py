@@ -1,4 +1,4 @@
-"""API de Cordée : réservation de nuitées dans les refuges de montagne.
+"""API de Huiteo : réservation de nuitées dans les refuges de montagne.
 
 Configuration par variables d'environnement :
   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD  connexion PostgreSQL
@@ -34,7 +34,7 @@ class FormatJson(logging.Formatter):
         return json.dumps(ligne, ensure_ascii=False)
 
 
-journal = logging.getLogger("cordee")
+journal = logging.getLogger("huiteo")
 _sortie = logging.StreamHandler(sys.stdout)
 _sortie.setFormatter(FormatJson())
 journal.addHandler(_sortie)
@@ -53,8 +53,8 @@ def connexion():
     return psycopg.connect(
         host=os.environ.get("DB_HOST", "localhost"),
         port=int(os.environ.get("DB_PORT", "5432")),
-        dbname=os.environ.get("DB_NAME", "cordee"),
-        user=os.environ.get("DB_USER", "cordee"),
+        dbname=os.environ.get("DB_NAME", "huiteo"),
+        user=os.environ.get("DB_USER", "huiteo"),
         password=os.environ.get("DB_PASSWORD", ""),
         connect_timeout=2,
     )
@@ -136,7 +136,7 @@ def info():
     return jsonify(
         version=APP_VERSION,
         hote=HOTE,
-        message=os.environ.get("MESSAGE_ACCUEIL", "Bienvenue sur Cordée"),
+        message=os.environ.get("MESSAGE_ACCUEIL", "Bienvenue sur Huiteo"),
     )
 
 
