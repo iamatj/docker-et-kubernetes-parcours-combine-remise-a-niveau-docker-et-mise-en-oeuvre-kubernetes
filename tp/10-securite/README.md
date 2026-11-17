@@ -30,7 +30,7 @@ kubectl -n huiteo rollout status deployment api
 curl -s http://192.168.56.201/api/info | jq -r .version
 ```
 
-Si vous n'aviez pas fini le TP 09, la base est neuve (un nouveau volume) : l'API recrée les tables, sans réservations.
+Si vous n'aviez pas fini le TP 09, la base est neuve (un nouveau volume) : l'API recrée les tables, sans rendez-vous.
 
 ## Partie A – RBAC (35 min)
 
@@ -215,13 +215,13 @@ spec:
 
 ```bash
 kubectl apply -f k8s/securite/20-networkpolicies.yaml
-curl -s -m 5 http://192.168.56.201/api/refuges | jq length
+curl -s -m 5 http://192.168.56.201/api/etudes | jq length
 kubectl -n huiteo run pirate --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- \
   sh -c 'wget -qO- -T 3 http://api:8000/api/info || echo "API fermée"; nc -w 3 postgres 5432 </dev/null && echo "base joignable" || echo "base fermée"'
 kubectl -n huiteo exec deployment/front -- wget -qO- -T 3 http://api:8000/healthz
 ```
 
-Attendu : `5` refuges ; pour le pirate, `API fermée` et `base fermée` ; depuis le site, `{"statut":"ok"}`.
+Attendu : `5` études ; pour le pirate, `API fermée` et `base fermée` ; depuis le site, `{"statut":"ok"}`.
 
 **Question 4** – Les sondes du kubelet (`/readyz`, `pg_isready`) passent-elles encore ? Pourquoi ? Et la résolution DNS du pirate, qui sort vers CoreDNS ?
 

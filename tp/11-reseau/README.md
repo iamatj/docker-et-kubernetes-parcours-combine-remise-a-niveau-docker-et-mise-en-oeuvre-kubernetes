@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Vendredi, 9h. L'Office de tourisme signe enfin, avec deux conditions : un vrai nom (`huiteo.lab`) en HTTPS, plus de `:30080` ni d'adresse IP. Et Karim voudrait montrer la nouvelle version du site (1.1) à 10 % des visiteurs avant de la livrer à tous. Avec un NodePort par application, ni l'un ni l'autre n'est possible.
+> Vendredi, 9h. Le groupement de 40 études signe enfin, avec deux conditions : un vrai nom (`huiteo.lab`) en HTTPS, plus de `:30080` ni d'adresse IP. Et Karim voudrait montrer la nouvelle version du site (1.1) à 10 % des visiteurs avant de la livrer à tous. Avec un NodePort par application, ni l'un ni l'autre n'est possible.
 
 ## Objectifs
 

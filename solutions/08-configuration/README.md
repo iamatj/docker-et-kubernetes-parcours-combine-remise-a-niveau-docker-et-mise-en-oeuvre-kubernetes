@@ -24,8 +24,8 @@ Piège classique : mettre la base dans la liveness probe. Si la base tombe, tout
 
 | Application | Symptôme | Commande qui donne la cause | Cause | Correction |
 |-------------|----------|-----------------------------|-------|------------|
-| `billetterie` | `ErrImagePull` puis `ImagePullBackOff` | `describe pod` (Events : `not found`) | le tag `1.28-alpinee` (faute de frappe) n'existe pas | `kubectl -n diagnostic set image deployment/billetterie billetterie=ghcr.io/nginx/nginx-unprivileged:1.28-alpine` |
-| `meteo` | `CreateContainerConfigError` | `describe pod` (Events : `couldn't find key CLE_API in Secret diagnostic/meteo`) | le Secret contient `CLE`, le pod demande `CLE_API` | `kubectl -n diagnostic edit deployment meteo` : `key: CLE` |
+| `agenda` | `ErrImagePull` puis `ImagePullBackOff` | `describe pod` (Events : `not found`) | le tag `1.28-alpinee` (faute de frappe) n'existe pas | `kubectl -n diagnostic set image deployment/agenda agenda=ghcr.io/nginx/nginx-unprivileged:1.28-alpine` |
+| `rappels` | `CreateContainerConfigError` | `describe pod` (Events : `couldn't find key CLE_API in Secret diagnostic/rappels`) | le Secret contient `CLE`, le pod demande `CLE_API` | `kubectl -n diagnostic edit deployment rappels` : `key: CLE` |
 | `vitrine` | pods `Running` et prêts, mais le Service ne répond pas (`wget` : délai dépassé ou connexion refusée) | `get endpoints vitrine` (aucune adresse) | le `selector` du Service (`app: vitrin`) ne correspond pas aux pods (`app: vitrine`) | `kubectl -n diagnostic edit service vitrine` : `app: vitrine` |
 | `statistiques` | `CrashLoopBackOff` | `logs <pod>` (ou `--previous`) : `superuser password is not specified` | il manque `POSTGRES_PASSWORD` | `kubectl -n diagnostic set env deployment/statistiques POSTGRES_PASSWORD=essai` |
 

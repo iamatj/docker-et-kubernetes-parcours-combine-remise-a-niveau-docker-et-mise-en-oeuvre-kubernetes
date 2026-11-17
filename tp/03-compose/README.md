@@ -2,17 +2,18 @@
 
 | Durée | Branche | Correction |
 |-------|---------|------------|
-| 75 min (14h45 – 15h15, pause, 15h30 – 16h15) | `tp-03-compose` | `solutions/03-compose/` (`README.md` et `app/compose.yaml`) |
+| 70 min (14h50 – 15h15, pause, 15h30 – 16h15) | `tp-03-compose` | `solutions/03-compose/` (`README.md` et `app/compose.yaml`) |
 
-La pause tombe après la partie B : on reprend à la partie C à 15h30.
+La pause tombe vers la fin de la partie B : on la termine à 15h30, puis on enchaîne sur la partie C.
 
 ## L'incident
 
-> Jeudi, 7h30. Le serveur de Huiteo a redémarré pendant la nuit (mise à jour du noyau). Karim relance ses trois `docker run` de mémoire. Le site revient… vide : les 312 réservations de la veille ont disparu. Et l'API refuse de démarrer une fois sur deux : elle se lance avant que PostgreSQL soit prêt.
+> Jeudi, 7h30. Le serveur de Huiteo a redémarré pendant la nuit (mise à jour du noyau). Karim relance ses trois `docker run` de mémoire. Le site revient… vide : les 312 rendez-vous pris la veille ont disparu. Et l'API refuse de démarrer une fois sur deux : elle se lance avant que PostgreSQL soit prêt.
 
 ## Objectifs
 
-- Garder des données au-delà de la vie d'un conteneur : volume nommé, bind mount, tmpfs.
+- Comprendre où un conteneur écrit ses données, et pourquoi `docker rm` les perd.
+- Garder des données au-delà de la vie d'un conteneur : volume nommé, volume anonyme, bind mount, tmpfs ; sauvegarder et restaurer un volume.
 - Comprendre les réseaux Docker : bridge par défaut, réseau dédié et son DNS, `host`, `none`.
 - Décrire Huiteo dans un `compose.yaml` : services, réseaux, volumes, `depends_on` avec `service_healthy`.
 - Piloter la stack : `up`, `down`, `ps`, `logs`, `exec`, `build`.
@@ -28,7 +29,32 @@ ls app/api app/front          # les Dockerfile corrigés du TP 02 sont là
 docker ps -a                  # seul « registre » tourne
 ```
 
-## Partie A – Volumes (15 min)
+## Partie A – Volumes (20 min)
+
+Rappel : un conteneur, c'est les couches de son image, **en lecture seule**, plus une **couche en écriture** qui lui est propre. Tout ce que le programme écrit (une base de données, un fichier envoyé, un journal) va dans cette couche. Elle vit et meurt avec le conteneur : `docker stop` la garde, `docker rm` la détruit.
+
+Un **volume** est un dossier géré par Docker, **en dehors** du conteneur, que Docker « branche » sur un chemin du conteneur. Le programme écrit au même endroit qu'avant, mais les fichiers atterrissent dans le volume, qui survit à la suppression du conteneur.
+
+### A0. La preuve : sans volume, les données partent avec le conteneur
+
+```bash
+docker run -d --name pg0 -e POSTGRES_PASSWORD=essai mirror.gcr.io/library/postgres:17-alpine
+sleep 5
+docker exec pg0 psql -U postgres -c "CREATE TABLE etude (nom text); INSERT INTO etude VALUES ('Étude des Halles');"
+docker rm -f pg0
+docker run -d --name pg0 -e POSTGRES_PASSWORD=essai mirror.gcr.io/library/postgres:17-alpine
+sleep 5
+docker exec pg0 psql -U postgres -c "SELECT * FROM etude;"
+```
+
+Attendu : `ERROR: relation "etude" does not exist`. C'est exactement l'incident de Karim. Regardez maintenant les volumes :
+
+```bash
+docker volume ls
+docker rm -f pg0
+```
+
+Deux volumes au nom illisible (64 caractères hexadécimaux) sont apparus. L'image `postgres` déclare `VOLUME /var/lib/postgresql/data` : faute de volume donné, Docker en crée un **anonyme** à chaque conteneur. Les données de `pg0` ne sont donc pas effacées, mais **orphelines** : le second conteneur a reçu un volume neuf et vide, et personne ne sait quel identifiant correspond à quoi.
 
 ### A1. Un volume nommé survit au conteneur
 
@@ -36,47 +62,75 @@ docker ps -a                  # seul « registre » tourne
 docker volume create essai-db
 docker run -d --name pg1 -e POSTGRES_PASSWORD=essai -v essai-db:/var/lib/postgresql/data mirror.gcr.io/library/postgres:17-alpine
 sleep 5
-docker exec pg1 psql -U postgres -c "CREATE TABLE refuge (nom text); INSERT INTO refuge VALUES ('La Pra');"
+docker exec pg1 psql -U postgres -c "CREATE TABLE etude (nom text); INSERT INTO etude VALUES ('Étude du Parc');"
 docker rm -f pg1
 docker run -d --name pg2 -e POSTGRES_PASSWORD=essai -v essai-db:/var/lib/postgresql/data mirror.gcr.io/library/postgres:17-alpine
 sleep 5
-docker exec pg2 psql -U postgres -c "SELECT * FROM refuge;"
+docker exec pg2 psql -U postgres -c "SELECT * FROM etude;"
 ```
 
-Attendu : `La Pra`, alors que `pg1` a été supprimé.
+Attendu : `Étude du Parc`, alors que `pg1` a été supprimé. La syntaxe se lit `-v <nom du volume>:<chemin dans le conteneur>`.
 
 ```bash
 docker volume inspect essai-db --format '{{.Mountpoint}}'
+sudo ls /var/lib/docker/volumes/essai-db/_data | head -5
 ```
 
-**Question 1** – Où sont physiquement les données ? Que se serait-il passé sans `-v essai-db:…` ?
+**Question 1** – Où sont physiquement les données ? Que s'est-il passé en A0, et pourquoi les données n'étaient-elles pas vraiment effacées ?
 
-### A2. Un bind mount : un dossier du poste dans le conteneur
+### A2. Sauvegarder et restaurer un volume
+
+Un volume se sauvegarde avec un conteneur jetable qui monte le volume **et** un dossier du poste, puis fait une archive :
+
+```bash
+mkdir -p ~/sauvegardes
+docker run --rm -v essai-db:/donnees:ro -v ~/sauvegardes:/sauvegarde mirror.gcr.io/library/busybox:1.37 \
+  tar czf /sauvegarde/essai-db.tgz -C /donnees .
+ls -lh ~/sauvegardes
+```
+
+Pour restaurer dans un volume neuf :
+
+```bash
+docker volume create essai-db-restaure
+docker run --rm -v essai-db-restaure:/donnees -v ~/sauvegardes:/sauvegarde mirror.gcr.io/library/busybox:1.37 \
+  tar xzf /sauvegarde/essai-db.tgz -C /donnees
+docker run -d --name pg3 -e POSTGRES_PASSWORD=essai -v essai-db-restaure:/var/lib/postgresql/data mirror.gcr.io/library/postgres:17-alpine
+sleep 5
+docker exec pg3 psql -U postgres -c "SELECT * FROM etude;"
+```
+
+Attendu : `Étude du Parc`. Pour une base en production, on préfère une sauvegarde logique faite par la base elle-même (`pg_dump`), cohérente même pendant les écritures ; la copie de fichiers ci-dessus est sûre ici parce que la base est peu sollicitée.
+
+### A3. Un bind mount : un dossier du poste dans le conteneur
 
 ```bash
 docker run -d --name vitrine -p 8081:8080 -v ~/huiteo/app/front/html:/usr/share/nginx/html:ro ghcr.io/nginx/nginx-unprivileged:1.28-alpine
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
-sed -i 's/Réservez votre nuit en refuge/Réservez votre nuit là-haut/' ~/huiteo/app/front/html/index.html
+sed -i 's/Prenez rendez-vous avec votre notaire/Prenez rendez-vous en ligne/' ~/huiteo/app/front/html/index.html
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
 git -C ~/huiteo checkout app/front/html/index.html
 docker exec vitrine touch /usr/share/nginx/html/essai
 ```
 
-La modification se voit tout de suite, sans rien relancer. La dernière commande échoue : `Read-only file system` (option `:ro`).
+La modification se voit tout de suite, sans rien relancer : le conteneur lit directement le dossier du poste. La dernière commande échoue : `Read-only file system` (option `:ro`).
 
-### A3. tmpfs et nettoyage
+### A4. tmpfs et nettoyage
 
 ```bash
 docker run --rm --tmpfs /tmp:size=16m mirror.gcr.io/library/busybox:1.37 df -h /tmp
-docker rm -f pg2 vitrine
+docker rm -f pg2 pg3 vitrine
 docker volume ls
 docker system df
-docker volume rm essai-db
+docker volume rm essai-db essai-db-restaure
+docker volume prune -f        # supprime les volumes anonymes orphelins de A0
 ```
 
-**Question 2** – Dans quel cas utiliser un bind mount, un volume nommé, un tmpfs ?
+Attention : `docker volume prune` supprime les volumes **anonymes** qu'aucun conteneur n'utilise, et `docker volume prune -a` aussi les volumes **nommés**. Sur un serveur, un conteneur supprimé suffit à rendre son volume « inutilisé ».
 
-## Partie B – Réseaux (15 min)
+**Question 2** – Dans quel cas utiliser un bind mount, un volume nommé, un tmpfs ? Citez trois commandes qui peuvent détruire les données d'une base lancée dans Docker.
+
+## Partie B – Réseaux (10 min)
 
 ### B1. Le réseau par défaut n'a pas de DNS
 
@@ -157,18 +211,18 @@ docker compose up -d
 docker compose ps
 ```
 
-Attendu : `db` passe à `(healthy)`, puis `api` démarre, puis `front`. Ouvrez <http://localhost:8080> : les refuges s'affichent, le pied de page indique `site 1.0 · API 1.0 · servi par <identifiant du conteneur>`. Faites une réservation.
+Attendu : `db` passe à `(healthy)`, puis `api` démarre, puis `front`. Ouvrez <http://localhost:8080> : les études s'affichent, le pied de page indique `site 1.0 · API 1.0 · servi par <identifiant du conteneur>`. Prenez un rendez-vous.
 
-### C3. Garder les réservations
+### C3. Garder les rendez-vous
 
 ```bash
 docker compose down
 docker compose up -d
 sleep 10
-curl -s http://localhost:8080/api/reservations
+curl -s http://localhost:8080/api/rendez-vous
 ```
 
-Résultat : `[]`. Votre réservation a disparu avec le conteneur `db`. Ajoutez le volume (TODO C3) :
+Résultat : `[]`. Votre rendez-vous a disparu avec le conteneur `db`. Ajoutez le volume (TODO C3) :
 
 ```yaml
 # dans db :
@@ -184,13 +238,13 @@ volumes:
 docker compose up -d
 ```
 
-Refaites une réservation dans le navigateur, puis :
+Reprenez un rendez-vous dans le navigateur, puis :
 
 ```bash
 docker compose down
 docker compose up -d
 sleep 10
-curl -s http://localhost:8080/api/reservations       # la réservation est là
+curl -s http://localhost:8080/api/rendez-vous        # le rendez-vous est là
 docker volume ls | grep huiteo                         # huiteo_donnees-db
 ```
 
@@ -226,7 +280,7 @@ Ajoutez à `api` :
 docker compose up -d
 docker compose ps
 docker compose logs api --tail 3
-docker compose exec db psql -U huiteo -c 'SELECT count(*) FROM reservation;'
+docker compose exec db psql -U huiteo -c 'SELECT count(*) FROM rendez_vous;'
 docker compose exec api sh -c 'df -h /tmp'
 docker compose top api
 ```
@@ -240,7 +294,7 @@ docker compose down -v
 docker volume ls | grep huiteo ; echo "plus de volume"
 ```
 
-**Question 4** – Quelle commande a fait perdre les réservations de Huiteo dans l'incident ? Quelle est la différence entre `down` et `down -v` ?
+**Question 4** – Quelle commande a fait perdre les rendez-vous de Huiteo dans l'incident ? Quelle est la différence entre `down` et `down -v` ?
 
 **Question 5** – Le mot de passe vaut `${DB_PASSWORD:-change-moi}`. D'où peut venir `DB_PASSWORD`, et que se passe-t-il si on le change après la première initialisation de la base ?
 
