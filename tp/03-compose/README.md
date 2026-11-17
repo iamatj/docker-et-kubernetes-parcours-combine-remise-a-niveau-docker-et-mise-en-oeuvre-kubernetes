@@ -28,7 +28,32 @@ ls app/api app/front          # les Dockerfile corrigés du TP 02 sont là
 docker ps -a                  # seul « registre » tourne
 ```
 
-## Partie A – Volumes (15 min)
+## Partie A – Volumes (20 min)
+
+Rappel : un conteneur, c'est les couches de son image, **en lecture seule**, plus une **couche en écriture** qui lui est propre. Tout ce que le programme écrit (une base de données, un fichier envoyé, un journal) va dans cette couche. Elle vit et meurt avec le conteneur : `docker stop` la garde, `docker rm` la détruit.
+
+Un **volume** est un dossier géré par Docker, **en dehors** du conteneur, que Docker « branche » sur un chemin du conteneur. Le programme écrit au même endroit qu'avant, mais les fichiers atterrissent dans le volume, qui survit à la suppression du conteneur.
+
+### A0. La preuve : sans volume, les données partent avec le conteneur
+
+```bash
+docker run -d --name pg0 -e POSTGRES_PASSWORD=essai mirror.gcr.io/library/postgres:17-alpine
+sleep 5
+docker exec pg0 psql -U postgres -c "CREATE TABLE etude (nom text); INSERT INTO etude VALUES ('Étude des Halles');"
+docker rm -f pg0
+docker run -d --name pg0 -e POSTGRES_PASSWORD=essai mirror.gcr.io/library/postgres:17-alpine
+sleep 5
+docker exec pg0 psql -U postgres -c "SELECT * FROM etude;"
+```
+
+Attendu : `ERROR: relation "etude" does not exist`. C'est exactement l'incident de Karim. Regardez maintenant les volumes :
+
+```bash
+docker volume ls
+docker rm -f pg0
+```
+
+Deux volumes au nom illisible (64 caractères hexadécimaux) sont apparus. L'image `postgres` déclare `VOLUME /var/lib/postgresql/data` : faute de volume donné, Docker en crée un **anonyme** à chaque conteneur. Les données de `pg0` ne sont donc pas effacées, mais **orphelines** : le second conteneur a reçu un volume neuf et vide, et personne ne sait quel identifiant correspond à quoi.
 
 ### A1. Un volume nommé survit au conteneur
 
@@ -43,15 +68,40 @@ sleep 5
 docker exec pg2 psql -U postgres -c "SELECT * FROM etude;"
 ```
 
-Attendu : `Étude du Parc`, alors que `pg1` a été supprimé.
+Attendu : `Étude du Parc`, alors que `pg1` a été supprimé. La syntaxe se lit `-v <nom du volume>:<chemin dans le conteneur>`.
 
 ```bash
 docker volume inspect essai-db --format '{{.Mountpoint}}'
+sudo ls /var/lib/docker/volumes/essai-db/_data | head -5
 ```
 
-**Question 1** – Où sont physiquement les données ? Que se serait-il passé sans `-v essai-db:…` ?
+**Question 1** – Où sont physiquement les données ? Que s'est-il passé en A0, et pourquoi les données n'étaient-elles pas vraiment effacées ?
 
-### A2. Un bind mount : un dossier du poste dans le conteneur
+### A2. Sauvegarder et restaurer un volume
+
+Un volume se sauvegarde avec un conteneur jetable qui monte le volume **et** un dossier du poste, puis fait une archive :
+
+```bash
+mkdir -p ~/sauvegardes
+docker run --rm -v essai-db:/donnees:ro -v ~/sauvegardes:/sauvegarde mirror.gcr.io/library/busybox:1.37 \
+  tar czf /sauvegarde/essai-db.tgz -C /donnees .
+ls -lh ~/sauvegardes
+```
+
+Pour restaurer dans un volume neuf :
+
+```bash
+docker volume create essai-db-restaure
+docker run --rm -v essai-db-restaure:/donnees -v ~/sauvegardes:/sauvegarde mirror.gcr.io/library/busybox:1.37 \
+  tar xzf /sauvegarde/essai-db.tgz -C /donnees
+docker run -d --name pg3 -e POSTGRES_PASSWORD=essai -v essai-db-restaure:/var/lib/postgresql/data mirror.gcr.io/library/postgres:17-alpine
+sleep 5
+docker exec pg3 psql -U postgres -c "SELECT * FROM etude;"
+```
+
+Attendu : `Étude du Parc`. Pour une base en production, on préfère une sauvegarde logique faite par la base elle-même (`pg_dump`), cohérente même pendant les écritures ; la copie de fichiers ci-dessus est sûre ici parce que la base est peu sollicitée.
+
+### A3. Un bind mount : un dossier du poste dans le conteneur
 
 ```bash
 docker run -d --name vitrine -p 8081:8080 -v ~/huiteo/app/front/html:/usr/share/nginx/html:ro ghcr.io/nginx/nginx-unprivileged:1.28-alpine
@@ -62,21 +112,24 @@ git -C ~/huiteo checkout app/front/html/index.html
 docker exec vitrine touch /usr/share/nginx/html/essai
 ```
 
-La modification se voit tout de suite, sans rien relancer. La dernière commande échoue : `Read-only file system` (option `:ro`).
+La modification se voit tout de suite, sans rien relancer : le conteneur lit directement le dossier du poste. La dernière commande échoue : `Read-only file system` (option `:ro`).
 
-### A3. tmpfs et nettoyage
+### A4. tmpfs et nettoyage
 
 ```bash
 docker run --rm --tmpfs /tmp:size=16m mirror.gcr.io/library/busybox:1.37 df -h /tmp
-docker rm -f pg2 vitrine
+docker rm -f pg2 pg3 vitrine
 docker volume ls
 docker system df
-docker volume rm essai-db
+docker volume rm essai-db essai-db-restaure
+docker volume prune -f        # supprime les volumes anonymes orphelins de A0
 ```
 
-**Question 2** – Dans quel cas utiliser un bind mount, un volume nommé, un tmpfs ?
+Attention : `docker volume prune` supprime les volumes **anonymes** qu'aucun conteneur n'utilise, et `docker volume prune -a` aussi les volumes **nommés**. Sur un serveur, un conteneur supprimé suffit à rendre son volume « inutilisé ».
 
-## Partie B – Réseaux (15 min)
+**Question 2** – Dans quel cas utiliser un bind mount, un volume nommé, un tmpfs ? Citez trois commandes qui peuvent détruire les données d'une base lancée dans Docker.
+
+## Partie B – Réseaux (10 min)
 
 ### B1. Le réseau par défaut n'a pas de DNS
 
