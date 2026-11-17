@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Dimanche, 23h40. Le site vitrine de Cordée ne répond plus. Sophie se connecte au serveur : un processus nginx lancé « à la main » il y a trois mois s'est arrêté. Personne ne sait quelle version tournait, ni avec quelles options il avait été lancé. Il faut que ce soit reproductible, observable, et que ça redémarre tout seul.
+> Dimanche, 23h40. Le site vitrine de Huiteo ne répond plus. Sophie se connecte au serveur : un processus nginx lancé « à la main » il y a trois mois s'est arrêté. Personne ne sait quelle version tournait, ni avec quelles options il avait été lancé. Il faut que ce soit reproductible, observable, et que ça redémarre tout seul.
 
 ## Objectifs
 
@@ -18,7 +18,7 @@
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git checkout tp-01-conteneurs
 docker ps -a        # aucun conteneur du TP précédent ne doit rester
@@ -75,14 +75,14 @@ curl -s http://localhost:8081/ | head -5
 
 Vous devez voir la page d'accueil par défaut de nginx (`Welcome to nginx!`). `-p 8081:8080` : le port 8081 du poste mène au port 8080 du conteneur.
 
-### B2. Y mettre le site de Cordée
+### B2. Y mettre le site de Huiteo
 
 ```bash
-docker cp ~/cordee/app/front/html/. vitrine:/usr/share/nginx/html/
+docker cp ~/huiteo/app/front/html/. vitrine:/usr/share/nginx/html/
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
 ```
 
-Attendu : `<title>Cordée · Réservez votre nuit en refuge</title>`. Ouvrez <http://localhost:8081> dans Firefox : la page s'affiche avec le bandeau **« API injoignable »**. C'est normal : il n'y a pas encore d'API.
+Attendu : `<title>Huiteo · Réservez votre nuit en refuge</title>`. Ouvrez <http://localhost:8081> dans Firefox : la page s'affiche avec le bandeau **« API injoignable »**. C'est normal : il n'y a pas encore d'API.
 
 ### B3. Observer
 
@@ -101,14 +101,14 @@ docker inspect vitrine --format 'IP : {{.NetworkSettings.IPAddress}} | Redémarr
 
 ```bash
 docker stop vitrine && docker ps -a --filter name=vitrine     # Exited
-docker start vitrine && curl -s http://localhost:8081/ | grep -c Cordée
+docker start vitrine && curl -s http://localhost:8081/ | grep -c Huiteo
 docker restart vitrine
 docker rm -f vitrine
 docker run -d --name vitrine -p 8081:8080 ghcr.io/nginx/nginx-unprivileged:1.28-alpine
-curl -s http://localhost:8081/ | grep -c Cordée
+curl -s http://localhost:8081/ | grep -c Huiteo
 ```
 
-**Question 4** – Après `stop` puis `start`, le site de Cordée est-il toujours là ? Et après `rm` puis un nouveau `run` ? Qu'en déduisez-vous sur l'endroit où il faut mettre le site ?
+**Question 4** – Après `stop` puis `start`, le site de Huiteo est-il toujours là ? Et après `rm` puis un nouveau `run` ? Qu'en déduisez-vous sur l'endroit où il faut mettre le site ?
 
 ### B5. Redémarrer tout seul
 
@@ -143,11 +143,11 @@ Le conteneur est `Exited (1)`. Lisez les logs : il manque une variable d'environ
 ```bash
 docker rm pg
 docker run -d --name pg \
-  -e POSTGRES_DB=cordee -e POSTGRES_USER=cordee -e POSTGRES_PASSWORD=essai \
+  -e POSTGRES_DB=huiteo -e POSTGRES_USER=huiteo -e POSTGRES_PASSWORD=essai \
   --memory 256m --cpus 0.5 \
   mirror.gcr.io/library/postgres:17-alpine
 sleep 5
-docker exec pg psql -U cordee -d cordee -c 'SELECT version();'
+docker exec pg psql -U huiteo -d huiteo -c 'SELECT version();'
 docker stats --no-stream pg
 docker inspect pg --format 'Mémoire max : {{.HostConfig.Memory}} octets | CPU : {{.HostConfig.NanoCpus}} nano-CPU'
 ```
@@ -160,7 +160,7 @@ docker inspect pg --format 'Mémoire max : {{.HostConfig.Memory}} octets | CPU :
 
 ```bash
 docker run --rm -it mirror.gcr.io/library/postgres:17-alpine psql --version
-docker run --rm -it --link pg mirror.gcr.io/library/postgres:17-alpine psql -h pg -U cordee -d cordee -c '\dt'
+docker run --rm -it --link pg mirror.gcr.io/library/postgres:17-alpine psql -h pg -U huiteo -d huiteo -c '\dt'
 ```
 
 Le mot de passe demandé est `essai`. `--rm` supprime le conteneur à sa sortie ; `-it` branche votre clavier et votre terminal.
@@ -181,11 +181,11 @@ Ce registre est **le vôtre** : il sert jusqu'à la fin de la journée (TP 02). 
 ### D2. Pousser une image
 
 ```bash
-docker tag ghcr.io/nginx/nginx-unprivileged:1.28-alpine localhost:5000/cordee/nginx:1.28
+docker tag ghcr.io/nginx/nginx-unprivileged:1.28-alpine localhost:5000/huiteo/nginx:1.28
 docker image ls | grep nginx                       # même IMAGE ID pour les deux noms
-docker push localhost:5000/cordee/nginx:1.28
+docker push localhost:5000/huiteo/nginx:1.28
 curl -s http://localhost:5000/v2/_catalog
-curl -s http://localhost:5000/v2/cordee/nginx/tags/list
+curl -s http://localhost:5000/v2/huiteo/nginx/tags/list
 ```
 
 **Question 7** – `docker tag` a-t-il copié l'image ? Pourquoi le push affiche-t-il `Pushed` pour chaque couche ?
@@ -193,8 +193,8 @@ curl -s http://localhost:5000/v2/cordee/nginx/tags/list
 ### D3. Récupérer l'image depuis le registre
 
 ```bash
-docker rmi localhost:5000/cordee/nginx:1.28
-docker pull localhost:5000/cordee/nginx:1.28
+docker rmi localhost:5000/huiteo/nginx:1.28
+docker pull localhost:5000/huiteo/nginx:1.28
 ```
 
 La seconde commande affiche `Already exists` pour les couches : elles sont encore sur le poste sous l'autre nom.

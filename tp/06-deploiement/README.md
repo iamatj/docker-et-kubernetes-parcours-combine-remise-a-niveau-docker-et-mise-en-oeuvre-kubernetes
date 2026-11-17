@@ -1,4 +1,4 @@
-# TP 06 – Déployer Cordée sur Kubernetes
+# TP 06 – Déployer Huiteo sur Kubernetes
 
 | Durée | Branche | Correction |
 |-------|---------|------------|
@@ -6,41 +6,41 @@
 
 ## L'incident
 
-> Mardi, 10h. L'ouverture des réservations de Noël est vendredi. Léa veut Cordée sur le cluster avant, « et avec plusieurs exemplaires de l'API, au cas où ». Karim a déjà écrit le manifest de la base ; il reste l'API et le site.
+> Mardi, 10h. L'ouverture des réservations de Noël est vendredi. Léa veut Huiteo sur le cluster avant, « et avec plusieurs exemplaires de l'API, au cas où ». Karim a déjà écrit le manifest de la base ; il reste l'API et le site.
 
 ## Objectifs
 
 - Passer de l'impératif (`kubectl create`) au déclaratif (fichiers YAML dans Git, `kubectl apply`).
 - Lire et corriger du YAML Kubernetes.
-- Déployer les trois composants de Cordée et les relier par des Services.
+- Déployer les trois composants de Huiteo et les relier par des Services.
 - Exposer le site hors du cluster (NodePort, port-forward) et changer le nombre de replicas.
 
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git stash -u
 git checkout tp-06-deploiement
 ls tp/06-deploiement
-kubectl get namespace cordee 2>/dev/null || echo "pas encore de namespace cordee : normal"
+kubectl get namespace huiteo 2>/dev/null || echo "pas encore de namespace huiteo : normal"
 ```
 
-Les images `ghcr.io/iamatj/cordee-api` et `cordee-front` (versions `1.0` et `1.1`) sont publiées par le dépôt ; ce sont les mêmes Dockerfile qu'au TP 02.
+Les images `ghcr.io/iamatj/huiteo-api` et `huiteo-front` (versions `1.0` et `1.1`) sont publiées par le dépôt ; ce sont les mêmes Dockerfile qu'au TP 02.
 
 ## Étapes
 
 ### 1. De l'impératif au déclaratif (5 min)
 
 ```bash
-kubectl create deployment api --image=ghcr.io/iamatj/cordee-api:1.0 --replicas=2 --port=8000 --dry-run=client -o yaml
+kubectl create deployment api --image=ghcr.io/iamatj/huiteo-api:1.0 --replicas=2 --port=8000 --dry-run=client -o yaml
 ```
 
 Rien n'est créé (`--dry-run=client`) : kubectl affiche le YAML qu'il aurait envoyé. C'est un bon point de départ pour écrire un manifest. Repérez `apiVersion`, `kind`, `metadata`, `spec`, `spec.selector`, `spec.template`.
 
 ### 2. Corriger un YAML cassé (10 min)
 
-Le pod de cet exercice va dans le namespace `cordee` : créez-le d'abord.
+Le pod de cet exercice va dans le namespace `huiteo` : créez-le d'abord.
 
 ```bash
 mkdir -p k8s
@@ -62,8 +62,8 @@ mkdir -p k8s
 cp tp/06-deploiement/00-namespace.yaml tp/06-deploiement/10-postgres.yaml k8s/
 kubectl apply -f k8s/00-namespace.yaml
 kubectl apply -f k8s/10-postgres.yaml
-kubectl -n cordee get deployment,pod,service
-kubectl -n cordee rollout status deployment postgres
+kubectl -n huiteo get deployment,pod,service
+kubectl -n huiteo rollout status deployment postgres
 ```
 
 Lisez `k8s/10-postgres.yaml`. **Question 2** – Relevez les deux choses que Sophie n'aimerait pas voir en production dans ce fichier.
@@ -75,21 +75,21 @@ Ouvrez `tp/06-deploiement/20-api.yaml` et remplacez chaque `TODO-…` :
 | Valeur à remplacer | Par |
 |--------------------|-----|
 | `TODO-etiquette` | `api` |
-| `TODO-image-de-l-api` | `ghcr.io/iamatj/cordee-api:1.0` |
-| `TODO-nom-du-service-postgres` | le nom du Service de la base (`kubectl -n cordee get svc`) |
+| `TODO-image-de-l-api` | `ghcr.io/iamatj/huiteo-api:1.0` |
+| `TODO-nom-du-service-postgres` | le nom du Service de la base (`kubectl -n huiteo get svc`) |
 | `TODO-port-du-service` | `8000` |
 
 ```bash
 cp tp/06-deploiement/20-api.yaml k8s/
 kubectl apply -f k8s/20-api.yaml
-kubectl -n cordee get pods -w
+kubectl -n huiteo get pods -w
 ```
 
-Attendez deux pods `api-…` en `Running` et `READY 1/1`, puis Ctrl+C. Si un pod affiche `InvalidImageName` ou `ErrImagePull`, un `TODO` est resté dans le fichier : `kubectl -n cordee describe pod -l app=api | grep -A3 Events`.
+Attendez deux pods `api-…` en `Running` et `READY 1/1`, puis Ctrl+C. Si un pod affiche `InvalidImageName` ou `ErrImagePull`, un `TODO` est resté dans le fichier : `kubectl -n huiteo describe pod -l app=api | grep -A3 Events`.
 
 ```bash
-kubectl -n cordee logs deployment/api --tail 3
-kubectl -n cordee get endpoints api
+kubectl -n huiteo logs deployment/api --tail 3
+kubectl -n huiteo get endpoints api
 ```
 
 Les logs montrent `base de données prête`. `endpoints` liste les IP des deux pods derrière le Service `api`.
@@ -97,21 +97,21 @@ Les logs montrent `base de données prête`. `endpoints` liste les IP des deux p
 Testez le Service depuis l'intérieur du cluster, avec un pod jetable :
 
 ```bash
-kubectl -n cordee run test --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- wget -qO- -T 3 http://api:8000/api/info
+kubectl -n huiteo run test --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- wget -qO- -T 3 http://api:8000/api/info
 ```
 
-Attendu : `{"hote":"api-…","message":"Bienvenue sur Cordée","version":"1.0"}`, puis `pod "test" deleted`.
+Attendu : `{"hote":"api-…","message":"Bienvenue sur Huiteo","version":"1.0"}`, puis `pod "test" deleted`.
 
 ### 5. Le site et le NodePort (10 min)
 
-Dans `tp/06-deploiement/30-front.yaml`, remplacez `TODO-image-du-site` par `ghcr.io/iamatj/cordee-front:1.0`, puis écrivez le Service à la place du commentaire `TODO`, en vous inspirant de celui de l'API :
+Dans `tp/06-deploiement/30-front.yaml`, remplacez `TODO-image-du-site` par `ghcr.io/iamatj/huiteo-front:1.0`, puis écrivez le Service à la place du commentaire `TODO`, en vous inspirant de celui de l'API :
 
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: front
-  namespace: cordee
+  namespace: huiteo
 spec:
   type: NodePort
   selector:
@@ -125,7 +125,7 @@ spec:
 ```bash
 cp tp/06-deploiement/30-front.yaml k8s/
 kubectl apply -f k8s/
-kubectl -n cordee get all
+kubectl -n huiteo get all
 for ip in 192.168.56.20 192.168.56.30 192.168.56.40; do curl -s -m 2 -o /dev/null -w "$ip : %{http_code}\n" http://$ip:30080/; done
 ```
 
@@ -138,19 +138,19 @@ Ouvrez <http://192.168.56.30:30080> dans Firefox : les refuges s'affichent, le p
 ### 6. Port-forward : l'accès du développeur (5 min)
 
 ```bash
-kubectl -n cordee port-forward service/front 8080:8080 >/dev/null 2>&1 &
+kubectl -n huiteo port-forward service/front 8080:8080 >/dev/null 2>&1 &
 sleep 1
 curl -s http://localhost:8080/api/info
 kill %1
 ```
 
-**Question 4** – NodePort ou port-forward : lequel donner aux clients de Cordée, lequel à Karim pour déboguer ?
+**Question 4** – NodePort ou port-forward : lequel donner aux clients de Huiteo, lequel à Karim pour déboguer ?
 
 ### 7. Plus d'exemplaires (12 min)
 
 ```bash
-kubectl -n cordee scale deployment api --replicas=4
-kubectl -n cordee get pods -l app=api -o wide
+kubectl -n huiteo scale deployment api --replicas=4
+kubectl -n huiteo get pods -l app=api -o wide
 for i in $(seq 20); do curl -s http://192.168.56.30:30080/api/info | jq -r .hote; done | sort | uniq -c
 ```
 
@@ -160,18 +160,18 @@ Maintenant, réappliquez les fichiers :
 
 ```bash
 kubectl apply -f k8s/
-kubectl -n cordee get deployment api
+kubectl -n huiteo get deployment api
 ```
 
-**Question 5** – Combien de replicas après `kubectl apply` ? Pourquoi ? Que faut-il faire pour que Cordée garde durablement 3 API ?
+**Question 5** – Combien de replicas après `kubectl apply` ? Pourquoi ? Que faut-il faire pour que Huiteo garde durablement 3 API ?
 
 Faites-le : mettez `replicas: 3` dans `k8s/20-api.yaml`, puis `kubectl apply -f k8s/20-api.yaml` et vérifiez `3/3`.
 
 ### 8. Un aperçu de ce qui nous attend (3 min)
 
 ```bash
-kubectl -n cordee delete pod -l app=postgres
-kubectl -n cordee rollout status deployment postgres
+kubectl -n huiteo delete pod -l app=postgres
+kubectl -n huiteo rollout status deployment postgres
 curl -s http://192.168.56.30:30080/api/reservations
 ```
 
@@ -186,5 +186,5 @@ Gardez tout en place : le TP 07 part de cet état.
 
 ## Bonus
 
-- `kubectl -n cordee get pods -o custom-columns=POD:.metadata.name,NŒUD:.spec.nodeName,IP:.status.podIP`
+- `kubectl -n huiteo get pods -o custom-columns=POD:.metadata.name,NŒUD:.spec.nodeName,IP:.status.podIP`
 - `kubectl diff -f k8s/` après avoir modifié un fichier : voir ce que `apply` changerait avant de l'appliquer.

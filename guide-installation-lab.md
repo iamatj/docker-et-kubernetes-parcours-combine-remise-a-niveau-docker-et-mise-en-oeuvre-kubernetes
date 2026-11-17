@@ -13,7 +13,7 @@ Chaque participant dispose de son propre lab de 4 machines. La formation **n'app
 
 Ces noms et ces IP sont utilisés tels quels dans tous les TP et les slides. S'ils changent, remplacez-les partout d'un coup.
 
-Adresses réservées sur le même réseau : **192.168.56.200 à .220** pour les Services `LoadBalancer` (MetalLB). La .200 est celle de Traefik (`cordee.lab`).
+Adresses réservées sur le même réseau : **192.168.56.200 à .220** pour les Services `LoadBalancer` (MetalLB). La .200 est celle de Traefik (`huiteo.lab`).
 
 ### À demander à l'organisme qui fournit les machines
 
@@ -31,8 +31,8 @@ Adresses réservées sur le même réseau : **192.168.56.200 à .220** pour les 
 Sur `client`, avec le compte du participant :
 
 ```bash
-git clone https://github.com/iamatj/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes.git ~/cordee
-cd ~/cordee
+git clone https://github.com/iamatj/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes.git ~/huiteo
+cd ~/huiteo
 bash lab/preparer-lab.sh
 ```
 
@@ -54,8 +54,8 @@ Il est relançable sans risque : une étape déjà faite est vérifiée puis sau
 
 ## 3. Avant la formation, côté dépôt
 
-1. **Publier les images** : dans GitHub, onglet **Actions** > workflow **images** > **Run workflow** (branche `main`). Il publie `ghcr.io/iamatj/cordee-api` et `ghcr.io/iamatj/cordee-front` en versions `1.0` et `1.1`. La version `1.2` n'existe pas : c'est la panne du TP 07.
-2. **Rendre les images publiques** : profil GitHub > **Packages** > `cordee-api` > **Package settings** > **Change visibility** > **Public**. Idem pour `cordee-front`. Sinon les nœuds affichent `ImagePullBackOff` dès le TP 06.
+1. **Publier les images** : dans GitHub, onglet **Actions** > workflow **images** > **Run workflow** (branche `main`). Il publie `ghcr.io/iamatj/huiteo-api` et `ghcr.io/iamatj/huiteo-front` en versions `1.0` et `1.1`. La version `1.2` n'existe pas : c'est la panne du TP 07.
+2. **Rendre les images publiques** : profil GitHub > **Packages** > `huiteo-api` > **Package settings** > **Change visibility** > **Public**. Idem pour `huiteo-front`. Sinon les nœuds affichent `ImagePullBackOff` dès le TP 06.
 3. **QCM** : GitHub Pages publie `main` ; vérifiez que <https://iamatj.github.io/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes/qcm/> s'ouvre.
 
 Faites les étapes 1 et 2 **avant** de lancer `preparer-lab.sh` : son étape 9 télécharge ces images sur les workers.
@@ -122,7 +122,7 @@ Depuis Windows, ouvrez un tunnel et laissez la fenêtre ouverte : `ssh -L 3390:l
 | `kubeadm init` échoue | swap actif, port 6443 occupé, ancien essai | `/tmp/kubeadm-init.log` ; sur control-plane `sudo kubeadm reset -f` puis relancer |
 | nœud `NotReady` | Calico pas encore démarré | `kubectl -n kube-system get pods -o wide`, attendre 2 min |
 | un worker n'apparaît pas | jeton expiré, horloge décalée | `/tmp/join-worker-N.log` ; sur le worker `sudo kubeadm reset -f`, relancer le script |
-| `ImagePullBackOff` sur `cordee-*` | image non publiée ou privée | section 3 |
+| `ImagePullBackOff` sur `huiteo-*` | image non publiée ou privée | section 3 |
 | Traefik sans EXTERNAL-IP | pool MetalLB absent | `kubectl apply -f lab/manifests/metallb-pool.yaml` |
 | `kubectl top` : `Metrics API not available` | metrics-server démarre | attendre 1 min |
 
@@ -131,7 +131,7 @@ Depuis Windows, ouvrez un tunnel et laissez la fenêtre ouverte : `ssh -L 3390:l
 Le plus simple est de recréer les VM. Sinon, depuis `client` :
 
 ```bash
-kubectl delete namespace cordee cordee-preprod equipe diagnostic --ignore-not-found
+kubectl delete namespace huiteo huiteo-preprod equipe diagnostic --ignore-not-found
 kubectl delete pv --all
 helm list -A                       # ne garder que traefik et headlamp
 docker rm -f $(docker ps -aq) 2>/dev/null; docker system prune -af --volumes

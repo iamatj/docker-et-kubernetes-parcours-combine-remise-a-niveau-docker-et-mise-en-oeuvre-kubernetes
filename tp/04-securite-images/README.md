@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Vendredi, 11h. L'Office de tourisme, futur partenaire de Cordée, demande un rapport de vulnérabilités avant de signer. Sophie lance un scanner sur l'ancienne image de l'API : plusieurs centaines de CVE. Et Léa pose la vraie question : « Si ce serveur tombe pendant les vacances de Noël, on fait quoi ? »
+> Vendredi, 11h. L'Office de tourisme, futur partenaire de Huiteo, demande un rapport de vulnérabilités avant de signer. Sophie lance un scanner sur l'ancienne image de l'API : plusieurs centaines de CVE. Et Léa pose la vraie question : « Si ce serveur tombe pendant les vacances de Noël, on fait quoi ? »
 
 ## Objectifs
 
@@ -17,15 +17,15 @@
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git stash -u
 git checkout tp-04-securite-images
 cd app && docker compose up -d && docker compose ps     # la stack du TP 03 tourne
-docker image ls cordee-api                               # « avant » et « 1.0 » (TP 02)
+docker image ls huiteo-api                               # « avant » et « 1.0 » (TP 02)
 ```
 
-Si `cordee-api:avant` manque : `docker build -f api/Dockerfile.avant -t cordee-api:avant api`.
+Si `huiteo-api:avant` manque : `docker build -f api/Dockerfile.avant -t huiteo-api:avant api`.
 
 ## Étapes
 
@@ -35,20 +35,20 @@ Trivy tourne lui-même dans un conteneur ; il lit les images du poste par le soc
 
 ```bash
 alias trivy='docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache ghcr.io/aquasecurity/trivy:latest'
-trivy image --quiet --scanners vuln --severity HIGH,CRITICAL cordee-api:avant 2>/dev/null | grep -E '^(Total|cordee|Python)'
-trivy image --quiet --scanners vuln --severity HIGH,CRITICAL cordee-api:1.0 2>/dev/null | grep -E '^(Total|cordee|Python)'
+trivy image --quiet --scanners vuln --severity HIGH,CRITICAL huiteo-api:avant 2>/dev/null | grep -E '^(Total|huiteo|Python)'
+trivy image --quiet --scanners vuln --severity HIGH,CRITICAL huiteo-api:1.0 2>/dev/null | grep -E '^(Total|huiteo|Python)'
 ```
 
 La base de vulnérabilités a été téléchargée pendant la préparation du lab, dans le volume `trivy-cache`. Si Trivy la juge trop ancienne, il la met à jour au premier lancement (1 à 2 min).
 
 Chaque cible a une ligne `Total: N (HIGH: x, CRITICAL: y)` : une pour les paquets du système (Debian), une pour les paquets Python.
 
-**Question 1** – Notez les totaux des deux images. D'où viennent la plupart des vulnérabilités de `cordee-api:avant` ?
+**Question 1** – Notez les totaux des deux images. D'où viennent la plupart des vulnérabilités de `huiteo-api:avant` ?
 
 Pour voir le détail d'une vulnérabilité de l'image `1.0` :
 
 ```bash
-trivy image --quiet --scanners vuln --severity HIGH,CRITICAL cordee-api:1.0 2>/dev/null | head -30
+trivy image --quiet --scanners vuln --severity HIGH,CRITICAL huiteo-api:1.0 2>/dev/null | head -30
 ```
 
 **Question 2** – Une CVE est listée avec `Status: affected` et sans `Fixed Version`. Que pouvez-vous faire ?
@@ -56,7 +56,7 @@ trivy image --quiet --scanners vuln --severity HIGH,CRITICAL cordee-api:1.0 2>/d
 ### 2. Qui tourne en root ? (2 min)
 
 ```bash
-for image in cordee-api:avant cordee-api:1.0 cordee-front:1.0; do
+for image in huiteo-api:avant huiteo-api:1.0 huiteo-front:1.0; do
   printf '%-20s ' $image; docker run --rm --entrypoint id $image
 done
 ```
@@ -67,11 +67,11 @@ On lance un second site, sur le réseau `avant` de la stack Compose, avec le moi
 
 ```bash
 docker run -d --name front-durci \
-  --network cordee_avant -p 8082:8080 \
+  --network huiteo_avant -p 8082:8080 \
   --read-only --tmpfs /tmp \
   --cap-drop ALL --security-opt no-new-privileges \
   --memory 128m --pids-limit 100 \
-  cordee-front:1.0
+  huiteo-front:1.0
 sleep 2
 curl -s http://localhost:8082/api/info
 docker exec front-durci touch /usr/share/nginx/html/pirate
@@ -86,16 +86,16 @@ Attendu : l'API répond (`"version":"1.0"`), le `touch` échoue (`Read-only file
 
 ```bash
 docker rm -f front-durci
-cd ~/cordee/app && docker compose down
+cd ~/huiteo/app && docker compose down
 docker ps            # il ne reste que « registre »
 ```
 
 ## Questions de fin
 
 4. Léa demande : « Si le serveur tombe, on fait quoi ? » Que manque-t-il à Docker Compose pour répondre (trois points) ?
-5. Docker Swarm répond à une partie de ces besoins. Pourquoi Cordée part-elle plutôt sur Kubernetes ?
+5. Docker Swarm répond à une partie de ces besoins. Pourquoi Huiteo part-elle plutôt sur Kubernetes ?
 
 ## Bonus
 
-- `trivy image --format table --scanners vuln,secret,misconfig cordee-api:avant` : Trivy trouve-t-il des secrets ou des erreurs de configuration ?
-- `trivy config ~/cordee/app/api/Dockerfile.avant` : les règles de bonnes pratiques non respectées par le Dockerfile historique.
+- `trivy image --format table --scanners vuln,secret,misconfig huiteo-api:avant` : Trivy trouve-t-il des secrets ou des erreurs de configuration ?
+- `trivy config ~/huiteo/app/api/Dockerfile.avant` : les règles de bonnes pratiques non respectées par le Dockerfile historique.

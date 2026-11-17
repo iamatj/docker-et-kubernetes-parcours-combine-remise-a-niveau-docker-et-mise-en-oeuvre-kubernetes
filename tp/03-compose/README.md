@@ -8,19 +8,19 @@ La pause tombe après la partie B : on reprend à la partie C à 15h30.
 
 ## L'incident
 
-> Jeudi, 7h30. Le serveur de Cordée a redémarré pendant la nuit (mise à jour du noyau). Karim relance ses trois `docker run` de mémoire. Le site revient… vide : les 312 réservations de la veille ont disparu. Et l'API refuse de démarrer une fois sur deux : elle se lance avant que PostgreSQL soit prêt.
+> Jeudi, 7h30. Le serveur de Huiteo a redémarré pendant la nuit (mise à jour du noyau). Karim relance ses trois `docker run` de mémoire. Le site revient… vide : les 312 réservations de la veille ont disparu. Et l'API refuse de démarrer une fois sur deux : elle se lance avant que PostgreSQL soit prêt.
 
 ## Objectifs
 
 - Garder des données au-delà de la vie d'un conteneur : volume nommé, bind mount, tmpfs.
 - Comprendre les réseaux Docker : bridge par défaut, réseau dédié et son DNS, `host`, `none`.
-- Décrire Cordée dans un `compose.yaml` : services, réseaux, volumes, `depends_on` avec `service_healthy`.
+- Décrire Huiteo dans un `compose.yaml` : services, réseaux, volumes, `depends_on` avec `service_healthy`.
 - Piloter la stack : `up`, `down`, `ps`, `logs`, `exec`, `build`.
 
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git stash -u                  # met de côté votre travail du TP 02
 git checkout tp-03-compose
@@ -54,11 +54,11 @@ docker volume inspect essai-db --format '{{.Mountpoint}}'
 ### A2. Un bind mount : un dossier du poste dans le conteneur
 
 ```bash
-docker run -d --name vitrine -p 8081:8080 -v ~/cordee/app/front/html:/usr/share/nginx/html:ro ghcr.io/nginx/nginx-unprivileged:1.28-alpine
+docker run -d --name vitrine -p 8081:8080 -v ~/huiteo/app/front/html:/usr/share/nginx/html:ro ghcr.io/nginx/nginx-unprivileged:1.28-alpine
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
-sed -i 's/Réservez votre nuit en refuge/Réservez votre nuit là-haut/' ~/cordee/app/front/html/index.html
+sed -i 's/Réservez votre nuit en refuge/Réservez votre nuit là-haut/' ~/huiteo/app/front/html/index.html
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
-git -C ~/cordee checkout app/front/html/index.html
+git -C ~/huiteo checkout app/front/html/index.html
 docker exec vitrine touch /usr/share/nginx/html/essai
 ```
 
@@ -108,13 +108,13 @@ docker rm -f serveur && docker network rm labo
 
 **Question 3** – Que voit un conteneur en `--network host` ? En `none` ? Pourquoi `-p` n'a-t-il pas de sens en mode `host` ?
 
-## Partie C – Cordée avec Compose (40 min, après la pause)
+## Partie C – Huiteo avec Compose (40 min, après la pause)
 
 ### C1. Le squelette
 
 ```bash
-cd ~/cordee/app
-cp ~/cordee/tp/03-compose/compose.yaml compose.yaml
+cd ~/huiteo/app
+cp ~/huiteo/tp/03-compose/compose.yaml compose.yaml
 docker compose config --services
 ```
 
@@ -135,7 +135,7 @@ Dans `db`, ajoutez (TODO C2) :
 
 ```yaml
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cordee -d cordee"]
+      test: ["CMD-SHELL", "pg_isready -U huiteo -d huiteo"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -191,7 +191,7 @@ docker compose down
 docker compose up -d
 sleep 10
 curl -s http://localhost:8080/api/reservations       # la réservation est là
-docker volume ls | grep cordee                         # cordee_donnees-db
+docker volume ls | grep huiteo                         # huiteo_donnees-db
 ```
 
 ### C4. Deux réseaux : le site ne voit pas la base
@@ -206,7 +206,7 @@ networks:
 
 ```bash
 docker compose up -d
-docker network ls | grep cordee
+docker network ls | grep huiteo
 docker compose exec front wget -qO- -T 2 http://api:8000/healthz
 docker compose exec front wget -qO- -T 2 http://db:5432/
 ```
@@ -226,21 +226,21 @@ Ajoutez à `api` :
 docker compose up -d
 docker compose ps
 docker compose logs api --tail 3
-docker compose exec db psql -U cordee -c 'SELECT count(*) FROM reservation;'
+docker compose exec db psql -U huiteo -c 'SELECT count(*) FROM reservation;'
 docker compose exec api sh -c 'df -h /tmp'
 docker compose top api
 ```
 
-Comparez votre fichier à la correction : `diff ~/cordee/solutions/03-compose/app/compose.yaml ~/cordee/app/compose.yaml`.
+Comparez votre fichier à la correction : `diff ~/huiteo/solutions/03-compose/app/compose.yaml ~/huiteo/app/compose.yaml`.
 
 ### C6. Ce que `down -v` fait
 
 ```bash
 docker compose down -v
-docker volume ls | grep cordee ; echo "plus de volume"
+docker volume ls | grep huiteo ; echo "plus de volume"
 ```
 
-**Question 4** – Quelle commande a fait perdre les réservations de Cordée dans l'incident ? Quelle est la différence entre `down` et `down -v` ?
+**Question 4** – Quelle commande a fait perdre les réservations de Huiteo dans l'incident ? Quelle est la différence entre `down` et `down -v` ?
 
 **Question 5** – Le mot de passe vaut `${DB_PASSWORD:-change-moi}`. D'où peut venir `DB_PASSWORD`, et que se passe-t-il si on le change après la première initialisation de la base ?
 
@@ -249,7 +249,7 @@ docker volume ls | grep cordee ; echo "plus de volume"
 Relancez la stack pour le TP 04 :
 
 ```bash
-cd ~/cordee/app && docker compose up -d
+cd ~/huiteo/app && docker compose up -d
 ```
 
 ## Questions de fin
