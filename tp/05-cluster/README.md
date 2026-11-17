@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Lundi, 9h. Huiteo a loué un cluster Kubernetes de trois machines chez un hébergeur, monté avec kubeadm. Sophie reçoit un fichier `kubeconfig` et un mail : « Votre cluster est prêt. » Avant d'y mettre la moindre réservation, elle veut savoir ce qui tourne, où, et qui décide de quoi.
+> Lundi, 9h. Huiteo a loué un cluster Kubernetes de trois machines chez un hébergeur, monté avec kubeadm. Sophie reçoit un fichier `kubeconfig` et un mail : « Votre cluster est prêt. » Avant d'y mettre le moindre rendez-vous, elle veut savoir ce qui tourne, où, et qui décide de quoi.
 
 ## Objectifs
 
