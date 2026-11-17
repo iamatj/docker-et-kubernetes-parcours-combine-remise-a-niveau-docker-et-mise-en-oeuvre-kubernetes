@@ -35,7 +35,7 @@ grep -q "192.168.56.20 control-plane" /etc/hosts || sudo tee -a /etc/hosts >/dev
 192.168.56.20 control-plane
 192.168.56.30 worker-1
 192.168.56.40 worker-2
-192.168.56.200 cordee.lab beta.cordee.lab
+192.168.56.200 huiteo.lab beta.huiteo.lab
 EOF
 
 if ! command -v docker >/dev/null; then
@@ -148,8 +148,8 @@ for img in "${IMAGES_CLIENT[@]}"; do sg docker -c "docker pull -q $img" >/dev/nu
 sg docker -c "docker run --rm -v trivy-cache:/root/.cache ghcr.io/aquasecurity/trivy:latest image --download-db-only" >/dev/null 2>&1 \
   || echo "  base Trivy non préchargée (elle sera téléchargée au TP 04)"
 IMAGES_NOEUDS="mirror.gcr.io/library/postgres:17-alpine mirror.gcr.io/library/busybox:1.37 \
-  ghcr.io/$COMPTE_IMAGES/cordee-api:1.0 ghcr.io/$COMPTE_IMAGES/cordee-api:1.1 \
-  ghcr.io/$COMPTE_IMAGES/cordee-front:1.0 ghcr.io/$COMPTE_IMAGES/cordee-front:1.1"
+  ghcr.io/$COMPTE_IMAGES/huiteo-api:1.0 ghcr.io/$COMPTE_IMAGES/huiteo-api:1.1 \
+  ghcr.io/$COMPTE_IMAGES/huiteo-front:1.0 ghcr.io/$COMPTE_IMAGES/huiteo-front:1.1"
 for cible in "${WORKERS[@]}"; do
   ip=${cible%%:*}
   $SSH "$UTILISATEUR_SSH@$ip" "for i in $IMAGES_NOEUDS; do sudo crictl pull \$i >/dev/null || echo \"  échec sur $ip : \$i\"; done"
