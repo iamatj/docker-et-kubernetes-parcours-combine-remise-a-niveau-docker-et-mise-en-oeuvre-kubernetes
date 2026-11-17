@@ -18,13 +18,13 @@
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git stash -u
 git checkout tp-07-mise-a-jour
 kubectl apply -f k8s/
-kubectl -n cordee rollout status deployment api
-kubectl -n cordee get deployment
+kubectl -n huiteo rollout status deployment api
+kubectl -n huiteo get deployment
 ```
 
 `k8s/` contient la correction du TP 06 : 3 API, 2 sites, la base. Le site répond sur <http://192.168.56.30:30080>.
@@ -49,17 +49,17 @@ Attendu : uniquement des `200`. `000` voudrait dire « pas de réponse en 2 seco
 ### 2. Une mise à jour avec la stratégie par défaut (12 min)
 
 ```bash
-kubectl -n cordee get deployment api -o jsonpath='{.spec.strategy}{"\n"}'
+kubectl -n huiteo get deployment api -o jsonpath='{.spec.strategy}{"\n"}'
 sonde
-kubectl -n cordee set image deployment/api api=ghcr.io/iamatj/cordee-api:1.1
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo set image deployment/api api=ghcr.io/iamatj/huiteo-api:1.1
+kubectl -n huiteo rollout status deployment api
 sleep 3; bilan
 ```
 
 Une fois la mise à jour terminée, regardez les ReplicaSets :
 
 ```bash
-kubectl -n cordee get replicaset -l app=api
+kubectl -n huiteo get replicaset -l app=api
 ```
 
 Deux ReplicaSets : l'ancien (version 1.0) descendu à 0, le nouveau (1.1) monté à 3.
@@ -69,11 +69,11 @@ Deux ReplicaSets : l'ancien (version 1.0) descendu à 0, le nouveau (1.1) monté
 ### 3. L'historique et le retour arrière (8 min)
 
 ```bash
-kubectl -n cordee rollout history deployment api
-kubectl -n cordee rollout history deployment api --revision=2 | grep Image
+kubectl -n huiteo rollout history deployment api
+kubectl -n huiteo rollout history deployment api --revision=2 | grep Image
 sonde
-kubectl -n cordee rollout undo deployment api
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout undo deployment api
+kubectl -n huiteo rollout status deployment api
 sleep 3; bilan
 curl -s http://192.168.56.30:30080/api/info | jq -r .version
 ```
@@ -84,7 +84,7 @@ Attendu : `1.0`. La colonne `CHANGE-CAUSE` de l'historique est vide : impossible
 
 Ouvrez `k8s/20-api.yaml` et modifiez le Deployment :
 
-1. dans `metadata`, sous `namespace: cordee`, ajoutez :
+1. dans `metadata`, sous `namespace: huiteo`, ajoutez :
 
    ```yaml
      annotations:
@@ -102,15 +102,15 @@ Ouvrez `k8s/20-api.yaml` et modifiez le Deployment :
      minReadySeconds: 5
    ```
 
-3. remplacez l'image par `ghcr.io/iamatj/cordee-api:1.1`.
+3. remplacez l'image par `ghcr.io/iamatj/huiteo-api:1.1`.
 
 ```bash
 kubectl diff -f k8s/20-api.yaml | grep -E '^[+-] ' 
 sonde
 kubectl apply -f k8s/20-api.yaml
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout status deployment api
 sleep 3; bilan
-kubectl -n cordee rollout history deployment api
+kubectl -n huiteo rollout history deployment api
 ```
 
 Pendant le `rollout status`, la mise à jour avance pod par pod, avec une pause de 5 s après chaque nouveau pod.
@@ -123,28 +123,28 @@ Ajoutez la même `strategy`, le même `minReadySeconds`, et l'annotation `kubern
 
 ```bash
 sonde
-kubectl -n cordee set image deployment/api api=ghcr.io/iamatj/cordee-api:1.2
-kubectl -n cordee rollout status deployment api --timeout=60s
+kubectl -n huiteo set image deployment/api api=ghcr.io/iamatj/huiteo-api:1.2
+kubectl -n huiteo rollout status deployment api --timeout=60s
 ```
 
 Après 60 s : `error: timed out waiting for the condition`. Diagnostiquez :
 
 ```bash
-kubectl -n cordee get pods -l app=api
-kubectl -n cordee describe pod -l app=api | grep -E 'Image:|Failed|Back-off' | sort -u
+kubectl -n huiteo get pods -l app=api
+kubectl -n huiteo describe pod -l app=api | grep -E 'Image:|Failed|Back-off' | sort -u
 sleep 3; bilan
 ```
 
-Un nouveau pod est en `ErrImagePull` puis `ImagePullBackOff` : `ghcr.io/iamatj/cordee-api:1.2: not found`. Les trois anciens pods tournent toujours.
+Un nouveau pod est en `ErrImagePull` puis `ImagePullBackOff` : `ghcr.io/iamatj/huiteo-api:1.2: not found`. Les trois anciens pods tournent toujours.
 
 **Question 3** – Le site a-t-il été coupé ? Grâce à quel réglage ? Qu'aurait fait la stratégie par défaut ?
 
 Revenez à la dernière version qui marchait :
 
 ```bash
-kubectl -n cordee rollout undo deployment api
-kubectl -n cordee rollout status deployment api
-kubectl -n cordee rollout history deployment api
+kubectl -n huiteo rollout undo deployment api
+kubectl -n huiteo rollout status deployment api
+kubectl -n huiteo rollout history deployment api
 curl -s http://192.168.56.30:30080/api/info | jq -r .version
 ```
 
@@ -159,7 +159,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: front-lb
-  namespace: cordee
+  namespace: huiteo
   annotations:
     metallb.io/loadBalancerIPs: 192.168.56.201
 spec:
@@ -173,7 +173,7 @@ spec:
 
 ```bash
 kubectl apply -f k8s/31-front-lb.yaml
-kubectl -n cordee get service
+kubectl -n huiteo get service
 curl -s http://192.168.56.201/api/info
 ```
 
@@ -187,7 +187,7 @@ Attendu : `front-lb` a l'`EXTERNAL-IP` `192.168.56.201`, et le site répond sur 
 
 ```bash
 jobs                     # aucune sonde ne doit tourner ; sinon : kill %1
-kubectl -n cordee get deployment,service
+kubectl -n huiteo get deployment,service
 ```
 
 Gardez tout en place : le TP 08 part de cet état.
@@ -199,5 +199,5 @@ Gardez tout en place : le TP 08 part de cet état.
 
 ## Bonus
 
-- `kubectl -n cordee rollout pause deployment api`, `set image … 1.0`, observer, puis `rollout resume`.
-- `kubectl -n cordee get replicaset -l app=api` : combien d'anciens ReplicaSets sont conservés, et quel champ du Deployment règle ce nombre ?
+- `kubectl -n huiteo rollout pause deployment api`, `set image … 1.0`, observer, puis `rollout resume`.
+- `kubectl -n huiteo get replicaset -l app=api` : combien d'anciens ReplicaSets sont conservés, et quel champ du Deployment règle ce nombre ?

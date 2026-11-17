@@ -13,7 +13,7 @@ ENV APP_VERSION=$APP_VERSION \
     PATH=/opt/venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
-RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin cordee
+RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin huiteo
 WORKDIR /app
 COPY --from=construction /opt/venv /opt/venv
 COPY app.py .

@@ -19,14 +19,14 @@
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git stash -u
 git checkout tp-10-securite
-kubectl -n cordee delete deployment postgres --ignore-not-found   # si la base est encore un Deployment (TP 09 non terminé)
+kubectl -n huiteo delete deployment postgres --ignore-not-found   # si la base est encore un Deployment (TP 09 non terminé)
 kubectl apply -f k8s/
-kubectl -n cordee rollout status statefulset postgres
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout status statefulset postgres
+kubectl -n huiteo rollout status deployment api
 curl -s http://192.168.56.201/api/info | jq -r .version
 ```
 
@@ -39,7 +39,7 @@ Si vous n'aviez pas fini le TP 09, la base est neuve (un nouveau volume) : l'API
 ```bash
 kubectl apply -f tp/10-securite/securite/00-equipe.yaml
 kubectl -n equipe get serviceaccounts
-kubectl auth can-i list pods -n cordee --as=system:serviceaccount:equipe:karim
+kubectl auth can-i list pods -n huiteo --as=system:serviceaccount:equipe:karim
 ```
 
 Réponse : `no`. Une identité sans aucun rôle n'a aucun droit.
@@ -79,25 +79,25 @@ Si le temps manque, ne remplissez que la colonne `karim` : la correction donne l
 
 | Action | karim | sophie | lea |
 |--------|-------|--------|-----|
-| `list pods -n cordee` | | | |
-| `get secrets -n cordee` | | | |
-| `patch deployments -n cordee` | | | |
-| `delete deployments -n cordee` | | | |
+| `list pods -n huiteo` | | | |
+| `get secrets -n huiteo` | | | |
+| `patch deployments -n huiteo` | | | |
+| `delete deployments -n huiteo` | | | |
 | `list pods -n kube-system` | | | |
-| `delete pods -n cordee` | | | |
-| `update deployments/scale -n cordee` | | | |
+| `delete pods -n huiteo` | | | |
+| `update deployments/scale -n huiteo` | | | |
 | `create clusterrolebindings` | | | |
 
 Exemple pour la première case :
 
 ```bash
-kubectl auth can-i list pods -n cordee --as=system:serviceaccount:equipe:karim
+kubectl auth can-i list pods -n huiteo --as=system:serviceaccount:equipe:karim
 ```
 
 Et la vue d'ensemble d'une identité :
 
 ```bash
-kubectl auth can-i --list -n cordee --as=system:serviceaccount:equipe:karim
+kubectl auth can-i --list -n huiteo --as=system:serviceaccount:equipe:karim
 ```
 
 ### A4. Se connecter vraiment, avec un jeton
@@ -105,7 +105,7 @@ kubectl auth can-i --list -n cordee --as=system:serviceaccount:equipe:karim
 ```bash
 JETON=$(kubectl -n equipe create token karim --duration=2h)
 kubectl config set-credentials karim --token="$JETON"
-kubectl config set-context karim --cluster=kubernetes --user=karim --namespace=cordee
+kubectl config set-context karim --cluster=kubernetes --user=karim --namespace=huiteo
 kubectl --context=karim get pods
 kubectl --context=karim logs deployment/api --tail 2
 kubectl --context=karim get secrets
@@ -124,8 +124,8 @@ Attendu : les pods et les logs s'affichent ; `get secrets` et `delete` échouent
 ## Partie B – L'identité des pods (10 min)
 
 ```bash
-kubectl -n cordee exec deployment/api -- ls /var/run/secrets/kubernetes.io/serviceaccount/
-kubectl -n cordee get pod -l app=api -o jsonpath='{.items[0].spec.serviceAccountName}{"\n"}'
+kubectl -n huiteo exec deployment/api -- ls /var/run/secrets/kubernetes.io/serviceaccount/
+kubectl -n huiteo get pod -l app=api -o jsonpath='{.items[0].spec.serviceAccountName}{"\n"}'
 ```
 
 Chaque pod reçoit par défaut le jeton du ServiceAccount `default` de son namespace : un attaquant qui prend la main sur l'API pourrait l'utiliser contre l'API Kubernetes.
@@ -139,8 +139,8 @@ Dans `k8s/20-api.yaml`, au niveau `spec` du **gabarit de pod** (juste au-dessus 
 
 ```bash
 kubectl apply -f k8s/
-kubectl -n cordee rollout status deployment api
-kubectl -n cordee exec deployment/api -- ls /var/run/secrets/kubernetes.io/serviceaccount/
+kubectl -n huiteo rollout status deployment api
+kubectl -n huiteo exec deployment/api -- ls /var/run/secrets/kubernetes.io/serviceaccount/
 ```
 
 Attendu : `No such file or directory` : le ServiceAccount `api` a `automountServiceAccountToken: false`.
@@ -152,7 +152,7 @@ Attendu : `No such file or directory` : le ServiceAccount `api` a `automountServ
 ### C1. Aujourd'hui, tout le monde parle à tout le monde
 
 ```bash
-kubectl -n cordee run pirate --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- \
+kubectl -n huiteo run pirate --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- \
   sh -c 'wget -qO- -T 3 http://api:8000/api/info; echo; nc -w 3 postgres 5432 </dev/null && echo "base joignable"'
 ```
 
@@ -163,11 +163,11 @@ Le pod `pirate`, lancé par n'importe qui dans le namespace, joint l'API et la b
 ```bash
 cp tp/10-securite/securite/20-networkpolicies.yaml k8s/securite/
 kubectl apply -f k8s/securite/20-networkpolicies.yaml
-kubectl -n cordee get networkpolicy
+kubectl -n huiteo get networkpolicy
 curl -s -m 5 -o /dev/null -w "%{http_code}\n" http://192.168.56.201/api/info
 ```
 
-Le fichier contient `refus-par-defaut` (plus rien n'entre dans les pods de `cordee`) et `front-ouvert` (le site reste joignable sur 8080). Résultat : `504` ou `502`. Le site répond, mais il ne joint plus l'API : on vient de reproduire une panne.
+Le fichier contient `refus-par-defaut` (plus rien n'entre dans les pods de `huiteo`) et `front-ouvert` (le site reste joignable sur 8080). Résultat : `504` ou `502`. Le site répond, mais il ne joint plus l'API : on vient de reproduire une panne.
 
 > Les Network Policies ne marchent que si le plugin réseau (CNI) les applique. Calico le fait ; d'autres (flannel seul) les acceptent sans rien appliquer.
 
@@ -180,7 +180,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: api-depuis-front
-  namespace: cordee
+  namespace: huiteo
 spec:
   podSelector:
     matchLabels:
@@ -198,7 +198,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: postgres-depuis-api
-  namespace: cordee
+  namespace: huiteo
 spec:
   podSelector:
     matchLabels:
@@ -216,9 +216,9 @@ spec:
 ```bash
 kubectl apply -f k8s/securite/20-networkpolicies.yaml
 curl -s -m 5 http://192.168.56.201/api/refuges | jq length
-kubectl -n cordee run pirate --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- \
+kubectl -n huiteo run pirate --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- \
   sh -c 'wget -qO- -T 3 http://api:8000/api/info || echo "API fermée"; nc -w 3 postgres 5432 </dev/null && echo "base joignable" || echo "base fermée"'
-kubectl -n cordee exec deployment/front -- wget -qO- -T 3 http://api:8000/healthz
+kubectl -n huiteo exec deployment/front -- wget -qO- -T 3 http://api:8000/healthz
 ```
 
 Attendu : `5` refuges ; pour le pirate, `API fermée` et `base fermée` ; depuis le site, `{"statut":"ok"}`.
@@ -232,7 +232,7 @@ Attendu : `5` refuges ; pour le pirate, `API fermée` et `base fermée` ; depuis
 ### D1. Pod Security Admission
 
 ```bash
-kubectl label --dry-run=server --overwrite namespace cordee pod-security.kubernetes.io/enforce=restricted
+kubectl label --dry-run=server --overwrite namespace huiteo pod-security.kubernetes.io/enforce=restricted
 ```
 
 Kubernetes liste les pods qui seraient refusés en profil `restricted`, et pourquoi (`allowPrivilegeEscalation`, `capabilities`, `runAsNonRoot`, `seccompProfile`).
@@ -286,12 +286,12 @@ Faites de même pour `k8s/30-front.yaml` avec `runAsUser: 101` et `runAsGroup: 1
 
 ```bash
 kubectl apply -f k8s/
-kubectl -n cordee rollout status deployment api
-kubectl -n cordee rollout status deployment front
-kubectl -n cordee exec deployment/api -- sh -c 'id; touch /app/pirate'
-kubectl -n cordee exec deployment/api -- sh -c 'touch /tmp/ok && echo "/tmp inscriptible"'
+kubectl -n huiteo rollout status deployment api
+kubectl -n huiteo rollout status deployment front
+kubectl -n huiteo exec deployment/api -- sh -c 'id; touch /app/pirate'
+kubectl -n huiteo exec deployment/api -- sh -c 'touch /tmp/ok && echo "/tmp inscriptible"'
 curl -s http://192.168.56.201/api/info | jq -r .version
-kubectl label --dry-run=server --overwrite namespace cordee pod-security.kubernetes.io/enforce=restricted
+kubectl label --dry-run=server --overwrite namespace huiteo pod-security.kubernetes.io/enforce=restricted
 ```
 
 Attendu : `uid=10001`, `Read-only file system` pour `/app`, `/tmp inscriptible`, le site répond. La dernière commande ne signale plus que `postgres-0` : l'image PostgreSQL démarre en root pour préparer son dossier de données, c'est pourquoi le namespace reste en `baseline`.
@@ -302,7 +302,7 @@ Attendu : `uid=10001`, `Read-only file system` pour `/app`, `/tmp inscriptible`,
 
 ```bash
 kubectl apply -R -f k8s/
-kubectl -n cordee get pods
+kubectl -n huiteo get pods
 kubectl config use-context kubernetes-admin@kubernetes
 ls -R k8s/
 ```
@@ -317,4 +317,4 @@ Depuis ce TP, `k8s/` a un sous-dossier : on applique avec `kubectl apply -R -f k
 ## Bonus
 
 - Une NetworkPolicy en `Egress` qui interdit à l'API de sortir ailleurs que vers la base et CoreDNS (port 53 UDP/TCP vers `kube-system`).
-- `kubectl auth can-i --list --as=system:serviceaccount:cordee:default -n cordee` : que peut faire le ServiceAccount par défaut ?
+- `kubectl auth can-i --list --as=system:serviceaccount:huiteo:default -n huiteo` : que peut faire le ServiceAccount par défaut ?

@@ -2,11 +2,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cordee-config
-  namespace: cordee
+  name: huiteo-config
+  namespace: huiteo
   labels:
-    partie-de: cordee
+    partie-de: huiteo
 data:
   DB_HOST: postgres
-  DB_NAME: cordee
+  DB_NAME: huiteo
   MESSAGE_ACCUEIL: "TODO : écrivez le message d'ouverture des réservations de Noël"

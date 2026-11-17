@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: front
-  namespace: cordee
+  namespace: huiteo
 spec:
   replicas: 2
   selector:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: front
-          image: TODO-image-du-site       # ghcr.io/iamatj/cordee-front, version 1.0
+          image: TODO-image-du-site       # ghcr.io/iamatj/huiteo-front, version 1.0
           ports:
             - containerPort: 8080
           resources:

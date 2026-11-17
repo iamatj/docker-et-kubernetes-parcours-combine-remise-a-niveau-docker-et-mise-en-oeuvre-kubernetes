@@ -20,7 +20,7 @@ Le déjeuner tombe après l'étape 1 : on reprend à l'étape 2 à 13h30.
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git checkout tp-02-dockerfile
 docker ps --filter name=registre        # le registre du TP 01 doit tourner
@@ -34,9 +34,9 @@ Si le registre n'est pas là : `docker run -d --name registre --restart unless-s
 ### 1. Le Dockerfile historique (10 min, avant le déjeuner)
 
 ```bash
-cd ~/cordee/app/api
+cd ~/huiteo/app/api
 cat Dockerfile.avant
-time docker build -f Dockerfile.avant -t cordee-api:avant .
+time docker build -f Dockerfile.avant -t huiteo-api:avant .
 ```
 
 Laissez le build se terminer (1 à 3 min). Notez le temps `real`.
@@ -44,9 +44,9 @@ Laissez le build se terminer (1 à 3 min). Notez le temps `real`.
 ### 2. Ce qu'il coûte (10 min)
 
 ```bash
-docker image ls cordee-api
-docker run --rm --entrypoint id cordee-api:avant
-docker image history cordee-api:avant | head -8
+docker image ls huiteo-api
+docker run --rm --entrypoint id huiteo-api:avant
+docker image history huiteo-api:avant | head -8
 ```
 
 **Question 1** – Quelle taille fait l'image ? Sous quel utilisateur tourne-t-elle ? Quelle est la couche la plus lourde, et d'où vient-elle ?
@@ -54,8 +54,8 @@ docker image history cordee-api:avant | head -8
 Modifiez une ligne de commentaire du code, puis reconstruisez :
 
 ```bash
-sed -i '1s/.*/"""API de Cordée (modifiée) : réservation de nuitées dans les refuges de montagne./' app.py
-time docker build -f Dockerfile.avant -t cordee-api:avant .
+sed -i '1s/.*/"""API de Huiteo (modifiée) : réservation de nuitées dans les refuges de montagne./' app.py
+time docker build -f Dockerfile.avant -t huiteo-api:avant .
 ```
 
 **Question 2** – Le `pip install` a-t-il été rejoué ? Pourquoi, alors que `requirements.txt` n'a pas changé ?
@@ -65,11 +65,11 @@ Remettez le fichier dans son état d'origine : `git checkout app.py`.
 ### 3. Le Dockerfile multi-stage (20 min)
 
 ```bash
-cp ~/cordee/tp/02-dockerfile/api/Dockerfile ~/cordee/app/api/Dockerfile
-cp ~/cordee/tp/02-dockerfile/api/.dockerignore ~/cordee/app/api/.dockerignore
+cp ~/huiteo/tp/02-dockerfile/api/Dockerfile ~/huiteo/app/api/Dockerfile
+cp ~/huiteo/tp/02-dockerfile/api/.dockerignore ~/huiteo/app/api/.dockerignore
 ```
 
-Ouvrez `app/api/Dockerfile` (VS Code : `code ~/cordee`, ou `nano`) et complétez-le :
+Ouvrez `app/api/Dockerfile` (VS Code : `code ~/huiteo`, ou `nano`) et complétez-le :
 
 | TODO | Instruction(s) à écrire |
 |------|-------------------------|
@@ -99,14 +99,14 @@ Dockerfile*
 ### 4. Construire et comparer (10 min)
 
 ```bash
-cd ~/cordee/app/api
-time docker build --build-arg APP_VERSION=1.0 -t cordee-api:1.0 .
-docker image ls cordee-api
-docker run --rm --entrypoint id cordee-api:1.0
-docker run --rm --entrypoint sh cordee-api:1.0 -c 'echo $APP_VERSION; ls /app'
+cd ~/huiteo/app/api
+time docker build --build-arg APP_VERSION=1.0 -t huiteo-api:1.0 .
+docker image ls huiteo-api
+docker run --rm --entrypoint id huiteo-api:1.0
+docker run --rm --entrypoint sh huiteo-api:1.0 -c 'echo $APP_VERSION; ls /app'
 ```
 
-Attendu : une image d'environ 150 à 200 Mo (contre plus d'1 Go), `uid=10001(cordee)`, `1.0`, et seulement `app.py` dans `/app`.
+Attendu : une image d'environ 150 à 200 Mo (contre plus d'1 Go), `uid=10001(huiteo)`, `1.0`, et seulement `app.py` dans `/app`.
 
 Si le build échoue, lisez la ligne `ERROR` : elle donne l'instruction fautive et son numéro de ligne.
 
@@ -115,8 +115,8 @@ Si le build échoue, lisez la ligne `ERROR` : elle donne l'instruction fautive e
 Même modification du code qu'à l'étape 2 :
 
 ```bash
-sed -i '1s/.*/"""API de Cordée (modifiée) : réservation de nuitées dans les refuges de montagne./' app.py
-time docker build --progress=plain --build-arg APP_VERSION=1.0 -t cordee-api:1.0 . 2>&1 | grep -E 'CACHED|DONE|^real' | head -20
+sed -i '1s/.*/"""API de Huiteo (modifiée) : réservation de nuitées dans les refuges de montagne./' app.py
+time docker build --progress=plain --build-arg APP_VERSION=1.0 -t huiteo-api:1.0 . 2>&1 | grep -E 'CACHED|DONE|^real' | head -20
 git checkout app.py
 ```
 
@@ -127,14 +127,14 @@ Les étapes `COPY requirements.txt` et `RUN … pip install` affichent `CACHED` 
 ### 6. Lancer l'image : CMD et ENTRYPOINT (7 min)
 
 ```bash
-docker run --rm cordee-api:1.0
+docker run --rm huiteo-api:1.0
 ```
 
 L'API démarre, tente trois fois de joindre la base, puis s'arrête : chaque ligne est un log JSON (`"niveau": "ERROR"`, `"message": "base injoignable (essai 1/3) …"`). C'est voulu : il n'y a pas encore de base (TP 03).
 
 ```bash
-docker run --rm cordee-api:1.0 --version                                   # les arguments remplacent CMD
-docker run --rm --entrypoint python cordee-api:1.0 -c 'import flask; print(flask.__version__)'
+docker run --rm huiteo-api:1.0 --version                                   # les arguments remplacent CMD
+docker run --rm --entrypoint python huiteo-api:1.0 -c 'import flask; print(flask.__version__)'
 ```
 
 **Question 4** – Que s'est-il passé avec `--version` ? Quel est le rôle respectif d'`ENTRYPOINT` et de `CMD` ? Pourquoi la forme JSON (`["…", "…"]`) plutôt que la forme texte du `Dockerfile.avant` ?
@@ -155,8 +155,8 @@ docker buildx du | tail -3
 ### 8. L'image du site (7 min)
 
 ```bash
-cp ~/cordee/tp/02-dockerfile/front/Dockerfile ~/cordee/app/front/Dockerfile
-printf 'Dockerfile*\n.dockerignore\n' > ~/cordee/app/front/.dockerignore
+cp ~/huiteo/tp/02-dockerfile/front/Dockerfile ~/huiteo/app/front/Dockerfile
+printf 'Dockerfile*\n.dockerignore\n' > ~/huiteo/app/front/.dockerignore
 ```
 
 Complétez `app/front/Dockerfile` :
@@ -172,9 +172,9 @@ Complétez `app/front/Dockerfile` :
 Supprimez les deux lignes `a-completer`, puis :
 
 ```bash
-cd ~/cordee/app/front
-docker build --build-arg APP_VERSION=1.0 -t cordee-front:1.0 .
-docker run --rm --entrypoint cat cordee-front:1.0 /usr/share/nginx/html/version.txt      # 1.0
+cd ~/huiteo/app/front
+docker build --build-arg APP_VERSION=1.0 -t huiteo-front:1.0 .
+docker run --rm --entrypoint cat huiteo-front:1.0 /usr/share/nginx/html/version.txt      # 1.0
 ```
 
 > Ne lancez pas encore ce conteneur seul : sa configuration nginx renvoie `/api/` vers un hôte `api`, qui n'existe pas encore. nginx refuserait de démarrer (`host not found in upstream "api"`). Ce sera réglé au TP 03.
@@ -182,14 +182,14 @@ docker run --rm --entrypoint cat cordee-front:1.0 /usr/share/nginx/html/version.
 ### 9. Pousser dans le registre (5 min)
 
 ```bash
-for image in cordee-api cordee-front; do
-  docker tag $image:1.0 localhost:5000/cordee/$image:1.0
-  docker push localhost:5000/cordee/$image:1.0
+for image in huiteo-api huiteo-front; do
+  docker tag $image:1.0 localhost:5000/huiteo/$image:1.0
+  docker push localhost:5000/huiteo/$image:1.0
 done
 curl -s http://localhost:5000/v2/_catalog
 ```
 
-Attendu : `{"repositories":["cordee/cordee-api","cordee/cordee-front","cordee/nginx"]}`.
+Attendu : `{"repositories":["huiteo/huiteo-api","huiteo/huiteo-front","huiteo/nginx"]}`.
 
 ## Questions de fin
 
@@ -201,4 +201,4 @@ Attendu : `{"repositories":["cordee/cordee-api","cordee/cordee-front","cordee/ng
 
 - **Distroless** : une seconde étape `FROM gcr.io/distroless/python3-debian12` n'a ni shell ni gestionnaire de paquets. Qu'est-ce qui changerait pour copier l'environnement virtuel (version de Python) et pour déboguer (`docker exec … sh`) ?
 - **Alpine** : `python:3.13-alpine` est plus petite que `slim`. Quel est le risque avec des dépendances compilées (glibc contre musl) ?
-- `docker build --target construction -t cordee-api:construction .` : à quoi sert `--target` ?
+- `docker build --target construction -t huiteo-api:construction .` : à quoi sert `--target` ?
