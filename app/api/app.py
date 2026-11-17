@@ -1,4 +1,4 @@
-"""API de Huiteo : réservation de nuitées dans les refuges de montagne.
+"""API de Huiteo RDV : prise de rendez-vous en ligne dans les études notariales.
 
 Configuration par variables d'environnement :
   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD  connexion PostgreSQL
@@ -40,12 +40,13 @@ _sortie.setFormatter(FormatJson())
 journal.addHandler(_sortie)
 journal.setLevel(logging.INFO)
 
-REFUGES = [
-    ("Refuge de la Pra", "Belledonne", 2110, 60),
-    ("Refuge du Goûter", "Mont-Blanc", 3835, 120),
-    ("Refuge de l'Étendard", "Grandes Rousses", 2430, 50),
-    ("Refuge des Bans", "Écrins", 2083, 40),
-    ("Refuge de Font-Turbat", "Écrins", 2169, 35),
+# Études notariales clientes (fictives) : nom, ville, nombre de notaires, créneaux de rendez-vous par jour.
+ETUDES = [
+    ("Étude Martin et Associés", "Lyon", 4, 24),
+    ("Office notarial du Parc", "Nantes", 2, 12),
+    ("Étude Bernard-Roux", "Bordeaux", 3, 18),
+    ("Étude des Halles", "Lille", 2, 10),
+    ("Office notarial Saint-Michel", "Toulouse", 5, 30),
 ]
 
 
@@ -63,21 +64,21 @@ def connexion():
 def initialiser_base():
     with connexion() as cnx, cnx.cursor() as cur:
         cur.execute(
-            """CREATE TABLE IF NOT EXISTS refuge (
-                 id SERIAL PRIMARY KEY, nom TEXT UNIQUE NOT NULL, massif TEXT NOT NULL,
-                 altitude INT NOT NULL, places INT NOT NULL)"""
+            """CREATE TABLE IF NOT EXISTS etude (
+                 id SERIAL PRIMARY KEY, nom TEXT UNIQUE NOT NULL, ville TEXT NOT NULL,
+                 notaires INT NOT NULL, creneaux INT NOT NULL)"""
         )
         cur.execute(
-            """CREATE TABLE IF NOT EXISTS reservation (
-                 id SERIAL PRIMARY KEY, refuge_id INT NOT NULL REFERENCES refuge(id),
-                 nom TEXT NOT NULL, nuit DATE NOT NULL, personnes INT NOT NULL,
+            """CREATE TABLE IF NOT EXISTS rendez_vous (
+                 id SERIAL PRIMARY KEY, etude_id INT NOT NULL REFERENCES etude(id),
+                 nom TEXT NOT NULL, jour DATE NOT NULL, personnes INT NOT NULL,
                  creee_le TIMESTAMPTZ NOT NULL DEFAULT now())"""
         )
-        for nom, massif, altitude, places in REFUGES:
+        for nom, ville, notaires, creneaux in ETUDES:
             cur.execute(
-                "INSERT INTO refuge (nom, massif, altitude, places) VALUES (%s, %s, %s, %s) "
+                "INSERT INTO etude (nom, ville, notaires, creneaux) VALUES (%s, %s, %s, %s) "
                 "ON CONFLICT (nom) DO NOTHING",
-                (nom, massif, altitude, places),
+                (nom, ville, notaires, creneaux),
             )
 
 
@@ -136,62 +137,61 @@ def info():
     return jsonify(
         version=APP_VERSION,
         hote=HOTE,
-        message=os.environ.get("MESSAGE_ACCUEIL", "Bienvenue sur Huiteo"),
+        message=os.environ.get("MESSAGE_ACCUEIL", "Bienvenue sur Huiteo RDV"),
     )
 
 
-@app.get("/api/refuges")
+@app.get("/api/etudes")
 @schema_garanti
-def refuges():
+def etudes():
     with connexion() as cnx, cnx.cursor() as cur:
         cur.execute(
-            """SELECT r.id, r.nom, r.massif, r.altitude, r.places,
-                      COALESCE(SUM(b.personnes), 0) AS reservees
-                 FROM refuge r LEFT JOIN reservation b ON b.refuge_id = r.id
-                GROUP BY r.id ORDER BY r.id"""
+            """SELECT e.id, e.nom, e.ville, e.notaires, e.creneaux, COUNT(r.id) AS pris
+                 FROM etude e LEFT JOIN rendez_vous r ON r.etude_id = e.id
+                GROUP BY e.id ORDER BY e.id"""
         )
         lignes = cur.fetchall()
     return jsonify([
-        {"id": i, "nom": n, "massif": m, "altitude": a, "places": p, "reservees": int(r)}
-        for i, n, m, a, p, r in lignes
+        {"id": i, "nom": n, "ville": v, "notaires": no, "creneaux": c, "pris": int(p)}
+        for i, n, v, no, c, p in lignes
     ])
 
 
-@app.get("/api/reservations")
+@app.get("/api/rendez-vous")
 @schema_garanti
-def lister_reservations():
+def lister_rendez_vous():
     with connexion() as cnx, cnx.cursor() as cur:
         cur.execute(
-            """SELECT b.id, r.nom, b.nom, b.nuit, b.personnes FROM reservation b
-                 JOIN refuge r ON r.id = b.refuge_id ORDER BY b.id DESC LIMIT 20"""
+            """SELECT r.id, e.nom, r.nom, r.jour, r.personnes FROM rendez_vous r
+                 JOIN etude e ON e.id = r.etude_id ORDER BY r.id DESC LIMIT 20"""
         )
         lignes = cur.fetchall()
     return jsonify([
-        {"id": i, "refuge": rf, "nom": n, "nuit": nu.isoformat(), "personnes": p}
-        for i, rf, n, nu, p in lignes
+        {"id": i, "etude": et, "nom": n, "jour": j.isoformat(), "personnes": p}
+        for i, et, n, j, p in lignes
     ])
 
 
-@app.post("/api/reservations")
+@app.post("/api/rendez-vous")
 @schema_garanti
-def reserver():
+def prendre_rendez_vous():
     donnees = request.get_json(silent=True) or {}
     try:
-        refuge_id = int(donnees["refuge_id"])
+        etude_id = int(donnees["etude_id"])
         personnes = int(donnees.get("personnes", 1))
         nom = str(donnees["nom"]).strip()[:80]
-        nuit = str(donnees["nuit"])
+        jour = str(donnees["jour"])
     except (KeyError, ValueError, TypeError):
-        return jsonify(erreur="refuge_id, nom et nuit sont obligatoires"), 400
+        return jsonify(erreur="etude_id, nom et jour sont obligatoires"), 400
     if not nom or personnes < 1:
-        return jsonify(erreur="réservation invalide"), 400
+        return jsonify(erreur="rendez-vous invalide"), 400
     with connexion() as cnx, cnx.cursor() as cur:
         cur.execute(
-            "INSERT INTO reservation (refuge_id, nom, nuit, personnes) VALUES (%s, %s, %s, %s) RETURNING id",
-            (refuge_id, nom, nuit, personnes),
+            "INSERT INTO rendez_vous (etude_id, nom, jour, personnes) VALUES (%s, %s, %s, %s) RETURNING id",
+            (etude_id, nom, jour, personnes),
         )
         nouvel_id = cur.fetchone()[0]
-    journal.info(f"réservation {nouvel_id} : {personnes} pers. au refuge {refuge_id} le {nuit}")
+    journal.info(f"rendez-vous {nouvel_id} : {personnes} pers. à l'étude {etude_id} le {jour}")
     return jsonify(id=nouvel_id), 201
 
 
