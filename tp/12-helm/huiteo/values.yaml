@@ -1,10 +1,10 @@
 # Valeurs par défaut : un environnement de démonstration. Surchargez-les avec -f values-<env>.yaml ou --set.
 
-messageAccueil: "Bienvenue sur Cordée"
+messageAccueil: "Bienvenue sur Huiteo"
 
 db:
-  nom: cordee
-  utilisateur: cordee
+  nom: huiteo
+  utilisateur: huiteo
   # À fournir à l'installation : --set db.motDePasse=… (jamais dans Git).
   motDePasse: change-moi
   image: mirror.gcr.io/library/postgres:17-alpine
@@ -13,13 +13,13 @@ db:
 
 api:
   image:
-    repository: ghcr.io/iamatj/cordee-api
+    repository: ghcr.io/iamatj/huiteo-api
     tag: "1.0"
   replicas: 2
 
 front:
   image:
-    repository: ghcr.io/iamatj/cordee-front
+    repository: ghcr.io/iamatj/huiteo-front
     tag: "1.0"
   replicas: 1
   service:
@@ -28,4 +28,4 @@ front:
 
 ingress:
   enabled: false
-  host: cordee.lab
+  host: huiteo.lab

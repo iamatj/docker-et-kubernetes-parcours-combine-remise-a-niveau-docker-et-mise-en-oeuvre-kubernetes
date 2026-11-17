@@ -1,10 +1,10 @@
-# Développeur : lit tout dans cordee, suit les logs, relance une livraison ; ne voit pas les Secrets,
+# Développeur : lit tout dans huiteo, suit les logs, relance une livraison ; ne voit pas les Secrets,
 # ne supprime rien.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: developpeur
-  namespace: cordee
+  namespace: huiteo
 rules:
   - apiGroups: [""]
     resources: ["pods", "pods/log", "services", "endpoints", "configmaps", "events"]
@@ -17,7 +17,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: developpeur-karim
-  namespace: cordee
+  namespace: huiteo
 subjects:
   - kind: ServiceAccount
     name: karim

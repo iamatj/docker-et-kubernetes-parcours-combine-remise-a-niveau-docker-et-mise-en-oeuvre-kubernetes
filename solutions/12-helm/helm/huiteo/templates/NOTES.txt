@@ -1,4 +1,4 @@
-Cordée {{ .Values.api.image.tag }} est installée dans le namespace {{ .Release.Namespace }} (release {{ .Release.Name }}, révision {{ .Release.Revision }}).
+Huiteo {{ .Values.api.image.tag }} est installée dans le namespace {{ .Release.Namespace }} (release {{ .Release.Name }}, révision {{ .Release.Revision }}).
 
 {{- if eq .Values.front.service.type "NodePort" }}
 Site : http://192.168.56.30:{{ .Values.front.service.nodePort }}/

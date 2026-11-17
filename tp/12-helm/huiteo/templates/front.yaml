@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: front
   labels:
-    {{- include "cordee.labels" . | nindent 4 }}
+    {{- include "huiteo.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.front.replicas }}
   strategy:
@@ -16,7 +16,7 @@ spec:
       labels:
         app: front
         tier: front
-        {{- include "cordee.labels" . | nindent 8 }}
+        {{- include "huiteo.labels" . | nindent 8 }}
     spec:
       automountServiceAccountToken: false
       securityContext:
@@ -25,7 +25,7 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: front
-          image: {{ fail "TODO 3 (tp/12-helm/README.md, étape 3) : utilisez le helper cordee.image avec .Values.front" }}
+          image: {{ fail "TODO 3 (tp/12-helm/README.md, étape 3) : utilisez le helper huiteo.image avec .Values.front" }}
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -48,7 +48,7 @@ kind: Service
 metadata:
   name: front
   labels:
-    {{- include "cordee.labels" . | nindent 4 }}
+    {{- include "huiteo.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.front.service.type }}
   selector:

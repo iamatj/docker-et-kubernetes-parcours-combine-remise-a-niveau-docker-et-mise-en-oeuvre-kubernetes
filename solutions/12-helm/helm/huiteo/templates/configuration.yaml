@@ -1,20 +1,20 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cordee-config
+  name: huiteo-config
   labels:
-    {{- include "cordee.labels" . | nindent 4 }}
+    {{- include "huiteo.labels" . | nindent 4 }}
 data:
   DB_HOST: postgres
   DB_NAME: {{ .Values.db.nom | quote }}
-  MESSAGE_ACCUEIL: {{ fail "TODO 2 (tp/12-helm/README.md, étape 3) : le message vient de .Values.messageAccueil, entre guillemets (quote)" }}
+  MESSAGE_ACCUEIL: {{ .Values.messageAccueil | quote }}
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: cordee-db
+  name: huiteo-db
   labels:
-    {{- include "cordee.labels" . | nindent 4 }}
+    {{- include "huiteo.labels" . | nindent 4 }}
 type: Opaque
 stringData:
   DB_USER: {{ .Values.db.utilisateur | quote }}

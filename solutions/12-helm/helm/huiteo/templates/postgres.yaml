@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   name: postgres
   labels:
-    {{- include "cordee.labels" . | nindent 4 }}
+    {{- include "huiteo.labels" . | nindent 4 }}
 spec:
   serviceName: postgres-headless
   replicas: 1
@@ -15,7 +15,7 @@ spec:
       labels:
         app: postgres
         tier: donnees
-        {{- include "cordee.labels" . | nindent 8 }}
+        {{- include "huiteo.labels" . | nindent 8 }}
       annotations:
         # Le pod redémarre si le mot de passe change.
         checksum/configuration: {{ include (print $.Template.BasePath "/configuration.yaml") . | sha256sum }}
@@ -25,11 +25,11 @@ spec:
           image: {{ .Values.db.image }}
           env:
             - name: POSTGRES_DB
-              valueFrom: { configMapKeyRef: { name: cordee-config, key: DB_NAME } }
+              valueFrom: { configMapKeyRef: { name: huiteo-config, key: DB_NAME } }
             - name: POSTGRES_USER
-              valueFrom: { secretKeyRef: { name: cordee-db, key: DB_USER } }
+              valueFrom: { secretKeyRef: { name: huiteo-db, key: DB_USER } }
             - name: POSTGRES_PASSWORD
-              valueFrom: { secretKeyRef: { name: cordee-db, key: DB_PASSWORD } }
+              valueFrom: { secretKeyRef: { name: huiteo-db, key: DB_PASSWORD } }
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           ports:
@@ -56,7 +56,7 @@ kind: Service
 metadata:
   name: postgres
   labels:
-    {{- include "cordee.labels" . | nindent 4 }}
+    {{- include "huiteo.labels" . | nindent 4 }}
 spec:
   selector:
     app: postgres
@@ -68,7 +68,7 @@ kind: Service
 metadata:
   name: postgres-headless
   labels:
-    {{- include "cordee.labels" . | nindent 4 }}
+    {{- include "huiteo.labels" . | nindent 4 }}
 spec:
   clusterIP: None
   selector:

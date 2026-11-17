@@ -1,4 +1,4 @@
-# Correction du TP 06 – Déployer Cordée sur Kubernetes
+# Correction du TP 06 – Déployer Huiteo sur Kubernetes
 
 Les manifests corrigés sont dans `solutions/06-deploiement/k8s/`, aux mêmes noms que dans `k8s/`. Attention : sur cette branche, `k8s/` n'existe pas avant le TP, c'est vous qui le créez. Pour comparer : `diff -r solutions/06-deploiement/k8s k8s`. Pour repartir de la correction : `cp solutions/06-deploiement/k8s/* k8s/ && kubectl apply -f k8s/`.
 
@@ -30,6 +30,6 @@ spec:
 
 **7.** L'API Server refuse le Deployment : `selector does not match template labels`. Le Deployment ne saurait pas quels pods sont les siens. Et une fois créé, le `selector` ne peut plus être modifié (champ immuable) : il faut le choisir avec soin dès le départ.
 
-**8.** Par le DNS du cluster (CoreDNS) : chaque Service reçoit un nom `<service>.<namespace>.svc.cluster.local`, et un pod du namespace `cordee` peut l'abréger en `postgres`. Le nom donne l'IP virtuelle (ClusterIP) du Service, que kube-proxy redirige vers le pod de la base. On l'étudiera au TP 11.
+**8.** Par le DNS du cluster (CoreDNS) : chaque Service reçoit un nom `<service>.<namespace>.svc.cluster.local`, et un pod du namespace `huiteo` peut l'abréger en `postgres`. Le nom donne l'IP virtuelle (ClusterIP) du Service, que kube-proxy redirige vers le pod de la base. On l'étudiera au TP 11.
 
 **Bonus.** `custom-columns` permet de choisir ses colonnes. `kubectl diff` compare le fichier à l'objet du cluster et affiche ce qui changerait, comme un `git diff`.

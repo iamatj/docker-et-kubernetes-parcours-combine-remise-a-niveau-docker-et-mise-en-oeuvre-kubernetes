@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Mercredi, 14h. Un stagiaire a publié le dépôt de Cordée en public sur GitHub par erreur, trois heures durant : le mot de passe de la base était dedans, en clair, dans deux fichiers. Le même jour, à 16h, la base tombe ; le site, lui, continue d'envoyer les visiteurs vers des API qui répondent « 500 ». Kubernetes ne voit rien : pour lui, les conteneurs tournent.
+> Mercredi, 14h. Un stagiaire a publié le dépôt de Huiteo en public sur GitHub par erreur, trois heures durant : le mot de passe de la base était dedans, en clair, dans deux fichiers. Le même jour, à 16h, la base tombe ; le site, lui, continue d'envoyer les visiteurs vers des API qui répondent « 500 ». Kubernetes ne voit rien : pour lui, les conteneurs tournent.
 
 ## Objectifs
 
@@ -18,12 +18,12 @@
 ## Point de départ
 
 ```bash
-cd ~/cordee
+cd ~/huiteo
 git fetch
 git stash -u
 git checkout tp-08-configuration
 kubectl apply -f k8s/
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout status deployment api
 curl -s http://192.168.56.201/api/info
 ```
 
@@ -34,9 +34,9 @@ curl -s http://192.168.56.201/api/info
 ### A1. Filtrer
 
 ```bash
-kubectl -n cordee get pods --show-labels
-kubectl -n cordee get pods -l app=api
-kubectl -n cordee get pods -l 'app in (api,front)' -L app
+kubectl -n huiteo get pods --show-labels
+kubectl -n huiteo get pods -l app=api
+kubectl -n huiteo get pods -l 'app in (api,front)' -L app
 kubectl get pods -A -l k8s-app=kube-dns
 ```
 
@@ -46,38 +46,38 @@ Dans le **gabarit de pod** (`spec.template.metadata.labels`, pas le `selector`) 
 
 | Fichier | Étiquettes à ajouter sous `app: …` |
 |---------|------------------------------------|
-| `k8s/10-postgres.yaml` | `tier: donnees` et `partie-de: cordee` |
-| `k8s/20-api.yaml` | `tier: back` et `partie-de: cordee` |
-| `k8s/30-front.yaml` | `tier: front` et `partie-de: cordee` |
+| `k8s/10-postgres.yaml` | `tier: donnees` et `partie-de: huiteo` |
+| `k8s/20-api.yaml` | `tier: back` et `partie-de: huiteo` |
+| `k8s/30-front.yaml` | `tier: front` et `partie-de: huiteo` |
 
 Ne touchez pas au `selector` : il est immuable, `kubectl apply` refuserait la modification. Les étiquettes `tier` serviront aux Network Policies du TP 10.
 
 ```bash
 kubectl apply -f k8s/
-kubectl -n cordee rollout status deployment api
-kubectl -n cordee get pods -L tier
+kubectl -n huiteo rollout status deployment api
+kubectl -n huiteo get pods -L tier
 ```
 
 ### A3. Mettre un pod en quarantaine
 
 ```bash
-POD=$(kubectl -n cordee get pods -l app=api -o jsonpath='{.items[0].metadata.name}')
-kubectl -n cordee label pod $POD app=quarantaine --overwrite
-kubectl -n cordee get pods -L app
-kubectl -n cordee get endpoints api -o jsonpath='{.subsets[0].addresses[*].targetRef.name}{"\n"}'
+POD=$(kubectl -n huiteo get pods -l app=api -o jsonpath='{.items[0].metadata.name}')
+kubectl -n huiteo label pod $POD app=quarantaine --overwrite
+kubectl -n huiteo get pods -L app
+kubectl -n huiteo get endpoints api -o jsonpath='{.subsets[0].addresses[*].targetRef.name}{"\n"}'
 ```
 
 Le pod `$POD` tourne toujours, mais il n'est plus dans les endpoints du Service, et le ReplicaSet a créé un remplaçant. On peut maintenant l'examiner tranquillement (`logs`, `exec`), puis le supprimer :
 
 ```bash
-kubectl -n cordee delete pod $POD
+kubectl -n huiteo delete pod $POD
 ```
 
 ### A4. Une annotation
 
 ```bash
-kubectl -n cordee annotate deployment api cordee.lab/responsable="Karim Benali"
-kubectl -n cordee get deployment api -o jsonpath='{.metadata.annotations}' | jq
+kubectl -n huiteo annotate deployment api huiteo.lab/responsable="Karim Benali"
+kubectl -n huiteo get deployment api -o jsonpath='{.metadata.annotations}' | jq
 ```
 
 **Question 1** – Quelle différence entre une étiquette et une annotation ? Pourquoi la quarantaine marche-t-elle ?
@@ -96,18 +96,18 @@ Remplacez le `TODO` de `MESSAGE_ACCUEIL` par `Ouverture des réservations de No�
 
 ```bash
 kubectl apply -f k8s/01-configmap.yaml
-kubectl -n cordee describe configmap cordee-config
+kubectl -n huiteo describe configmap huiteo-config
 ```
 
 ### B2. Le Secret
 
 ```bash
-kubectl -n cordee create secret generic cordee-db \
-  --from-literal=DB_USER=cordee --from-literal=DB_PASSWORD=Neige-2026 \
+kubectl -n huiteo create secret generic huiteo-db \
+  --from-literal=DB_USER=huiteo --from-literal=DB_PASSWORD=Neige-2026 \
   --dry-run=client -o yaml > k8s/02-secret.yaml
 cat k8s/02-secret.yaml
 kubectl apply -f k8s/02-secret.yaml
-kubectl -n cordee get secret cordee-db -o jsonpath='{.data.DB_PASSWORD}' | base64 -d; echo
+kubectl -n huiteo get secret huiteo-db -o jsonpath='{.data.DB_PASSWORD}' | base64 -d; echo
 ```
 
 **Question 2** – Le mot de passe est-il chiffré dans `k8s/02-secret.yaml` ? Qui peut le lire dans le cluster ? Ce fichier devrait-il être dans Git ?
@@ -119,9 +119,9 @@ Dans `k8s/20-api.yaml`, remplacez tout le bloc `env:` du conteneur par :
 ```yaml
           envFrom:
             - configMapRef:
-                name: cordee-config
+                name: huiteo-config
             - secretRef:
-                name: cordee-db
+                name: huiteo-db
 ```
 
 Dans `k8s/10-postgres.yaml`, remplacez le bloc `env:` par :
@@ -131,25 +131,25 @@ Dans `k8s/10-postgres.yaml`, remplacez le bloc `env:` par :
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
-                  name: cordee-config
+                  name: huiteo-config
                   key: DB_NAME
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: cordee-db
+                  name: huiteo-db
                   key: DB_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: cordee-db
+                  name: huiteo-db
                   key: DB_PASSWORD
 ```
 
 ```bash
 grep -rn "Neige-2026" k8s/          # rien ne doit s'afficher : dans 02-secret.yaml, il est encodé en base64
 kubectl apply -f k8s/
-kubectl -n cordee rollout status deployment postgres
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout status deployment postgres
+kubectl -n huiteo rollout status deployment api
 curl -s http://192.168.56.201/api/info | jq -r .message
 ```
 
@@ -164,8 +164,8 @@ Changez le message dans `k8s/01-configmap.yaml` (par exemple `Plus que 3 places 
 ```bash
 kubectl apply -f k8s/01-configmap.yaml
 curl -s http://192.168.56.201/api/info | jq -r .message
-kubectl -n cordee rollout restart deployment api
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout restart deployment api
+kubectl -n huiteo rollout status deployment api
 curl -s http://192.168.56.201/api/info | jq -r .message
 ```
 
@@ -201,8 +201,8 @@ Dans `k8s/20-api.yaml`, sous `envFrom` (même indentation), ajoutez une variable
 ```bash
 kubectl apply -f k8s/20-api.yaml
 sleep 60
-kubectl -n cordee get pods -l app=api
-kubectl -n cordee describe pods -l app=api | grep -E 'Liveness probe failed|Killing' | sort -u | head -3
+kubectl -n huiteo get pods -l app=api
+kubectl -n huiteo describe pods -l app=api | grep -E 'Liveness probe failed|Killing' | sort -u | head -3
 ```
 
 Le nouveau pod redémarre en boucle (`RESTARTS` augmente) : la liveness probe le tue au bout de 15 s, avant la fin de son démarrage de 40 s. Les anciens pods tournent toujours (`maxUnavailable: 0`).
@@ -222,7 +222,7 @@ Ajoutez, avant la `readinessProbe` :
 
 ```bash
 kubectl apply -f k8s/20-api.yaml
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout status deployment api
 ```
 
 Chaque nouveau pod met environ 45 s à devenir prêt, sans redémarrer. **Question 4** – Que fait chacune des trois sondes, et que se passe-t-il quand elle échoue ?
@@ -237,8 +237,8 @@ Ajoutez au site (`k8s/30-front.yaml`, sous `ports`) une readinessProbe et une li
 sonde() { : > /tmp/sonde.log; while true; do curl -s -m 2 -o /dev/null -w "%{http_code}\n" http://192.168.56.201/api/info; sleep 0.2; done >> /tmp/sonde.log & }
 bilan() { kill %1 2>/dev/null; sleep 0.5; sort /tmp/sonde.log | uniq -c; }
 sonde
-kubectl -n cordee rollout restart deployment api
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout restart deployment api
+kubectl -n huiteo rollout status deployment api
 sleep 3; bilan
 ```
 
@@ -248,19 +248,19 @@ Attendu : uniquement des `200`, contrairement au TP 07.
 
 ```bash
 sonde
-kubectl -n cordee set env deployment/api DB_HOST=postgres-ancien
+kubectl -n huiteo set env deployment/api DB_HOST=postgres-ancien
 sleep 45
-kubectl -n cordee get pods -l app=api
+kubectl -n huiteo get pods -l app=api
 bilan
 ```
 
 Le site marche toujours (que des `200`). **Ne vous fiez pas qu'au navigateur** : la livraison est-elle allée au bout ?
 
 ```bash
-kubectl -n cordee rollout status deployment api --timeout=10s
-kubectl -n cordee logs -l app=api --tail 2 --prefix | grep -i injoignable | head -2
-kubectl -n cordee rollout undo deployment api
-kubectl -n cordee rollout status deployment api
+kubectl -n huiteo rollout status deployment api --timeout=10s
+kubectl -n huiteo logs -l app=api --tail 2 --prefix | grep -i injoignable | head -2
+kubectl -n huiteo rollout undo deployment api
+kubectl -n huiteo rollout status deployment api
 ```
 
 **Question 5** – Pourquoi le site a-t-il continué à marcher ? Qu'aurait-il fallu pour que l'équipe soit prévenue ?
@@ -303,10 +303,10 @@ jobs                      # aucune sonde ne doit rester ; sinon kill %1
 
 ## Questions de fin
 
-7. Les nœuds du cluster font tourner `calico-node` et `kube-proxy` : `kubectl get daemonsets -A`. Qu'est-ce qu'un DaemonSet, et dans quel cas Cordée en écrirait-elle un ?
+7. Les nœuds du cluster font tourner `calico-node` et `kube-proxy` : `kubectl get daemonsets -A`. Qu'est-ce qu'un DaemonSet, et dans quel cas Huiteo en écrirait-elle un ?
 8. Karim veut que deux pods de l'API ne soient jamais sur le même nœud. Quel mécanisme utiliser ?
 
 ## Bonus
 
 - Montez la ConfigMap comme fichier (`volumes` + `volumeMounts`) dans un pod busybox : le fichier se met-il à jour quand la ConfigMap change ?
-- `kubectl -n cordee get pods -l app=api -o jsonpath='{.items[0].spec.containers[0].env}'` après `set env` puis `undo`.
+- `kubectl -n huiteo get pods -l app=api -o jsonpath='{.items[0].spec.containers[0].env}'` après `set env` puis `undo`.
