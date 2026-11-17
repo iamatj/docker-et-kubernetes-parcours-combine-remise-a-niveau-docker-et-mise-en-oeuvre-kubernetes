@@ -9,4 +9,4 @@ metadata:
 data:
   DB_HOST: postgres
   DB_NAME: huiteo
-  MESSAGE_ACCUEIL: "TODO : écrivez le message d'ouverture des réservations de Noël"
+  MESSAGE_ACCUEIL: "TODO : écrivez le message d'ouverture des rendez-vous de décembre"
