@@ -1,5 +1,5 @@
 {
-  "title": "Docker et Kubernetes · Cordée",
+  "title": "Docker et Kubernetes · Huiteo",
   "order": [
     "cover",
     "entreprise",
@@ -83,7 +83,7 @@
   "sections": [
     {
       "title": "Introduction",
-      "description": "Cordée, le programme, le lab",
+      "description": "Huiteo, le programme, le lab",
       "start": 0
     },
     {

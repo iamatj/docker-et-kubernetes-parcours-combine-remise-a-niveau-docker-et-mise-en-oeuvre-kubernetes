@@ -2,13 +2,13 @@
 
 Remise à niveau Docker et mise en œuvre de Kubernetes, en 3 jours (21 h), dont **74 % de pratique**.
 
-Fil rouge : **Cordée**, une jeune entreprise grenobloise qui vend en ligne les nuitées de cinq refuges de montagne. On part d'une API « qui marche chez Karim » et on finit avec une application conteneurisée, déployée sur un cluster Kubernetes, sécurisée, exposée en HTTPS et installée par Helm.
+Fil rouge : **Huiteo**, une jeune entreprise grenobloise qui vend en ligne les nuitées de cinq refuges de montagne. On part d'une API « qui marche chez Karim » et on finit avec une application conteneurisée, déployée sur un cluster Kubernetes, sécurisée, exposée en HTTPS et installée par Helm.
 
 | Document | Contenu |
 |----------|---------|
 | [`programme-3-jours.md`](programme-3-jours.md) | le programme détaillé : fil rouge, chapitres, horaires, correspondance avec le programme officiel |
 | [`guide-installation-lab.md`](guide-installation-lab.md) | le lab : machines, préparation en une commande, vérifications, dépannage |
-| [`app/`](app/) | l'application Cordée : site nginx, API Flask, PostgreSQL |
+| [`app/`](app/) | l'application Huiteo : site nginx, API Flask, PostgreSQL |
 | [`presentation/`](presentation/) | les slides (sur `main` uniquement) |
 | [QCM](https://iamatj.github.io/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes/qcm/) | un QCM autocorrigé de 10 questions par jour |
 
@@ -31,22 +31,22 @@ Chaque TP a sa branche. La branche `tp-NN-…` contient l'application dans l'ét
 | 3 | 10 | `tp-10-securite` | RBAC, ServiceAccounts, Network Policies, SecurityContext |
 | 3 | 11 | `tp-11-reseau` | DNS, Ingress et TLS, Gateway API |
 | 3 | 12 | `tp-12-helm` | chart, values, releases |
-| – | – | `solution-finale` | l'état complet de Cordée après le TP 12 |
+| – | – | `solution-finale` | l'état complet de Huiteo après le TP 12 |
 
 ## Pour les participants
 
 Le premier jour, sur la machine `client` :
 
 ```bash
-git clone https://github.com/iamatj/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes.git ~/cordee
-cd ~/cordee
+git clone https://github.com/iamatj/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes.git ~/huiteo
+cd ~/huiteo
 git checkout tp-00-prise-en-main
 ```
 
 Au début de chaque TP suivant :
 
 ```bash
-cd ~/cordee && git fetch
+cd ~/huiteo && git fetch
 git stash -u                    # met de côté le travail du TP précédent
 git checkout tp-NN-sujet
 kubectl apply -R -f k8s/        # à partir du TP 07 : l'état attendu au début du TP
@@ -56,7 +56,7 @@ La correction d'un TP est dans `solutions/NN-sujet/`, aux mêmes chemins qu'à l
 
 ## Pour le formateur
 
-1. **Images** : onglet **Actions** > workflow **images** > **Run workflow**, puis rendre publics les paquets `cordee-api` et `cordee-front` (profil GitHub > **Packages** > **Package settings** > **Change visibility**).
+1. **Images** : onglet **Actions** > workflow **images** > **Run workflow**, puis rendre publics les paquets `huiteo-api` et `huiteo-front` (profil GitHub > **Packages** > **Package settings** > **Change visibility**).
 2. **Lab** : faire préparer les machines décrites dans le guide, puis lancer `bash lab/preparer-lab.sh` sur chaque `client` (la veille), et vérifier avec `bash lab/verifier-lab.sh`.
 3. **Slides** : ouvrir `presentation/index.html` dans un navigateur (flèches pour naviguer, `N` pour les notes, `F` pour le plein écran). Après une modification d'une slide : `python presentation/construire.py`.
 4. **QCM** : publiés par GitHub Pages depuis `main` ; l'adresse est sur les slides `qcm-j1`, `qcm-j2`, `qcm-j3`.
