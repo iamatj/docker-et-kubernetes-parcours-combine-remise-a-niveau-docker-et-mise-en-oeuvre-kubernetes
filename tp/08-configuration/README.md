@@ -92,7 +92,7 @@ Reportez l'annotation dans `k8s/20-api.yaml` (`metadata.annotations`, à côté 
 cp tp/08-configuration/01-configmap.yaml k8s/
 ```
 
-Remplacez le `TODO` de `MESSAGE_ACCUEIL` par `Ouverture des réservations de Noël !`, puis :
+Remplacez le `TODO` de `MESSAGE_ACCUEIL` par `Rendez-vous de décembre : réservez votre créneau !`, puis :
 
 ```bash
 kubectl apply -f k8s/01-configmap.yaml
@@ -153,13 +153,13 @@ kubectl -n huiteo rollout status deployment api
 curl -s http://192.168.56.201/api/info | jq -r .message
 ```
 
-Attendu : `Ouverture des réservations de Noël !`.
+Attendu : `Rendez-vous de décembre : réservez votre créneau !`.
 
 > PostgreSQL a redémarré (son gabarit a changé) : la base est repartie vide, à cause de l'`emptyDir`. C'est l'incident du TP 09 ; ici, l'API recrée les tables toute seule.
 
 ### B4. Changer la configuration
 
-Changez le message dans `k8s/01-configmap.yaml` (par exemple `Plus que 3 places au Goûter !`), puis :
+Changez le message dans `k8s/01-configmap.yaml` (par exemple `Derniers créneaux avant le 31 décembre !`), puis :
 
 ```bash
 kubectl apply -f k8s/01-configmap.yaml
@@ -272,9 +272,9 @@ bash tp/08-configuration/pannes.sh
 kubectl -n diagnostic get pods
 ```
 
-Quatre applications sont en panne : `billetterie`, `meteo`, `vitrine`, `statistiques`. Pour chacune, suivez la méthode, dans cet ordre, et arrêtez-vous dès que vous avez la cause :
+Quatre applications sont en panne : `agenda`, `rappels`, `vitrine`, `statistiques`. Pour chacune, suivez la méthode, dans cet ordre, et arrêtez-vous dès que vous avez la cause :
 
-Si le temps manque, traitez au moins deux pannes, en commençant par `billetterie` et `vitrine` : la correction détaille les quatre.
+Si le temps manque, traitez au moins deux pannes, en commençant par `agenda` et `vitrine` : la correction détaille les quatre.
 
 | Étape | Commande | Ce qu'on cherche |
 |-------|----------|------------------|

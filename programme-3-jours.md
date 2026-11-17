@@ -23,12 +23,12 @@ La théorie d'un chapitre tient en 10 à 25 min : l'incident chez Huiteo, le con
 
 ## Le fil rouge : Huiteo
 
-**Huiteo** est une jeune entreprise grenobloise qui vend en ligne les nuitées de cinq refuges de montagne (Belledonne, Mont-Blanc, Grandes Rousses, Écrins). L'hiver arrive, et avec lui la ruée des réservations de Noël.
+**Huiteo** (entreprise fictive) édite des logiciels pour les études notariales. Elle lance **Huiteo RDV** : les clients d'une étude prennent rendez-vous en ligne avec leur notaire (signature d'un acte, conseil). Décembre approche, et avec lui la ruée de fin d'année : tout le monde veut signer avant le 31.
 
 L'application, au début de la formation :
 
 - un site statique servi par nginx (`app/front`) qui appelle l'API sur `/api/` ;
-- une API Python Flask (`app/api`) : `/api/refuges`, `/api/reservations`, `/api/info` (version, pod qui a répondu, message d'accueil), `/healthz`, `/readyz` (vérifie la base), logs JSON ;
+- une API Python Flask (`app/api`) : `/api/etudes`, `/api/rendez-vous`, `/api/info` (version, pod qui a répondu, message d'accueil), `/healthz`, `/readyz` (vérifie la base), logs JSON ;
 - une base PostgreSQL ;
 - le tout lancé « à la main » sur le poste de Karim, avec un Dockerfile historique de 1 Go qui tourne en root.
 
@@ -36,9 +36,9 @@ Les personnages :
 
 | Personnage | Rôle | Ce qu'il attend de la formation |
 |------------|------|---------------------------------|
-| **Léa Marchand** | fondatrice, ancienne gardienne de refuge | que le site tienne le soir de l'ouverture des réservations |
+| **Léa Marchand** | responsable produit de Huiteo RDV, ancienne clerc de notaire | que le service tienne pendant la ruée de décembre |
 | **Karim Benali** | développeur de l'API et du site | livrer souvent sans tout casser |
-| **Sophie Garnier** | exploitation et astreinte | comprendre le cluster loué, dormir la nuit |
+| **Sophie Garnier** | administratrice système, d'astreinte | comprendre le cluster loué, dormir la nuit |
 
 ## Les chapitres
 
@@ -47,15 +47,15 @@ Les personnages :
 | 1 | « Chez moi ça marche » : l'API refuse de démarrer sur le serveur, pas la même version de Python | conteneur vs VM, architecture Docker (daemon, client, API) | 1 | TP 00 `tp-00-prise-en-main` |
 | 2 | Le site vitrine est tombé dans la nuit, personne ne sait le relancer ni quelle version tournait | images, couches, registres, cycle de vie d'un conteneur | 2 | TP 01 `tp-01-conteneurs` |
 | 3 | L'image de l'API pèse plus d'1 Go, chaque build prend des minutes, et elle tourne en root | Dockerfile, multi-stage, BuildKit, non-root | 3 | TP 02 `tp-02-dockerfile` |
-| 4 | Après un redémarrage, toutes les réservations ont disparu, et l'API démarre avant la base | volumes, réseaux, Compose V2, `service_healthy` | 4 | TP 03 `tp-03-compose` |
-| 5 | Un audit trouve des centaines de CVE dans l'image ; et un seul serveur pour toute la saison | limites de Compose, orchestration, scan | 5 | TP 04 `tp-04-securite-images` |
+| 4 | Après un redémarrage, tous les rendez-vous ont disparu, et l'API démarre avant la base | volumes, réseaux, Compose V2, `service_healthy` | 4 | TP 03 `tp-03-compose` |
+| 5 | Un audit trouve des centaines de CVE dans l'image ; et un seul serveur pour toute la fin d'année | limites de Compose, orchestration, scan | 5 | TP 04 `tp-04-securite-images` |
 | 6 | Huiteo loue un cluster de 3 machines ; Sophie doit comprendre ce que l'hébergeur a monté | control plane, nœuds, objets, kubectl, API REST, interface web | 6 | TP 05 `tp-05-cluster` |
 | 7a | Il faut mettre Huiteo en ligne sur le cluster avant vendredi | Deployment, YAML, scaling, ClusterIP / NodePort | 7 | TP 06 `tp-06-deploiement` |
 | 7b | La mise à jour 1.1 de samedi 8h a coupé le site ; et quelqu'un a livré une 1.2 qui n'existe pas | rolling update, rollback, LoadBalancer | 7 | TP 07 `tp-07-mise-a-jour` |
 | 8 | Le mot de passe de la base est en clair dans Git ; un pod répond alors que la base est en panne | labels, ConfigMap, Secret, sondes, méthode de diagnostic | 8 | TP 08 `tp-08-configuration` |
-| 9 | Le pod PostgreSQL a redémarré : 47 réservations perdues | PV, PVC, StorageClass, rétention, StatefulSet | 9 | TP 09 `tp-09-stockage` |
+| 9 | Le pod PostgreSQL a redémarré : 47 rendez-vous perdus | PV, PVC, StorageClass, rétention, StatefulSet | 9 | TP 09 `tp-09-stockage` |
 | 10 | Un stagiaire a supprimé un déploiement en production ; un pod compromis pouvait joindre la base | RBAC, ServiceAccounts, Network Policies, SecurityContext | 10 | TP 10 `tp-10-securite` |
-| 11 | Le partenaire Office de tourisme exige `https://huiteo.lab` ; Karim veut tester la 1.1 sur 10 % des visiteurs | DNS, Ingress, TLS, limites d'Ingress, Gateway API | 11 | TP 11 `tp-11-reseau` |
+| 11 | Un groupement de 40 études, futur client, exige `https://huiteo.lab` ; Karim veut tester la 1.1 sur 10 % des visiteurs | DNS, Ingress, TLS, limites d'Ingress, Gateway API | 11 | TP 11 `tp-11-reseau` |
 | 12 | Créer une préproduction a demandé de recopier et retoucher 12 fichiers YAML à la main | Helm : chart, values, releases | 12 | TP 12 `tp-12-helm` |
 
 Les bugs de départ sont dans le code des branches : le Dockerfile historique (`app/api/Dockerfile.avant`), le mot de passe en clair dans `k8s/` (TP 06 à 07), PostgreSQL sur un `emptyDir` (TP 06 à 08), l'absence de toute restriction réseau (jusqu'au TP 10).

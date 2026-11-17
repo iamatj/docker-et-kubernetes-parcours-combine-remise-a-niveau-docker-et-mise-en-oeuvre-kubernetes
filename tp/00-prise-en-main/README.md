@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Lundi, 8h12. Karim a livré l'API de Huiteo sur le serveur de l'hébergeur. Elle refuse de démarrer : le serveur a Python 3.9, son poste Python 3.13, et une bibliothèque manque. « Chez moi, ça marche. » Léa décide que Huiteo livrera désormais des conteneurs.
+> Lundi, 8h12. Karim a livré l'API de Huiteo sur le serveur de l'hébergeur. Elle refuse de démarrer : le serveur a Python 3.9, son poste Python 3.13, et une bibliothèque manque. « Chez moi, ça marche. » Léa, la responsable produit, décide que Huiteo livrera désormais des conteneurs.
 
 ## Objectifs
 

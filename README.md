@@ -2,13 +2,13 @@
 
 Remise à niveau Docker et mise en œuvre de Kubernetes, en 3 jours (21 h), dont **74 % de pratique**.
 
-Fil rouge : **Huiteo**, une jeune entreprise grenobloise qui vend en ligne les nuitées de cinq refuges de montagne. On part d'une API « qui marche chez Karim » et on finit avec une application conteneurisée, déployée sur un cluster Kubernetes, sécurisée, exposée en HTTPS et installée par Helm.
+Fil rouge : **Huiteo**, un éditeur de logiciels pour les études notariales, lance **Huiteo RDV**, la prise de rendez-vous en ligne chez le notaire. On part d'une API « qui marche chez Karim » et on finit avec une application conteneurisée, déployée sur un cluster Kubernetes, sécurisée, exposée en HTTPS et installée par Helm.
 
 | Document | Contenu |
 |----------|---------|
 | [`programme-3-jours.md`](programme-3-jours.md) | le programme détaillé : fil rouge, chapitres, horaires, correspondance avec le programme officiel |
 | [`guide-installation-lab.md`](guide-installation-lab.md) | le lab : machines, préparation en une commande, vérifications, dépannage |
-| [`app/`](app/) | l'application Huiteo : site nginx, API Flask, PostgreSQL |
+| [`app/`](app/) | l'application Huiteo RDV : site nginx, API Flask, PostgreSQL |
 | [`presentation/`](presentation/) | les slides (sur `main` uniquement) |
 | [QCM](https://iamatj.github.io/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes/qcm/) | un QCM autocorrigé de 10 questions par jour |
 

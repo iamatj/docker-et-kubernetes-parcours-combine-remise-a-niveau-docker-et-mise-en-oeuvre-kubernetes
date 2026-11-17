@@ -82,7 +82,7 @@ docker cp ~/huiteo/app/front/html/. vitrine:/usr/share/nginx/html/
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
 ```
 
-Attendu : `<title>Huiteo · Réservez votre nuit en refuge</title>`. Ouvrez <http://localhost:8081> dans Firefox : la page s'affiche avec le bandeau **« API injoignable »**. C'est normal : il n'y a pas encore d'API.
+Attendu : `<title>Huiteo RDV · Prenez rendez-vous avec votre notaire</title>`. Ouvrez <http://localhost:8081> dans Firefox : la page s'affiche avec le bandeau **« API injoignable »**. C'est normal : il n'y a pas encore d'API.
 
 ### B3. Observer
 

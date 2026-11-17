@@ -1,5 +1,5 @@
 # Préproduction : une seule API, un message qui se voit, un autre NodePort que la production (30080).
-messageAccueil: "PRÉPRODUCTION – réservations fictives"
+messageAccueil: "PRÉPRODUCTION – rendez-vous fictifs"
 api:
   replicas: 1
 front:

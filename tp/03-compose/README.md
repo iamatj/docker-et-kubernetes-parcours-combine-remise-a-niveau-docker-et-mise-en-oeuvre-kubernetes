@@ -8,7 +8,7 @@ La pause tombe après la partie B : on reprend à la partie C à 15h30.
 
 ## L'incident
 
-> Jeudi, 7h30. Le serveur de Huiteo a redémarré pendant la nuit (mise à jour du noyau). Karim relance ses trois `docker run` de mémoire. Le site revient… vide : les 312 réservations de la veille ont disparu. Et l'API refuse de démarrer une fois sur deux : elle se lance avant que PostgreSQL soit prêt.
+> Jeudi, 7h30. Le serveur de Huiteo a redémarré pendant la nuit (mise à jour du noyau). Karim relance ses trois `docker run` de mémoire. Le site revient… vide : les 312 rendez-vous pris la veille ont disparu. Et l'API refuse de démarrer une fois sur deux : elle se lance avant que PostgreSQL soit prêt.
 
 ## Objectifs
 
@@ -36,14 +36,14 @@ docker ps -a                  # seul « registre » tourne
 docker volume create essai-db
 docker run -d --name pg1 -e POSTGRES_PASSWORD=essai -v essai-db:/var/lib/postgresql/data mirror.gcr.io/library/postgres:17-alpine
 sleep 5
-docker exec pg1 psql -U postgres -c "CREATE TABLE refuge (nom text); INSERT INTO refuge VALUES ('La Pra');"
+docker exec pg1 psql -U postgres -c "CREATE TABLE etude (nom text); INSERT INTO etude VALUES ('Étude du Parc');"
 docker rm -f pg1
 docker run -d --name pg2 -e POSTGRES_PASSWORD=essai -v essai-db:/var/lib/postgresql/data mirror.gcr.io/library/postgres:17-alpine
 sleep 5
-docker exec pg2 psql -U postgres -c "SELECT * FROM refuge;"
+docker exec pg2 psql -U postgres -c "SELECT * FROM etude;"
 ```
 
-Attendu : `La Pra`, alors que `pg1` a été supprimé.
+Attendu : `Étude du Parc`, alors que `pg1` a été supprimé.
 
 ```bash
 docker volume inspect essai-db --format '{{.Mountpoint}}'
@@ -56,7 +56,7 @@ docker volume inspect essai-db --format '{{.Mountpoint}}'
 ```bash
 docker run -d --name vitrine -p 8081:8080 -v ~/huiteo/app/front/html:/usr/share/nginx/html:ro ghcr.io/nginx/nginx-unprivileged:1.28-alpine
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
-sed -i 's/Réservez votre nuit en refuge/Réservez votre nuit là-haut/' ~/huiteo/app/front/html/index.html
+sed -i 's/Prenez rendez-vous avec votre notaire/Prenez rendez-vous en ligne/' ~/huiteo/app/front/html/index.html
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
 git -C ~/huiteo checkout app/front/html/index.html
 docker exec vitrine touch /usr/share/nginx/html/essai
@@ -157,18 +157,18 @@ docker compose up -d
 docker compose ps
 ```
 
-Attendu : `db` passe à `(healthy)`, puis `api` démarre, puis `front`. Ouvrez <http://localhost:8080> : les refuges s'affichent, le pied de page indique `site 1.0 · API 1.0 · servi par <identifiant du conteneur>`. Faites une réservation.
+Attendu : `db` passe à `(healthy)`, puis `api` démarre, puis `front`. Ouvrez <http://localhost:8080> : les études s'affichent, le pied de page indique `site 1.0 · API 1.0 · servi par <identifiant du conteneur>`. Prenez un rendez-vous.
 
-### C3. Garder les réservations
+### C3. Garder les rendez-vous
 
 ```bash
 docker compose down
 docker compose up -d
 sleep 10
-curl -s http://localhost:8080/api/reservations
+curl -s http://localhost:8080/api/rendez-vous
 ```
 
-Résultat : `[]`. Votre réservation a disparu avec le conteneur `db`. Ajoutez le volume (TODO C3) :
+Résultat : `[]`. Votre rendez-vous a disparu avec le conteneur `db`. Ajoutez le volume (TODO C3) :
 
 ```yaml
 # dans db :
@@ -184,13 +184,13 @@ volumes:
 docker compose up -d
 ```
 
-Refaites une réservation dans le navigateur, puis :
+Reprenez un rendez-vous dans le navigateur, puis :
 
 ```bash
 docker compose down
 docker compose up -d
 sleep 10
-curl -s http://localhost:8080/api/reservations       # la réservation est là
+curl -s http://localhost:8080/api/rendez-vous        # le rendez-vous est là
 docker volume ls | grep huiteo                         # huiteo_donnees-db
 ```
 
@@ -240,7 +240,7 @@ docker compose down -v
 docker volume ls | grep huiteo ; echo "plus de volume"
 ```
 
-**Question 4** – Quelle commande a fait perdre les réservations de Huiteo dans l'incident ? Quelle est la différence entre `down` et `down -v` ?
+**Question 4** – Quelle commande a fait perdre les rendez-vous de Huiteo dans l'incident ? Quelle est la différence entre `down` et `down -v` ?
 
 **Question 5** – Le mot de passe vaut `${DB_PASSWORD:-change-moi}`. D'où peut venir `DB_PASSWORD`, et que se passe-t-il si on le change après la première initialisation de la base ?
 
