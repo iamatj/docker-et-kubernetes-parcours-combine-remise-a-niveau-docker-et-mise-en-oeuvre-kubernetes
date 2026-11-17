@@ -2,7 +2,7 @@
 
 | Durée | Branche | Correction |
 |-------|---------|------------|
-| 90 min (10h15 – 10h45, pause, 11h00 – 12h00) | `tp-01-conteneurs` | `solutions/01-conteneurs/README.md` |
+| 85 min (10h20 – 10h45, pause, 11h00 – 12h00) | `tp-01-conteneurs` | `solutions/01-conteneurs/README.md` |
 
 ## L'incident
 
@@ -82,7 +82,7 @@ docker cp ~/huiteo/app/front/html/. vitrine:/usr/share/nginx/html/
 curl -s http://localhost:8081/ | grep -o '<title>.*</title>'
 ```
 
-Attendu : `<title>Huiteo · Réservez votre nuit en refuge</title>`. Ouvrez <http://localhost:8081> dans Firefox : la page s'affiche avec le bandeau **« API injoignable »**. C'est normal : il n'y a pas encore d'API.
+Attendu : `<title>Huiteo RDV · Prenez rendez-vous avec votre notaire</title>`. Ouvrez <http://localhost:8081> dans Firefox : la page s'affiche avec le bandeau **« API injoignable »**. C'est normal : il n'y a pas encore d'API.
 
 ### B3. Observer
 
@@ -125,7 +125,7 @@ Attendu : le conteneur est `Up` depuis quelques secondes et `RestartCount` vaut 
 
 **Question 5** – Quelle différence entre `--restart always` et `--restart unless-stopped` après un redémarrage du serveur ?
 
-## Partie C – PostgreSQL : variables et limites (20 min)
+## Partie C – PostgreSQL : variables et limites (15 min)
 
 ### C1. Une erreur de configuration à diagnostiquer
 
@@ -156,7 +156,7 @@ docker inspect pg --format 'Mémoire max : {{.HostConfig.Memory}} octets | CPU :
 
 **Question 6** – Que se passe-t-il si un conteneur dépasse sa limite de mémoire ? Et sa limite de CPU ?
 
-### C3. Mode interactif
+### C3. Mode interactif (à sauter si vous êtes en retard)
 
 ```bash
 docker run --rm -it mirror.gcr.io/library/postgres:17-alpine psql --version

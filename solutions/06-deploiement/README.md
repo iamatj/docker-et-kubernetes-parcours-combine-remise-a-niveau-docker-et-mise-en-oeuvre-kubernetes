@@ -26,7 +26,7 @@ spec:
 
 **5.** 2 replicas : `kubectl apply` remet l'état décrit dans le fichier (`replicas: 2`), qui fait foi. Le `kubectl scale` était une modification impérative, perdue au premier `apply`. Pour garder 3 API, on l'écrit dans le fichier (dans Git), puis on l'applique : `replicas: 3` dans `k8s/20-api.yaml`.
 
-**6.** Perdue : le nouveau pod PostgreSQL a reçu un `emptyDir` neuf, donc une base vide. L'API l'a remarqué à la requête suivante (`tables absentes : la base a été recréée vide`) et a recréé les tables et les refuges : le site fonctionne, sans aucune réservation. C'est exactement l'incident du TP 09.
+**6.** Perdue : le nouveau pod PostgreSQL a reçu un `emptyDir` neuf, donc une base vide. L'API l'a remarqué à la requête suivante (`tables absentes : la base a été recréée vide`) et a recréé les tables et les études : le site fonctionne, sans aucun rendez-vous. C'est exactement l'incident du TP 09.
 
 **7.** L'API Server refuse le Deployment : `selector does not match template labels`. Le Deployment ne saurait pas quels pods sont les siens. Et une fois créé, le `selector` ne peut plus être modifié (champ immuable) : il faut le choisir avec soin dès le départ.
 

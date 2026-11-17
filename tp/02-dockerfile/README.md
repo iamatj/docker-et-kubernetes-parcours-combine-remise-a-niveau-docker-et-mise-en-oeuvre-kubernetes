@@ -54,7 +54,7 @@ docker image history huiteo-api:avant | head -8
 Modifiez une ligne de commentaire du code, puis reconstruisez :
 
 ```bash
-sed -i '1s/.*/"""API de Huiteo (modifiée) : réservation de nuitées dans les refuges de montagne./' app.py
+sed -i '1s/.*/"""API de Huiteo RDV (modifiée) : prise de rendez-vous en ligne dans les études notariales./' app.py
 time docker build -f Dockerfile.avant -t huiteo-api:avant .
 ```
 
@@ -115,7 +115,7 @@ Si le build échoue, lisez la ligne `ERROR` : elle donne l'instruction fautive e
 Même modification du code qu'à l'étape 2 :
 
 ```bash
-sed -i '1s/.*/"""API de Huiteo (modifiée) : réservation de nuitées dans les refuges de montagne./' app.py
+sed -i '1s/.*/"""API de Huiteo RDV (modifiée) : prise de rendez-vous en ligne dans les études notariales./' app.py
 time docker build --progress=plain --build-arg APP_VERSION=1.0 -t huiteo-api:1.0 . 2>&1 | grep -E 'CACHED|DONE|^real' | head -20
 git checkout app.py
 ```

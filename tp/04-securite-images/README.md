@@ -6,7 +6,7 @@
 
 ## L'incident
 
-> Vendredi, 11h. L'Office de tourisme, futur partenaire de Huiteo, demande un rapport de vulnérabilités avant de signer. Sophie lance un scanner sur l'ancienne image de l'API : plusieurs centaines de CVE. Et Léa pose la vraie question : « Si ce serveur tombe pendant les vacances de Noël, on fait quoi ? »
+> Vendredi, 11h. Un groupement de 40 études notariales, futur client de Huiteo RDV, demande un rapport de vulnérabilités avant de signer : les données de leurs clients sont sensibles. Sophie lance un scanner sur l'ancienne image de l'API : plusieurs centaines de CVE. Et Léa pose la vraie question : « Si ce serveur tombe la dernière semaine de décembre, on fait quoi ? »
 
 ## Objectifs
 

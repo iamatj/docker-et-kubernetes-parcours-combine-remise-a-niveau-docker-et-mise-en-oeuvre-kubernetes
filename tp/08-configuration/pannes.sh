@@ -5,42 +5,42 @@ set -euo pipefail
 kubectl delete namespace diagnostic --ignore-not-found --wait=true >/dev/null
 kubectl create namespace diagnostic >/dev/null
 kubectl apply -n diagnostic -f - >/dev/null <<'YAML'
-# Panne 1 : la billetterie
+# Panne 1 : la agenda
 apiVersion: apps/v1
 kind: Deployment
-metadata: { name: billetterie }
+metadata: { name: agenda }
 spec:
   replicas: 1
-  selector: { matchLabels: { app: billetterie } }
+  selector: { matchLabels: { app: agenda } }
   template:
-    metadata: { labels: { app: billetterie } }
+    metadata: { labels: { app: agenda } }
     spec:
       containers:
-        - name: billetterie
+        - name: agenda
           image: ghcr.io/nginx/nginx-unprivileged:1.28-alpinee
 ---
-# Panne 2 : la météo des refuges
+# Panne 2 : la rappels par SMS
 apiVersion: v1
 kind: Secret
-metadata: { name: meteo }
+metadata: { name: rappels }
 stringData: { CLE: "abc123" }
 ---
 apiVersion: apps/v1
 kind: Deployment
-metadata: { name: meteo }
+metadata: { name: rappels }
 spec:
   replicas: 1
-  selector: { matchLabels: { app: meteo } }
+  selector: { matchLabels: { app: rappels } }
   template:
-    metadata: { labels: { app: meteo } }
+    metadata: { labels: { app: rappels } }
     spec:
       containers:
-        - name: meteo
+        - name: rappels
           image: mirror.gcr.io/library/busybox:1.37
-          command: ["sh", "-c", "echo météo prête; sleep 3600"]
+          command: ["sh", "-c", "echo rappels prêts; sleep 3600"]
           env:
             - name: CLE_API
-              valueFrom: { secretKeyRef: { name: meteo, key: CLE_API } }
+              valueFrom: { secretKeyRef: { name: rappels, key: CLE_API } }
 ---
 # Panne 3 : la vitrine
 apiVersion: apps/v1
@@ -80,5 +80,5 @@ spec:
           env:
             - { name: POSTGRES_DB, value: statistiques }
 YAML
-echo "Namespace « diagnostic » prêt : 4 applications (billetterie, meteo, vitrine, statistiques)."
+echo "Namespace « diagnostic » prêt : 4 applications (agenda, rappels, vitrine, statistiques)."
 echo "Commencez par : kubectl -n diagnostic get pods"
