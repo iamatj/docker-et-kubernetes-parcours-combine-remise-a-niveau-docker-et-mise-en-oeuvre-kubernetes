@@ -1,6 +1,6 @@
 apiVersion: v2
 name: huiteo
-description: Huiteo, réservation de nuitées en refuge (site, API, PostgreSQL)
+description: Huiteo RDV, prise de rendez-vous chez le notaire (site, API, PostgreSQL)
 type: application
 version: 0.1.0
 appVersion: "1.0"

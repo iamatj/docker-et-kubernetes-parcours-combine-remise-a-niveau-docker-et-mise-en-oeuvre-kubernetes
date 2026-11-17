@@ -8,7 +8,7 @@ Le TP se termine à 16h30 : la clôture (QCM, synthèse, évaluation) occupe les
 
 ## L'incident
 
-> Vendredi, 14h. Léa veut une préproduction pour que l'Office de tourisme teste les réservations de groupe. Karim copie `k8s/` dans `k8s-preprod/`, change le namespace dans 12 fichiers, le message d'accueil, le NodePort, le nombre d'API… et en oublie deux : la préproduction écrit dans la base de production. Il faut un seul modèle, et des valeurs par environnement.
+> Vendredi, 14h. Léa veut une préproduction pour que le groupement d'études teste les rendez-vous à plusieurs signataires. Karim copie `k8s/` dans `k8s-preprod/`, change le namespace dans 12 fichiers, le message d'accueil, le NodePort, le nombre d'API… et en oublie deux : la préproduction écrit dans la base de production. Il faut un seul modèle, et des valeurs par environnement.
 
 ## Objectifs
 
@@ -94,7 +94,7 @@ helm template huiteo helm/huiteo --namespace huiteo-preprod | grep -E '^kind:|im
 Créez `helm/huiteo/values-preprod.yaml` :
 
 ```yaml
-messageAccueil: "PRÉPRODUCTION – réservations fictives"
+messageAccueil: "PRÉPRODUCTION – rendez-vous fictifs"
 api:
   replicas: 1
 front:
@@ -119,7 +119,7 @@ curl -s http://192.168.56.30:30081/api/info | jq
 curl -s http://192.168.56.30:30080/api/info | jq -r .message
 ```
 
-Attendu : la préproduction répond sur `30081` avec le message `PRÉPRODUCTION – réservations fictives` et l'API `1.0` ; la production, sur `30080`, n'a pas bougé. Ouvrez <http://192.168.56.30:30081>.
+Attendu : la préproduction répond sur `30081` avec le message `PRÉPRODUCTION – rendez-vous fictifs` et l'API `1.0` ; la production, sur `30080`, n'a pas bougé. Ouvrez <http://192.168.56.30:30081>.
 
 ### 6. Mettre à jour, revenir en arrière (12 min)
 
