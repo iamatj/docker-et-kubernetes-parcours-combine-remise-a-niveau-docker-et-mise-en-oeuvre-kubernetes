@@ -1,9 +1,10 @@
 {
-  "title": "Docker et Kubernetes · Cordée",
+  "title": "Docker et Kubernetes · Huiteo RDV",
   "order": [
     "cover",
     "entreprise",
     "personnages",
+    "application",
     "principe",
     "programme",
     "branches",
@@ -13,6 +14,8 @@
     "c1-solution",
     "c1-conteneur-vm",
     "c1-architecture",
+    "c1-dockerd",
+    "c1-groupe-docker",
     "c1-tp",
     "c2-incident",
     "c2-solution",
@@ -28,8 +31,10 @@
     "dejeuner-j1",
     "c4-incident",
     "c4-solution",
+    "c4-volumes",
     "c4-volumes-reseaux",
     "c4-compose",
+    "c4-compose-coulisses",
     "c4-tp",
     "pause-j1-aprem",
     "c5-incident",
@@ -83,7 +88,7 @@
   "sections": [
     {
       "title": "Introduction",
-      "description": "Cordée, le programme, le lab",
+      "description": "Huiteo, le programme, le lab",
       "start": 0
     },
     {

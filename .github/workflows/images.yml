@@ -1,4 +1,4 @@
-# Publie les images de Cordée sur ghcr.io : versions 1.0 et 1.1.
+# Publie les images de Huiteo sur ghcr.io : versions 1.0 et 1.1.
 # La version 1.2 n'est jamais publiée : elle sert de panne au TP 07.
 name: images
 
@@ -29,7 +29,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Nom de l'image en minuscules
         id: nom
-        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/cordee-${{ matrix.composant }}" >> "$GITHUB_OUTPUT"
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/huiteo-${{ matrix.composant }}" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: app/${{ matrix.composant }}
