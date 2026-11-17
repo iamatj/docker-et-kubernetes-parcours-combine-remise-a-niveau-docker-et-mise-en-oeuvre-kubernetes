@@ -57,6 +57,6 @@ La correction d'un TP est dans `solutions/NN-sujet/`, aux mêmes chemins qu'à l
 ## Pour le formateur
 
 1. **Images** : onglet **Actions** > workflow **images** > **Run workflow**, puis rendre publics les paquets `huiteo-api` et `huiteo-front` (profil GitHub > **Packages** > **Package settings** > **Change visibility**).
-2. **Lab** : faire préparer les machines décrites dans le guide, puis lancer `bash lab/preparer-lab.sh` sur chaque `client` (la veille), et vérifier avec `bash lab/verifier-lab.sh`.
+2. **Lab** : faire préparer les machines décrites dans le guide, puis lancer `bash lab/preparer-jour-1.sh` sur chaque `client` la veille du jour 1 (Docker seulement), et `bash lab/preparer-lab.sh` la veille du jour 2 (le cluster), vérifié avec `bash lab/verifier-lab.sh`.
 3. **Slides** : ouvrir `presentation/index.html` dans un navigateur (flèches pour naviguer, `N` pour les notes, `F` pour le plein écran). Après une modification d'une slide : `python presentation/construire.py`.
 4. **QCM** : publiés par GitHub Pages depuis `main` ; l'adresse est sur les slides `qcm-j1`, `qcm-j2`, `qcm-j3`.

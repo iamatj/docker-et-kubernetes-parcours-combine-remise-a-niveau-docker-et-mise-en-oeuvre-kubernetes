@@ -1,6 +1,11 @@
 # Guide d'installation du lab
 
-Chaque participant dispose de son propre lab de 4 machines. La formation **n'apprend pas à monter un cluster** : il est préparé avant la session par `lab/preparer-lab.sh`, et les TP portent sur son exploitation.
+Chaque participant dispose de son propre lab de 4 machines. La formation **n'apprend pas à monter un cluster** : il est préparé avant la session, et les TP portent sur son exploitation.
+
+La préparation se fait en deux temps, parce que le jour 1 et le jour 2 sont espacés :
+
+- **avant le jour 1** : seulement la machine `client`, avec Docker (`lab/preparer-jour-1.sh`, section 2) ;
+- **avant le jour 2** : le cluster Kubernetes sur les trois autres machines (`lab/preparer-lab.sh`, section 2 bis).
 
 ## 1. Les machines
 
@@ -26,13 +31,35 @@ Adresses réservées sur le même réseau : **192.168.56.200 à .220** pour les 
 
 3 VM au lieu de 4 : le rôle `client` est tenu par `control-plane` (Docker y est installé le jour 1, puis désinstallé avant le jour 2). Coût : on perd la séparation poste / cluster, Docker gêne le réseau des pods s'il n'est pas retiré proprement, et le participant travaille sur un nœud du cluster. À éviter si possible.
 
-## 2. Préparation en une commande
+## 2. Avant le jour 1 : la machine client
 
 Sur `client`, avec le compte du participant :
 
 ```bash
 git clone https://github.com/iamatj/docker-et-kubernetes-parcours-combine-remise-a-niveau-docker-et-mise-en-oeuvre-kubernetes.git ~/huiteo
 cd ~/huiteo
+bash lab/preparer-jour-1.sh
+```
+
+Le script ne touche qu'à cette machine : pas de SSH, pas de nœud, rien à interrompre. Il enchaîne quatre étapes (environ 5 min) :
+
+| Étape | Ce qui est fait |
+|-------|-----------------|
+| 1 | paquets de base (`curl`, `jq`, `git`…) |
+| 2 | Docker Engine, Buildx (BuildKit) et Compose V2 depuis le dépôt officiel de Docker ; ajout du compte au groupe `docker` |
+| 3 | téléchargement des images des TP 00 à 04, et de la base de vulnérabilités de Trivy (TP 04) |
+| 4 | bilan : une ligne `OK` ou `ÉCHEC` par point, puis `Poste prêt pour le jour 1.` |
+
+Il est relançable sans risque. **Fermez ensuite la session du participant et rouvrez-la** (bureau compris), sinon `docker` demande `sudo`.
+
+Pour le jour 1, les trois autres machines ne servent pas encore : elles peuvent être livrées plus tard.
+
+## 2 bis. Avant le jour 2 : le cluster
+
+Sur `client`, toujours dans `~/huiteo` :
+
+```bash
+git fetch && git checkout main
 bash lab/preparer-lab.sh
 ```
 
