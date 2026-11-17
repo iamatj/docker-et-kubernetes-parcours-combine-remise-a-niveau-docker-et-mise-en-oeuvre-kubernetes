@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: front-lb
-  namespace: cordee
+  namespace: huiteo
   annotations:
     metallb.io/loadBalancerIPs: 192.168.56.201
 spec:

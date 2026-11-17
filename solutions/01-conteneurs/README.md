@@ -14,7 +14,7 @@
 
 **7.** Non : `docker tag` ajoute un **nom** à la même image (même `IMAGE ID`). Le push envoie chaque couche que le registre ne possède pas encore ; il est vide, donc toutes. Un second push n'enverrait plus rien (`Layer already exists`).
 
-**8.** Le nom de l'image doit commencer par le registre et le compte (`docker.io/<compte>/cordee-api:1.0`, `ghcr.io/<compte>/cordee-api:1.0`), puis on s'authentifie avec `docker login <registre>` (pour ghcr.io : un jeton GitHub avec le droit `write:packages`). C'est ce que fait le workflow `.github/workflows/images.yml` du dépôt pour publier les images utilisées dans Kubernetes.
+**8.** Le nom de l'image doit commencer par le registre et le compte (`docker.io/<compte>/huiteo-api:1.0`, `ghcr.io/<compte>/huiteo-api:1.0`), puis on s'authentifie avec `docker login <registre>` (pour ghcr.io : un jeton GitHub avec le droit `write:packages`). C'est ce que fait le workflow `.github/workflows/images.yml` du dépôt pour publier les images utilisées dans Kubernetes.
 
 **9.** `docker inspect <conteneur> --format '{{.Image}}'` donne l'identifiant de l'image ; `docker image inspect <image> --format '{{.RepoDigests}}'` donne le digest du registre. `docker ps` n'affiche que le nom utilisé au lancement.
 

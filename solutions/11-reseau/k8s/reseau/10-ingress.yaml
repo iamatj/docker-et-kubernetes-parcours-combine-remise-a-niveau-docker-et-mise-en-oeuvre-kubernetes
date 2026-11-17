@@ -1,19 +1,19 @@
-# https://cordee.lab : Traefik termine le TLS avec le certificat du Secret cordee-tls
+# https://huiteo.lab : Traefik termine le TLS avec le certificat du Secret huiteo-tls
 # (créé au TP 11 avec openssl, il n'est pas dans Git).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: cordee
-  namespace: cordee
+  name: huiteo
+  namespace: huiteo
   labels:
-    partie-de: cordee
+    partie-de: huiteo
 spec:
   ingressClassName: traefik
   tls:
-    - hosts: ["cordee.lab"]
-      secretName: cordee-tls
+    - hosts: ["huiteo.lab"]
+      secretName: huiteo-tls
   rules:
-    - host: cordee.lab
+    - host: huiteo.lab
       http:
         paths:
           - path: /
