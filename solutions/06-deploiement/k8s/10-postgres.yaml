@@ -1,10 +1,10 @@
-# Fourni par Karim : la base de Cordée. Deux défauts volontaires, traités plus tard :
+# Fourni par Karim : la base de Huiteo. Deux défauts volontaires, traités plus tard :
 # le mot de passe est en clair (TP 08) et les données sont dans un emptyDir (TP 09).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: cordee
+  namespace: huiteo
 spec:
   replicas: 1
   selector:
@@ -20,9 +20,9 @@ spec:
           image: mirror.gcr.io/library/postgres:17-alpine
           env:
             - name: POSTGRES_DB
-              value: cordee
+              value: huiteo
             - name: POSTGRES_USER
-              value: cordee
+              value: huiteo
             - name: POSTGRES_PASSWORD
               value: Neige-2026
           ports:
@@ -38,7 +38,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: cordee
+  namespace: huiteo
 spec:
   selector:
     app: postgres
