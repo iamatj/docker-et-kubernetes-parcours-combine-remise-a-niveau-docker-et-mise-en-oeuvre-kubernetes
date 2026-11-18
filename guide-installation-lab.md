@@ -50,7 +50,7 @@ Le script ne touche qu'à cette machine : pas de SSH, pas de nœud, rien à inte
 | 3 | téléchargement des images des TP 00 à 04, et de la base de vulnérabilités de Trivy (TP 04) |
 | 4 | bilan : une ligne `OK` ou `ÉCHEC` par point, puis `Poste prêt pour le jour 1.` |
 
-Il est relançable sans risque. **Fermez ensuite la session du participant et rouvrez-la** (bureau compris), sinon `docker` demande `sudo`.
+Il est relançable sans risque. **Ensuite, déconnectez la session du participant et reconnectez-la** (bureau compris), sinon `docker` demande `sudo` : le compte vient d'entrer dans le groupe `docker`, et les groupes ne sont lus qu'à l'ouverture de session. Fermer le terminal ne suffit pas. Le plus souvent, la déconnexion suffit ; si `id` ne montre toujours pas `docker` alors que `id <compte>` le montre, un morceau de l'ancienne session a survécu (autre connexion ouverte, processus du bureau) : **redémarrez la machine** (`sudo reboot`). Le plus simple : lancer le script la veille, puis redémarrer chaque machine. En dépannage, `newgrp docker` donne le groupe au terminal en cours.
 
 Pour le jour 1, les trois autres machines ne servent pas encore : elles peuvent être livrées plus tard.
 
@@ -144,7 +144,7 @@ Depuis Windows, ouvrez un tunnel et laissez la fenêtre ouverte : `ssh -L 3390:l
 
 | Symptôme | Cause probable | Que faire |
 |----------|----------------|-----------|
-| `permission denied … docker.sock` | la session date d'avant l'ajout au groupe `docker` | fermer la session (bureau compris) et la rouvrir |
+| `permission denied … docker.sock`, ou `docker` absent de `id` alors que `id <compte>` le montre | la session date d'avant l'ajout au groupe `docker` | se déconnecter puis se reconnecter ; si ça ne suffit pas, redémarrer la machine (`sudo reboot`) ; en dépannage, `newgrp docker` |
 | le script reste bloqué sur un téléchargement | dépôt lent ou filtré | Ctrl+C, vérifier `curl -I https://pkgs.k8s.io`, relancer le script |
 | `kubeadm init` échoue | swap actif, port 6443 occupé, ancien essai | `/tmp/kubeadm-init.log` ; sur control-plane `sudo kubeadm reset -f` puis relancer |
 | nœud `NotReady` | Calico pas encore démarré | `kubectl -n kube-system get pods -o wide`, attendre 2 min |
