@@ -56,4 +56,5 @@ verifie "$USER est dans le groupe docker"      "getent group docker | grep -qw $
 for img in "${IMAGES[@]}"; do verifie "image $img" "sudo docker image inspect $img"; done
 echo
 if [ "$ECHECS" -eq 0 ]; then echo "Poste prêt pour le jour 1."; else echo "$ECHECS point(s) en échec : relancez le script, ou voyez guide-installation-lab.md."; fi
-echo "Fermez la session puis rouvrez-la (bureau compris) pour lancer docker sans sudo."
+echo "Pour lancer docker sans sudo, déconnectez-vous puis reconnectez-vous (bureau compris) : les groupes ne sont lus qu'à l'ouverture de session."
+echo "Si id ne montre toujours pas docker, redémarrez la machine (sudo reboot)."
