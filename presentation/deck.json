@@ -14,10 +14,14 @@
     "c1-solution",
     "c1-monolithe",
     "c1-conteneur-vm",
-    "c1-architecture",
-    "c1-dockerd",
-    "c1-groupe-docker",
     "c1-tp",
+    "c1-architecture",
+    "c1-socket",
+    "c1-dockerd",
+    "c1-compose",
+    "c1-groupe-docker",
+    "c1-commandes",
+    "c1-recap-tp00",
     "c2-incident",
     "c2-solution",
     "c2-images",
@@ -95,22 +99,22 @@
     {
       "title": "Jour 1 · Docker",
       "description": "Remise à niveau Docker",
-      "start": 7
+      "start": 8
     },
     {
       "title": "Jour 2 · Kubernetes",
       "description": "Fondamentaux et exploitation",
-      "start": 36
+      "start": 46
     },
     {
       "title": "Jour 3 · Production",
       "description": "Stockage, sécurité, réseau et Helm",
-      "start": 58
+      "start": 68
     },
     {
       "title": "Clôture",
       "description": "QCM, synthèse, évaluation",
-      "start": 75
+      "start": 86
     }
   ],
   "faces": {
