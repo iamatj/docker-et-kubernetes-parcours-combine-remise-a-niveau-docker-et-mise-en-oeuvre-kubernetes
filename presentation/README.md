@@ -1,10 +1,10 @@
 # Les slides
 
-Ouvrez `index.html` dans un navigateur : flèches (ou espace) pour avancer, `N` pour afficher les notes du formateur, `F` pour le plein écran. Le lien `index.html#c7-yaml` ouvre directement une slide.
+Ouvrez `index.html` dans un navigateur : flèches (ou espace) pour avancer, `F` pour le plein écran. Le lien `index.html#c7-yaml` ouvre directement une slide.
 
 | Fichier | Rôle |
 |---------|------|
-| `slides/<id>.html` | une slide par fichier (1920 × 1080), notes du formateur dans `<aside>` |
+| `slides/<id>.html` | une slide par fichier (1920 × 1080) |
 | `deck.json` | titre, ordre des slides, sections, polices |
 | `construire.py` | assemble `index.html`, page autonome |
 | `index.html` | généré : ne pas modifier à la main |
