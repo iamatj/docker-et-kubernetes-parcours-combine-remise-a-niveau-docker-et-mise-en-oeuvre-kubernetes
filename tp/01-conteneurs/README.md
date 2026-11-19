@@ -92,7 +92,7 @@ docker exec vitrine id                 # uid=101(nginx)
 docker exec vitrine ps                 # le processus maître nginx et ses workers
 docker exec -it vitrine sh             # un shell dans le conteneur ; tapez « ls /usr/share/nginx/html » puis « exit »
 docker stats --no-stream vitrine       # CPU, mémoire, réseau
-docker inspect vitrine --format 'IP : {{.NetworkSettings.IPAddress}} | Redémarrages : {{.RestartCount}} | Politique : {{.HostConfig.RestartPolicy.Name}}'
+docker inspect vitrine --format 'IP : {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} | Redémarrages : {{.RestartCount}} | Politique : {{.HostConfig.RestartPolicy.Name}}'
 ```
 
 **Question 3** – `docker exec` crée-t-il un nouveau conteneur ? Que se passe-t-il pour le conteneur si vous sortez du shell avec `exit` ?
