@@ -1,7 +1,7 @@
 """Assemble les slides de presentation/slides/ en une page autonome presentation/index.html.
 
 Usage : python presentation/construire.py
-La page s'ouvre dans un navigateur : flèches pour naviguer, N pour les notes, F pour le plein écran.
+La page s'ouvre dans un navigateur : flèches pour naviguer, F pour le plein écran.
 """
 import html
 import json
@@ -51,14 +51,11 @@ page = f"""<!doctype html>
   section table {{ border-collapse: collapse; width: 100%; }}
   section th, section td {{ border-bottom: 2px solid rgba(0,0,0,.15); padding: .35em .6em; text-align: left; }}
   section th {{ font-weight: 700; }}
-  section aside {{ display: none; }}
   x-shape {{ display: block; flex: none; }}
   x-shape[kind="arrow-right"] {{ clip-path: polygon(0 30%, 60% 30%, 60% 0, 100% 50%, 60% 100%, 60% 70%, 0 70%); }}
   x-shape[kind="arrow-left"] {{ clip-path: polygon(100% 30%, 40% 30%, 40% 0, 0 50%, 40% 100%, 40% 70%, 100% 70%); }}
   x-icon {{ display: inline-flex; align-items: center; justify-content: center; flex: none; font-family: 'DejaVu Sans', 'Segoe UI Symbol', sans-serif; }}
   x-icon::before {{ content: attr(data-g); font-size: 0.8em; line-height: 1; }}
-  #notes {{ position: fixed; left: 0; right: 0; bottom: 0; max-height: 30%; overflow: auto; background: #FBF8F3; color: #1B2631;
-           font: 18px/1.5 'DM Sans', Arial, sans-serif; padding: 12px 20px; display: none; border-top: 3px solid #E76F51; }}
   #compteur {{ position: fixed; right: 14px; bottom: 10px; color: #999; font: 14px Arial, sans-serif; }}
 </style>
 </head>
@@ -66,19 +63,15 @@ page = f"""<!doctype html>
 <div id="scene">
 {chr(10).join(slides)}
 </div>
-<div id="notes"></div>
 <div id="compteur"></div>
 <script>
   const slides = [...document.querySelectorAll('section')];
   const scene = document.getElementById('scene');
-  const notes = document.getElementById('notes');
   // la taille des icônes vient de leur largeur
   document.querySelectorAll('x-icon').forEach(i => {{ i.style.fontSize = i.style.width || '48px'; }});
   let n = Math.max(0, slides.findIndex(s => '#' + s.id === location.hash));
   function afficher() {{
     slides.forEach((s, i) => s.classList.toggle('active', i === n));
-    const a = slides[n].querySelector('aside');
-    notes.textContent = a ? a.textContent : '';
     document.getElementById('compteur').textContent = (n + 1) + ' / ' + slides.length;
     history.replaceState(null, '', '#' + slides[n].id);
   }}
@@ -91,12 +84,11 @@ page = f"""<!doctype html>
     else if (['ArrowLeft', 'PageUp'].includes(e.key)) n = Math.max(n - 1, 0);
     else if (e.key === 'Home') n = 0;
     else if (e.key === 'End') n = slides.length - 1;
-    else if (e.key === 'n' || e.key === 'N') notes.style.display = notes.style.display === 'block' ? 'none' : 'block';
     else if (e.key === 'f' || e.key === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
     else return;
     e.preventDefault(); afficher();
   }});
-  addEventListener('click', e => {{ if (e.target.closest('#notes')) return; n = Math.min(n + 1, slides.length - 1); afficher(); }});
+  addEventListener('click', () => {{ n = Math.min(n + 1, slides.length - 1); afficher(); }});
   addEventListener('resize', ajuster);
   ajuster(); afficher();
 </script>
