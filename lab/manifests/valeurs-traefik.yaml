@@ -2,7 +2,7 @@
 # (GatewayClass « traefik »). Les Gateway sont créées par les participants au TP 11.
 service:
   annotations:
-    metallb.io/loadBalancerIPs: 192.168.56.200
+    metallb.io/loadBalancerIPs: 10.10.0.200
 ingressClass:
   enabled: true
   isDefaultClass: true
