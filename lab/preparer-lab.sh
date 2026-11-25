@@ -5,7 +5,7 @@
 # Prérequis : 3 VM Ubuntu 24.04 x64 : client .10, qui est aussi le control plane (alias control-plane),
 # worker-1 .20 et worker-2 .30 ; un compte « formation » (ou UTILISATEUR_SSH) avec sudo sans mot de passe
 # sur les 3 machines, et SSH ouvert du client vers les workers et vers lui-même.
-# Pas de Docker sur le client : il sert au jour 1 seulement (voir guide-installation-lab.md, section 1). Le script crée la clé SSH et la copie (mot de passe demandé une fois par nœud).
+# Pas de Docker sur le client : il sert au jour 1 seulement ; s'il est encore installé, le script le désinstalle (guide-installation-lab.md, section 1). Le script crée la clé SSH et la copie (mot de passe demandé une fois par nœud).
 #
 # Relançable sans risque : chaque étape vérifie ce qui est déjà fait. Bilan à la fin (lab/verifier-lab.sh).
 set -euo pipefail
@@ -39,11 +39,19 @@ grep -q "10.10.0.10 control-plane" /etc/hosts || sudo tee -a /etc/hosts >/dev/nu
 10.10.0.200 huiteo.lab beta.huiteo.lab
 EOF
 
-# Le poste devient le control plane : Docker et Kubernetes sur la même machine se gênent (containerd, règles réseau).
-if command -v docker >/dev/null; then
-  echo "Docker est installé sur ce poste, qui va devenir le control plane : désinstallez-le d'abord" >&2
-  echo "(guide-installation-lab.md, section 1), puis relancez ce script." >&2
-  exit 1
+# Le poste devient le control plane : Docker (jour 1) et Kubernetes sur la même machine se gênent
+# (containerd, règles réseau). S'il est encore là, on le désinstalle avec ses données et ses règles réseau.
+if command -v docker >/dev/null || dpkg -s docker-ce >/dev/null 2>&1; then
+  echo "Docker (jour 1) trouvé sur ce poste : désinstallation avant de monter le control plane."
+  sudo systemctl disable --now docker.socket docker containerd >/dev/null 2>&1 || true
+  sudo DEBIAN_FRONTEND=noninteractive apt-get purge -y -q docker-ce docker-ce-cli containerd.io \
+    docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras >/dev/null 2>&1 || true
+  sudo apt-get autoremove -y -q >/dev/null
+  sudo rm -rf /var/lib/docker /var/lib/containerd /etc/containerd /etc/apt/sources.list.d/docker.list
+  sudo ip link delete docker0 >/dev/null 2>&1 || true
+  { sudo iptables-save | grep -vi docker || true; } | sudo iptables-restore || true
+  sudo apt-get update -q
+  if command -v docker >/dev/null; then echo "Docker est toujours présent : désinstallez-le à la main (guide, section 1)." >&2; exit 1; fi
 fi
 sudo systemctl enable --now ssh >/dev/null 2>&1 || true
 sudo install -m 0755 -d /etc/apt/keyrings
