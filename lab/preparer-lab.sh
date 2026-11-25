@@ -29,8 +29,8 @@ etape() { echo; echo "=================== $*"; }
 
 # ---------------------------------------------------------------- 1. le client
 etape "1/9 Client : paquets, kubectl, Helm"
-sudo apt-get update -q
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q ca-certificates curl gpg jq openssl git bash-completion openssh-server
+sudo apt-get -o DPkg::Lock::Timeout=600 update -q
+sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 install -y -q ca-certificates curl gpg jq openssl git bash-completion openssh-server
 grep -q "10.10.0.10 control-plane" /etc/hosts || sudo tee -a /etc/hosts >/dev/null <<'EOF'
 10.10.0.10 client
 10.10.0.10 control-plane
@@ -44,13 +44,13 @@ EOF
 if command -v docker >/dev/null || dpkg -s docker-ce >/dev/null 2>&1; then
   echo "Docker (jour 1) trouvé sur ce poste : désinstallation avant de monter le control plane."
   sudo systemctl disable --now docker.socket docker containerd >/dev/null 2>&1 || true
-  sudo DEBIAN_FRONTEND=noninteractive apt-get purge -y -q docker-ce docker-ce-cli containerd.io \
+  sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 purge -y -q docker-ce docker-ce-cli containerd.io \
     docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras >/dev/null 2>&1 || true
-  sudo apt-get autoremove -y -q >/dev/null
+  sudo apt-get -o DPkg::Lock::Timeout=600 autoremove -y -q >/dev/null
   sudo rm -rf /var/lib/docker /var/lib/containerd /etc/containerd /etc/apt/sources.list.d/docker.list
   sudo ip link delete docker0 >/dev/null 2>&1 || true
   { sudo iptables-save | grep -vi docker || true; } | sudo iptables-restore || true
-  sudo apt-get update -q
+  sudo apt-get -o DPkg::Lock::Timeout=600 update -q
   if command -v docker >/dev/null; then echo "Docker est toujours présent : désinstallez-le à la main (guide, section 1)." >&2; exit 1; fi
 fi
 sudo systemctl enable --now ssh >/dev/null 2>&1 || true
@@ -60,7 +60,7 @@ if ! command -v kubectl >/dev/null; then
   $CURL "https://pkgs.k8s.io/core:/stable:/$VERSION_K8S/deb/Release.key" | sudo gpg --dearmor --yes -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
   echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$VERSION_K8S/deb/ /" \
     | sudo tee /etc/apt/sources.list.d/kubernetes.list >/dev/null
-  sudo apt-get update -q && sudo apt-get install -y -q kubectl
+  sudo apt-get -o DPkg::Lock::Timeout=600 update -q && sudo apt-get -o DPkg::Lock::Timeout=600 install -y -q kubectl
 fi
 if ! command -v helm >/dev/null; then
   $CURL "https://get.helm.sh/helm-$VERSION_HELM-linux-amd64.tar.gz" | tar xz -C /tmp

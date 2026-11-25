@@ -12,8 +12,8 @@ CURL="curl -fsSL --connect-timeout 20 --retry 3"
 etape() { echo; echo "=================== $*"; }
 
 etape "1/4 Paquets de base"
-sudo apt-get update -q
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q ca-certificates curl gpg jq git bash-completion
+sudo apt-get -o DPkg::Lock::Timeout=600 update -q
+sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 install -y -q ca-certificates curl gpg jq git bash-completion
 
 etape "2/4 Docker Engine, Buildx et Compose V2 (dépôt officiel de Docker)"
 if ! command -v docker >/dev/null; then
@@ -21,8 +21,8 @@ if ! command -v docker >/dev/null; then
   $CURL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
   echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
     | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-  sudo apt-get update -q
-  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  sudo apt-get -o DPkg::Lock::Timeout=600 update -q
+  sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600 install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 fi
 sudo systemctl enable --now docker >/dev/null
 sudo usermod -aG docker "$USER"
