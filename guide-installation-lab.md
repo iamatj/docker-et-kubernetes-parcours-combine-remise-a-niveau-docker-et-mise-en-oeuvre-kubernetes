@@ -12,8 +12,8 @@ La préparation se fait en deux temps, parce que le jour 1 et le jour 2 sont esp
 | Nom d'hôte | IP | Rôle | vCPU | Mémoire | Disque |
 |------------|----|------|------|---------|--------|
 | `client`, alias `control-plane` | 10.10.0.10 | poste du participant (kubectl, Helm, navigateur ; Docker au jour 1 seulement) et control plane Kubernetes 1.36 (API Server, etcd, scheduler, controller manager) | 4 | 8 Go | 40 Go |
-| `worker-1` | 10.10.0.20 | nœud de travail | 2 | 4 Go | 30 Go |
-| `worker-2` | 10.10.0.30 | nœud de travail | 2 | 4 Go | 30 Go |
+| `worker-1` | 10.10.0.11 | nœud de travail | 2 | 4 Go | 30 Go |
+| `worker-2` | 10.10.0.12 | nœud de travail | 2 | 4 Go | 30 Go |
 
 Ces noms et ces IP sont utilisés tels quels dans tous les TP et les slides. S'ils changent, remplacez-les partout d'un coup.
 
