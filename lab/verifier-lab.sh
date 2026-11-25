@@ -8,9 +8,6 @@ echec() { printf '  ÉCHEC  %s  → %s\n' "$1" "$2"; ECHECS=$((ECHECS + 1)); }
 teste() { local libelle=$1 piste=$2; shift 2; if "$@" >/dev/null 2>&1; then ok "$libelle"; else echec "$libelle" "$piste"; fi; }
 
 echo "Poste client"
-teste "Docker répond"                     "sudo systemctl status docker ; groupe docker : fermer et rouvrir la session" \
-      sg docker -c "docker info"
-teste "Docker Compose V2 (docker compose)" "paquet docker-compose-plugin" sg docker -c "docker compose version"
 teste "kubectl installé"                  "étape 1 de preparer-lab.sh" kubectl version --client
 teste "Helm installé"                     "étape 1 de preparer-lab.sh" helm version
 
@@ -27,7 +24,7 @@ DEFAUT=$(kubectl get storageclass -o jsonpath='{range .items[?(@.metadata.annota
 teste "StorageClass local-path-retain"    "kubectl apply -f lab/manifests/storageclass-retain.yaml" kubectl get storageclass local-path-retain
 teste "MetalLB : pool d'adresses"         "kubectl apply -f lab/manifests/metallb-pool.yaml" kubectl -n metallb-system get ipaddresspool lab
 IP_TRAEFIK=$(kubectl -n traefik get svc traefik -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
-[ "$IP_TRAEFIK" = "192.168.56.200" ] && ok "Traefik sur 192.168.56.200" || echec "Traefik : IP '$IP_TRAEFIK'" "kubectl -n traefik get svc ; MetalLB"
+[ "$IP_TRAEFIK" = "10.10.0.200" ] && ok "Traefik sur 10.10.0.200" || echec "Traefik : IP '$IP_TRAEFIK'" "kubectl -n traefik get svc ; MetalLB"
 teste "IngressClass traefik"              "helm -n traefik status traefik" kubectl get ingressclass traefik
 teste "CRD Gateway API"                   "étape 8 de preparer-lab.sh" kubectl get crd httproutes.gateway.networking.k8s.io
 ACCEPTEE=$(kubectl get gatewayclass traefik -o jsonpath='{.status.conditions[?(@.type=="Accepted")].status}' 2>/dev/null)
