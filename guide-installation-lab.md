@@ -22,7 +22,7 @@ Adresses réservées sur le même réseau : **10.10.0.200 à .220** pour les Ser
 ### À demander à l'organisme qui fournit les machines
 
 - 3 VM **Ubuntu Server 24.04 LTS x64** par participant, sur un réseau privé commun `10.10.0.0/24` (les 3 machines d'un participant se voient, sans pare-feu entre elles), avec accès Internet sortant (HTTPS vers `ghcr.io`, `mirror.gcr.io`, `pkgs.k8s.io`, `download.docker.com`, `get.helm.sh`, `github.com`, `raw.githubusercontent.com`, `traefik.github.io`, `kubernetes-sigs.github.io`).
-- Sur les 3 nœuds : un compte `formation` avec `sudo` sans mot de passe, SSH ouvert depuis `client`, swap désactivable.
+- Sur les 3 nœuds : un compte `formation` avec `sudo` (le script le passe en sudo sans mot de passe), SSH ouvert depuis `client`, swap désactivable.
 - Sur `client` : un bureau graphique avec un navigateur (Firefox), accessible au participant (console, bureau à distance). Si ce sont des VM cloud sans bureau, voir la section 6.
 - La préparation (section 2) est faite **la veille** par le formateur ou par l'organisme : environ 15 min par lab, plusieurs labs en parallèle.
 
@@ -71,12 +71,12 @@ git fetch && git checkout main
 bash lab/preparer-lab.sh
 ```
 
-Le script demande le mot de passe du compte `formation` une fois par machine, y compris le poste lui-même (copie de la clé SSH), puis enchaîne sans intervention :
+Le script demande le mot de passe du compte `formation` au plus deux fois par machine, y compris le poste lui-même (copie de la clé SSH, puis réglage de sudo sans mot de passe s'il ne l'est pas déjà), puis enchaîne sans intervention :
 
 | Étape | Ce qui est fait | Où |
 |-------|-----------------|----|
 | 1 | paquets de base, serveur SSH, kubectl 1.36, Helm 4.3, `/etc/hosts`, complétion `kubectl` et alias `k` ; désinstallation de Docker s'il est encore là (section 1) | client |
-| 2 | clé SSH `~/.ssh/id_ed25519` copiée sur les 3 machines | client |
+| 2 | clé SSH `~/.ssh/id_ed25519` copiée sur les 3 machines ; sudo sans mot de passe pour `formation` (`/etc/sudoers.d/formation`) | client |
 | 3 | swap, modules du noyau, containerd (cgroup systemd), kubeadm / kubelet / kubectl 1.36 (`lab/preparer-noeud.sh`) | 3 nœuds, en parallèle |
 | 4 | `kubeadm init` (réseau des pods `10.244.0.0/16`), copie de `~/.kube/config` | client (control plane) |
 | 5 | Calico 3.32.1 (réseau des pods et Network Policies) | cluster |
