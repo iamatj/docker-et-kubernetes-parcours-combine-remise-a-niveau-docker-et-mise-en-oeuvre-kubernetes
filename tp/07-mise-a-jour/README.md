@@ -27,7 +27,7 @@ kubectl -n huiteo rollout status deployment api
 kubectl -n huiteo get deployment
 ```
 
-`k8s/` contient la correction du TP 06 : 3 API, 2 sites, la base. Le site répond sur <http://10.10.0.20:30080>.
+`k8s/` contient la correction du TP 06 : 3 API, 2 sites, la base. Le site répond sur <http://10.10.0.11:30080>.
 
 ## Étapes
 
@@ -38,7 +38,7 @@ Un seul terminal : la sonde tourne **en arrière-plan** et écrit dans un fichie
 ```bash
 sonde() {
   : > /tmp/sonde.log
-  while true; do curl -s -m 2 -o /dev/null -w "%{http_code}\n" http://10.10.0.20:30080/api/info; sleep 0.2; done >> /tmp/sonde.log &
+  while true; do curl -s -m 2 -o /dev/null -w "%{http_code}\n" http://10.10.0.11:30080/api/info; sleep 0.2; done >> /tmp/sonde.log &
 }
 bilan() { kill %1 2>/dev/null; sleep 0.5; echo "Réponses :"; sort /tmp/sonde.log | uniq -c; }
 sonde; sleep 5; bilan
@@ -75,7 +75,7 @@ sonde
 kubectl -n huiteo rollout undo deployment api
 kubectl -n huiteo rollout status deployment api
 sleep 3; bilan
-curl -s http://10.10.0.20:30080/api/info | jq -r .version
+curl -s http://10.10.0.11:30080/api/info | jq -r .version
 ```
 
 Attendu : `1.0`. La colonne `CHANGE-CAUSE` de l'historique est vide : impossible de savoir ce que contenait chaque révision sans l'ouvrir.
@@ -145,7 +145,7 @@ Revenez à la dernière version qui marchait :
 kubectl -n huiteo rollout undo deployment api
 kubectl -n huiteo rollout status deployment api
 kubectl -n huiteo rollout history deployment api
-curl -s http://10.10.0.20:30080/api/info | jq -r .version
+curl -s http://10.10.0.11:30080/api/info | jq -r .version
 ```
 
 Attendu : `1.1`. **Question 4** – Après `undo`, `kubectl apply -f k8s/` changerait-il quelque chose ? Pourquoi est-il préférable de corriger le fichier puis de l'appliquer, plutôt que de taper `set image` ?
