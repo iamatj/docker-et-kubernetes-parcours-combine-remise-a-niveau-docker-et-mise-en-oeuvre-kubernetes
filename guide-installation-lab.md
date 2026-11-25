@@ -30,7 +30,7 @@ Adresses réservées sur le même réseau : **10.10.0.200 à .220** pour les Ser
 
 Le poste `client` tient aussi le rôle de control plane : `control-plane` est un alias de `client` dans `/etc/hosts`, et c'est le nom du nœud dans le cluster. Le control plane porte une taint : les applications des TP tournent sur les deux workers.
 
-Docker sert au jour 1 seulement, et le script du jour 2 ne l'installe pas : Docker et Kubernetes sur la même machine se gênent (containerd partagé, règles réseau). Sur un poste qui a servi au jour 1, désinstallez Docker avant de lancer `preparer-lab.sh` :
+Docker sert au jour 1 seulement, et le script du jour 2 ne l'installe pas : Docker et Kubernetes sur la même machine se gênent (containerd partagé, règles réseau). Sur un poste qui a servi au jour 1, `preparer-lab.sh` désinstalle Docker lui-même (étape 1), avec ses données et ses règles réseau. Pour le faire à la main :
 
 ```bash
 sudo apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
@@ -75,7 +75,7 @@ Le script demande le mot de passe du compte `formation` une fois par machine, y 
 
 | Étape | Ce qui est fait | Où |
 |-------|-----------------|----|
-| 1 | paquets de base, serveur SSH, kubectl 1.36, Helm 4.3, `/etc/hosts`, complétion `kubectl` et alias `k` ; pas de Docker (section 1) | client |
+| 1 | paquets de base, serveur SSH, kubectl 1.36, Helm 4.3, `/etc/hosts`, complétion `kubectl` et alias `k` ; désinstallation de Docker s'il est encore là (section 1) | client |
 | 2 | clé SSH `~/.ssh/id_ed25519` copiée sur les 3 machines | client |
 | 3 | swap, modules du noyau, containerd (cgroup systemd), kubeadm / kubelet / kubectl 1.36 (`lab/preparer-noeud.sh`) | 3 nœuds, en parallèle |
 | 4 | `kubeadm init` (réseau des pods `10.244.0.0/16`), copie de `~/.kube/config` | client (control plane) |
