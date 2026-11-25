@@ -47,7 +47,7 @@ Vous devez voir `app/`, `lab/`, `tp/`, `README.md`, `programme-3-jours.md`.
 ```bash
 hostname            # client
 id                  # le groupe docker doit apparaître
-ip -br addr         # 192.168.56.10 sur l'interface du lab
+ip -br addr         # 10.10.0.10 sur l'interface du lab
 ```
 
 Si `docker` n'apparaît pas dans `id`, comparez avec `id $USER` : si le groupe y figure, votre compte est bien membre, mais votre session a été ouverte avant. Les groupes ne sont lus qu'à l'ouverture de session : fermer le terminal ne suffit pas. Déconnectez-vous puis reconnectez-vous (bureau compris). Si `id` ne montre toujours pas `docker`, un morceau de l'ancienne session a survécu : redémarrez la machine (`sudo reboot`), puis recommencez. En dépannage, `newgrp docker` donne le groupe à ce terminal seulement.

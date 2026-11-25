@@ -33,14 +33,14 @@ Deux StorageClass existent : `local-path` (par défaut) et `local-path-retain`. 
 
 ### A. Constater la perte (8 min)
 
-Prenez deux rendez-vous dans Firefox (<http://192.168.56.201>), puis :
+Prenez deux rendez-vous dans Firefox (<http://10.10.0.201>), puis :
 
 ```bash
-curl -s http://192.168.56.201/api/rendez-vous | jq length
+curl -s http://10.10.0.201/api/rendez-vous | jq length
 kubectl -n huiteo delete pod -l app=postgres
 kubectl -n huiteo rollout status deployment postgres
 sleep 5
-curl -s http://192.168.56.201/api/rendez-vous | jq length
+curl -s http://10.10.0.201/api/rendez-vous | jq length
 ```
 
 Attendu : `2`, puis `0`.
@@ -94,11 +94,11 @@ Le PVC est `Bound` à un PV créé automatiquement (`pvc-…`), de classe `local
 Prenez un rendez-vous, puis recommencez la panne :
 
 ```bash
-curl -s http://192.168.56.201/api/rendez-vous | jq length
+curl -s http://10.10.0.201/api/rendez-vous | jq length
 kubectl -n huiteo delete pod -l app=postgres
 kubectl -n huiteo rollout status deployment postgres
 sleep 5
-curl -s http://192.168.56.201/api/rendez-vous | jq length
+curl -s http://10.10.0.201/api/rendez-vous | jq length
 ```
 
 Le nombre est le même avant et après. Allez voir le volume sur le disque :
@@ -165,7 +165,7 @@ Le PVC s'appelle `donnees-postgres-0` (le nom du gabarit + le nom du pod). **Ne 
 kubectl -n huiteo exec -i postgres-0 -- psql -U huiteo -d huiteo -v ON_ERROR_STOP=1 < /tmp/huiteo.sql
 kubectl -n huiteo rollout restart deployment api
 kubectl -n huiteo rollout status deployment api
-curl -s http://192.168.56.201/api/rendez-vous | jq length
+curl -s http://10.10.0.201/api/rendez-vous | jq length
 ```
 
 Les rendez-vous sont revenus. Si `psql` s'est arrêté sur `relation "etude" already exists`, l'API a recréé les tables entre-temps : videz la base (`kubectl -n huiteo exec postgres-0 -- psql -U huiteo -d huiteo -c 'DROP TABLE rendez_vous, etude;'`) et relancez la restauration.

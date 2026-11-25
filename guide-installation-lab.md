@@ -1,35 +1,43 @@
 # Guide d'installation du lab
 
-Chaque participant dispose de son propre lab de 4 machines. La formation **n'apprend pas à monter un cluster** : il est préparé avant la session, et les TP portent sur son exploitation.
+Chaque participant dispose de son propre lab de 3 machines : son poste, qui est aussi le control plane du cluster, et deux nœuds de travail. La formation **n'apprend pas à monter un cluster** : il est préparé avant la session, et les TP portent sur son exploitation.
 
 La préparation se fait en deux temps, parce que le jour 1 et le jour 2 sont espacés :
 
 - **avant le jour 1** : seulement la machine `client`, avec Docker (`lab/preparer-jour-1.sh`, section 2) ;
-- **avant le jour 2** : le cluster Kubernetes sur les trois autres machines (`lab/preparer-lab.sh`, section 2 bis).
+- **avant le jour 2** : le cluster Kubernetes sur les trois machines, le poste `client` devenant aussi le control plane (`lab/preparer-lab.sh`, section 2 bis).
 
 ## 1. Les machines
 
 | Nom d'hôte | IP | Rôle | vCPU | Mémoire | Disque |
 |------------|----|------|------|---------|--------|
-| `client` | 192.168.56.10 | poste du participant : Docker (jour 1), kubectl, Helm, navigateur | 4 | 8 Go | 40 Go |
-| `control-plane` | 192.168.56.20 | control plane Kubernetes 1.36 (API Server, etcd, scheduler, controller manager) | 2 | 4 Go | 30 Go |
-| `worker-1` | 192.168.56.30 | nœud de travail | 2 | 4 Go | 30 Go |
-| `worker-2` | 192.168.56.40 | nœud de travail | 2 | 4 Go | 30 Go |
+| `client`, alias `control-plane` | 10.10.0.10 | poste du participant (kubectl, Helm, navigateur ; Docker au jour 1 seulement) et control plane Kubernetes 1.36 (API Server, etcd, scheduler, controller manager) | 4 | 8 Go | 40 Go |
+| `worker-1` | 10.10.0.20 | nœud de travail | 2 | 4 Go | 30 Go |
+| `worker-2` | 10.10.0.30 | nœud de travail | 2 | 4 Go | 30 Go |
 
 Ces noms et ces IP sont utilisés tels quels dans tous les TP et les slides. S'ils changent, remplacez-les partout d'un coup.
 
-Adresses réservées sur le même réseau : **192.168.56.200 à .220** pour les Services `LoadBalancer` (MetalLB). La .200 est celle de Traefik (`huiteo.lab`).
+Adresses réservées sur le même réseau : **10.10.0.200 à .220** pour les Services `LoadBalancer` (MetalLB). La .200 est celle de Traefik (`huiteo.lab`). Elles doivent être libres : hors de la plage DHCP, sans aucune machine dessus. À confirmer avec l'organisme ; vérification depuis `client`, avant d'installer : `ping -c1 -W1 10.10.0.200` ne doit rien recevoir. Pour une autre plage, modifiez `lab/manifests/metallb-pool.yaml`, `lab/manifests/valeurs-traefik.yaml` et les adresses des TP 07 à 12.
 
 ### À demander à l'organisme qui fournit les machines
 
-- 4 VM **Ubuntu Server 24.04 LTS x64** par participant, sur un réseau privé commun `192.168.56.0/24` (les 4 machines d'un participant se voient, sans pare-feu entre elles), avec accès Internet sortant (HTTPS vers `ghcr.io`, `mirror.gcr.io`, `pkgs.k8s.io`, `download.docker.com`, `get.helm.sh`, `github.com`, `raw.githubusercontent.com`, `traefik.github.io`, `kubernetes-sigs.github.io`).
+- 3 VM **Ubuntu Server 24.04 LTS x64** par participant, sur un réseau privé commun `10.10.0.0/24` (les 3 machines d'un participant se voient, sans pare-feu entre elles), avec accès Internet sortant (HTTPS vers `ghcr.io`, `mirror.gcr.io`, `pkgs.k8s.io`, `download.docker.com`, `get.helm.sh`, `github.com`, `raw.githubusercontent.com`, `traefik.github.io`, `kubernetes-sigs.github.io`).
 - Sur les 3 nœuds : un compte `formation` avec `sudo` sans mot de passe, SSH ouvert depuis `client`, swap désactivable.
 - Sur `client` : un bureau graphique avec un navigateur (Firefox), accessible au participant (console, bureau à distance). Si ce sont des VM cloud sans bureau, voir la section 6.
 - La préparation (section 2) est faite **la veille** par le formateur ou par l'organisme : environ 15 min par lab, plusieurs labs en parallèle.
 
-### Variante légère
+### Le poste fait aussi control plane
 
-3 VM au lieu de 4 : le rôle `client` est tenu par `control-plane` (Docker y est installé le jour 1, puis désinstallé avant le jour 2). Coût : on perd la séparation poste / cluster, Docker gêne le réseau des pods s'il n'est pas retiré proprement, et le participant travaille sur un nœud du cluster. À éviter si possible.
+Le poste `client` tient aussi le rôle de control plane : `control-plane` est un alias de `client` dans `/etc/hosts`, et c'est le nom du nœud dans le cluster. Le control plane porte une taint : les applications des TP tournent sur les deux workers.
+
+Docker sert au jour 1 seulement, et le script du jour 2 ne l'installe pas : Docker et Kubernetes sur la même machine se gênent (containerd partagé, règles réseau). Sur un poste qui a servi au jour 1, désinstallez Docker avant de lancer `preparer-lab.sh` :
+
+```bash
+sudo apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo rm -rf /var/lib/docker /var/lib/containerd /etc/containerd
+```
+
+Le plus simple reste de repartir de VM neuves pour le jour 2.
 
 ## 2. Avant le jour 1 : la machine client
 
@@ -52,7 +60,7 @@ Le script ne touche qu'à cette machine : pas de SSH, pas de nœud, rien à inte
 
 Il est relançable sans risque. **Ensuite, déconnectez la session du participant et reconnectez-la** (bureau compris), sinon `docker` demande `sudo` : le compte vient d'entrer dans le groupe `docker`, et les groupes ne sont lus qu'à l'ouverture de session. Fermer le terminal ne suffit pas. Le plus souvent, la déconnexion suffit ; si `id` ne montre toujours pas `docker` alors que `id <compte>` le montre, un morceau de l'ancienne session a survécu (autre connexion ouverte, processus du bureau) : **redémarrez la machine** (`sudo reboot`). Le plus simple : lancer le script la veille, puis redémarrer chaque machine. En dépannage, `newgrp docker` donne le groupe au terminal en cours.
 
-Pour le jour 1, les trois autres machines ne servent pas encore : elles peuvent être livrées plus tard.
+Pour le jour 1, les deux workers ne servent pas encore : ils peuvent être livrés plus tard.
 
 ## 2 bis. Avant le jour 2 : le cluster
 
@@ -63,21 +71,21 @@ git fetch && git checkout main
 bash lab/preparer-lab.sh
 ```
 
-Le script demande le mot de passe du compte `formation` une fois par nœud (copie de la clé SSH), puis enchaîne sans intervention :
+Le script demande le mot de passe du compte `formation` une fois par machine, y compris le poste lui-même (copie de la clé SSH), puis enchaîne sans intervention :
 
 | Étape | Ce qui est fait | Où |
 |-------|-----------------|----|
-| 1 | paquets de base, Docker Engine + Compose V2 + BuildKit, kubectl 1.36, Helm 4.3, `/etc/hosts`, complétion `kubectl` et alias `k` | client |
-| 2 | clé SSH `~/.ssh/id_ed25519` copiée sur les 3 nœuds | client |
+| 1 | paquets de base, serveur SSH, kubectl 1.36, Helm 4.3, `/etc/hosts`, complétion `kubectl` et alias `k` ; pas de Docker (section 1) | client |
+| 2 | clé SSH `~/.ssh/id_ed25519` copiée sur les 3 machines | client |
 | 3 | swap, modules du noyau, containerd (cgroup systemd), kubeadm / kubelet / kubectl 1.36 (`lab/preparer-noeud.sh`) | 3 nœuds, en parallèle |
-| 4 | `kubeadm init` (réseau des pods `10.244.0.0/16`), copie de `~/.kube/config` sur le client | control-plane |
+| 4 | `kubeadm init` (réseau des pods `10.244.0.0/16`), copie de `~/.kube/config` | client (control plane) |
 | 5 | Calico 3.32.1 (réseau des pods et Network Policies) | cluster |
 | 6 | `kubeadm join` des deux workers | workers |
 | 7 | local-path-provisioner 0.0.37 (StorageClass par défaut `local-path`, et `local-path-retain`), MetalLB 0.16.2 (pool .200 – .220), metrics-server 0.9.0 | cluster |
 | 8 | CRD Gateway API 1.6.2, Traefik (IngressClass et GatewayClass `traefik`, IP .200), Headlamp (interface web) | cluster |
-| 9 | téléchargement à l'avance des images des TP, sur le client et sur les workers ; base de vulnérabilités de Trivy (TP 04) sur le client | client, workers |
+| 9 | téléchargement à l'avance des images des TP sur les workers | workers |
 
-Il est relançable sans risque : une étape déjà faite est vérifiée puis sautée. Il se termine par le bilan de la section 4. **Fermez ensuite la session du participant et rouvrez-la** (bureau compris), sinon `docker` demande `sudo`.
+Il est relançable sans risque : une étape déjà faite est vérifiée puis sautée. Il se termine par le bilan de la section 4.
 
 ## 3. Avant la formation, côté dépôt
 
@@ -99,9 +107,8 @@ Résultat attendu : une ligne `OK` par point, puis `Lab prêt.` Chaque `ÉCHEC` 
 kubectl get nodes -o wide                 # 3 nœuds Ready, version v1.36.x
 kubectl get pods -A                       # tout en Running (ou Completed)
 kubectl get storageclass                  # local-path (default), local-path-retain
-kubectl -n traefik get svc traefik        # EXTERNAL-IP 192.168.56.200
+kubectl -n traefik get svc traefik        # EXTERNAL-IP 10.10.0.200
 kubectl get gatewayclass                  # traefik  ACCEPTED True
-docker run --rm mirror.gcr.io/library/hello-world
 ```
 
 Le guide ne crée ni ne supprime aucun objet utilisé par les TP : chaque TP nettoie ce qu'il crée, en dernière étape.
@@ -161,5 +168,4 @@ Le plus simple est de recréer les VM. Sinon, depuis `client` :
 kubectl delete namespace huiteo huiteo-preprod equipe diagnostic --ignore-not-found
 kubectl delete pv --all
 helm list -A                       # ne garder que traefik et headlamp
-docker rm -f $(docker ps -aq) 2>/dev/null; docker system prune -af --volumes
 ```
