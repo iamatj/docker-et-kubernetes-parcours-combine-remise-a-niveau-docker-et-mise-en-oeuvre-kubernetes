@@ -53,8 +53,8 @@ mkdir -p /etc/apt/keyrings
 $CURL "https://pkgs.k8s.io/core:/stable:/$VERSION_K8S/deb/Release.key" | gpg --dearmor --yes -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$VERSION_K8S/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -q
-apt-get install -y -q kubelet kubeadm kubectl
-apt-mark hold kubelet kubeadm kubectl >/dev/null
+apt-get install -y -q kubelet kubeadm kubectl cri-tools   # cri-tools : crictl (plus tiré par kubeadm depuis 1.36)
+apt-mark hold kubelet kubeadm kubectl cri-tools >/dev/null
 systemctl enable kubelet >/dev/null
 
 echo "== $NOM : crictl pointe sur containerd"
