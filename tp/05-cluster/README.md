@@ -31,8 +31,8 @@ Le cluster a été monté avant la formation par `lab/preparer-lab.sh` (voir `gu
 |---------|----|------|
 | `client` | 10.10.0.10 | votre poste : kubectl, Helm, navigateur |
 | `control-plane` | 10.10.0.10 | control plane : la même machine que `client` |
-| `worker-1` | 10.10.0.20 | nœud |
-| `worker-2` | 10.10.0.30 | nœud |
+| `worker-1` | 10.10.0.11 | nœud |
+| `worker-2` | 10.10.0.12 | nœud |
 
 Les nœuds sont joignables en SSH depuis `client` avec le compte `formation` : `ssh formation@control-plane`.
 
