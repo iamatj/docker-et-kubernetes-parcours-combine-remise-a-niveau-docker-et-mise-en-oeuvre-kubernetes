@@ -126,12 +126,12 @@ spec:
 cp tp/06-deploiement/30-front.yaml k8s/
 kubectl apply -f k8s/
 kubectl -n huiteo get all
-for ip in 10.10.0.10 10.10.0.20 10.10.0.30; do curl -s -m 2 -o /dev/null -w "$ip : %{http_code}\n" http://$ip:30080/; done
+for ip in 10.10.0.10 10.10.0.11 10.10.0.12; do curl -s -m 2 -o /dev/null -w "$ip : %{http_code}\n" http://$ip:30080/; done
 ```
 
 Attendu : `200` sur les trois adresses, même `control-plane`, qui ne fait tourner aucun pod du site.
 
-Ouvrez <http://10.10.0.20:30080> dans Firefox : les études s'affichent, le pied de page indique `site 1.0 · API 1.0 · servi par api-…`. Prenez un rendez-vous.
+Ouvrez <http://10.10.0.11:30080> dans Firefox : les études s'affichent, le pied de page indique `site 1.0 · API 1.0 · servi par api-…`. Prenez un rendez-vous.
 
 **Question 3** – Pourquoi le site répond-il sur l'IP de `control-plane` ? Quel composant rend cela possible ?
 
@@ -151,7 +151,7 @@ kill %1
 ```bash
 kubectl -n huiteo scale deployment api --replicas=4
 kubectl -n huiteo get pods -l app=api -o wide
-for i in $(seq 20); do curl -s http://10.10.0.20:30080/api/info | jq -r .hote; done | sort | uniq -c
+for i in $(seq 20); do curl -s http://10.10.0.11:30080/api/info | jq -r .hote; done | sort | uniq -c
 ```
 
 Les 20 requêtes sont réparties entre les 4 pods. Rechargez la page dans Firefox : le nom du pod dans le pied de page change.
@@ -172,7 +172,7 @@ Faites-le : mettez `replicas: 3` dans `k8s/20-api.yaml`, puis `kubectl apply -f 
 ```bash
 kubectl -n huiteo delete pod -l app=postgres
 kubectl -n huiteo rollout status deployment postgres
-curl -s http://10.10.0.20:30080/api/rendez-vous
+curl -s http://10.10.0.11:30080/api/rendez-vous
 ```
 
 **Question 6** – Où est passé votre rendez-vous ? (On le corrigera au TP 09.) Pourquoi le site a-t-il continué à afficher les études ?
