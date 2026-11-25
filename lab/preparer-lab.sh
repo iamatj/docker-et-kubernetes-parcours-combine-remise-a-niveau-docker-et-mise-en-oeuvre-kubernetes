@@ -3,9 +3,9 @@
 #   bash lab/preparer-lab.sh
 #
 # Prérequis : 3 VM Ubuntu 24.04 x64 : client .10, qui est aussi le control plane (alias control-plane),
-# worker-1 .20 et worker-2 .30 ; un compte « formation » (ou UTILISATEUR_SSH) avec sudo sans mot de passe
-# sur les 3 machines, et SSH ouvert du client vers les workers et vers lui-même.
-# Pas de Docker sur le client : il sert au jour 1 seulement ; s'il est encore installé, le script le désinstalle (guide-installation-lab.md, section 1). Le script crée la clé SSH et la copie (mot de passe demandé une fois par nœud).
+# worker-1 .11 et worker-2 .12 ; un compte « formation » (ou UTILISATEUR_SSH) avec sudo sur les 3 machines
+# (le script le passe en sudo sans mot de passe), et SSH ouvert du client vers les workers et vers lui-même.
+# Pas de Docker sur le client : il sert au jour 1 seulement ; s'il est encore installé, le script le désinstalle (guide-installation-lab.md, section 1). Le script crée la clé SSH, la copie et règle sudo (mot de passe demandé au plus deux fois par nœud).
 #
 # Relançable sans risque : chaque étape vérifie ce qui est déjà fait. Bilan à la fin (lab/verifier-lab.sh).
 set -euo pipefail
@@ -73,10 +73,17 @@ complete -o default -F __start_kubectl k
 EOF
 
 # ---------------------------------------------------------------- 2. SSH vers les nœuds
-etape "2/9 Clé SSH vers les nœuds"
+etape "2/9 Clé SSH et sudo sans mot de passe sur les nœuds"
 [ -f ~/.ssh/id_ed25519 ] || ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519 -q
 for ip in $CP 10.10.0.11 10.10.0.12; do
   $SSH -o BatchMode=yes "$UTILISATEUR_SSH@$ip" true 2>/dev/null || ssh-copy-id -o StrictHostKeyChecking=accept-new "$UTILISATEUR_SSH@$ip"
+done
+# Les étapes suivantes lancent sudo par SSH, sans terminal : il doit marcher sans mot de passe.
+for ip in $CP 10.10.0.11 10.10.0.12; do
+  $SSH -o BatchMode=yes "$UTILISATEUR_SSH@$ip" "sudo -n true" 2>/dev/null && continue
+  echo "sudo sans mot de passe pour $UTILISATEUR_SSH sur $ip (mot de passe demandé une fois) :"
+  $SSH -t "$UTILISATEUR_SSH@$ip" "echo '$UTILISATEUR_SSH ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/$UTILISATEUR_SSH >/dev/null && sudo chmod 440 /etc/sudoers.d/$UTILISATEUR_SSH"
+  $SSH -o BatchMode=yes "$UTILISATEUR_SSH@$ip" "sudo -n true" || { echo "sudo demande toujours un mot de passe sur $ip" >&2; exit 1; }
 done
 
 # ---------------------------------------------------------------- 3. préparation des nœuds
