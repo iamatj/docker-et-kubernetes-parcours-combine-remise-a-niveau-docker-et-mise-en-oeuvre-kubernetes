@@ -1,7 +1,7 @@
 Huiteo RDV {{ .Values.api.image.tag }} est installé dans le namespace {{ .Release.Namespace }} (release {{ .Release.Name }}, révision {{ .Release.Revision }}).
 
 {{- if eq .Values.front.service.type "NodePort" }}
-Site : http://192.168.56.30:{{ .Values.front.service.nodePort }}/
+Site : http://10.10.0.20:{{ .Values.front.service.nodePort }}/
 {{- end }}
 {{- if .Values.ingress.enabled }}
 Site : http://{{ .Values.ingress.host }}/
