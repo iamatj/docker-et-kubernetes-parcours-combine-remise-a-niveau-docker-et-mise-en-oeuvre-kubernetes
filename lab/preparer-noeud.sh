@@ -12,12 +12,13 @@ CURL="curl -fsSL --connect-timeout 20 --retry 3"
 export DEBIAN_FRONTEND=noninteractive
 
 echo "== $NOM : nom d'hôte et /etc/hosts"
-hostnamectl set-hostname "$NOM"
-grep -q "192.168.56.20 control-plane" /etc/hosts || cat >> /etc/hosts <<'EOF'
-192.168.56.10 client
-192.168.56.20 control-plane
-192.168.56.30 worker-1
-192.168.56.40 worker-2
+# Le control plane est le poste client : il garde son nom d'hôte (le nœud s'appelle control-plane dans le cluster).
+[ "$NOM" = control-plane ] || hostnamectl set-hostname "$NOM"
+grep -q "10.10.0.10 control-plane" /etc/hosts || cat >> /etc/hosts <<'EOF'
+10.10.0.10 client
+10.10.0.10 control-plane
+10.10.0.20 worker-1
+10.10.0.30 worker-2
 EOF
 
 echo "== $NOM : swap désactivé"
@@ -37,7 +38,8 @@ sysctl --system >/dev/null
 
 echo "== $NOM : paquets de base et containerd"
 apt-get update -q
-apt-get install -y -q apt-transport-https ca-certificates curl gpg containerd conntrack socat jq
+apt-get install -y -q apt-transport-https ca-certificates curl gpg conntrack socat jq
+dpkg -s containerd.io >/dev/null 2>&1 || apt-get install -y -q containerd
 mkdir -p /etc/containerd
 if ! grep -q "SystemdCgroup = true" /etc/containerd/config.toml 2>/dev/null; then
   containerd config default > /etc/containerd/config.toml

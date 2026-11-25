@@ -2,16 +2,17 @@
 # Prépare tout le lab d'un participant, depuis la machine client, en une commande :
 #   bash lab/preparer-lab.sh
 #
-# Prérequis : 4 VM Ubuntu 24.04 x64 (client .10, control-plane .20, worker-1 .30, worker-2 .40),
-# un compte « formation » (ou UTILISATEUR_SSH) avec sudo sans mot de passe sur les 3 nœuds,
-# et SSH ouvert du client vers les nœuds. Le script crée la clé SSH et la copie (mot de passe demandé une fois par nœud).
+# Prérequis : 3 VM Ubuntu 24.04 x64 : client .10, qui est aussi le control plane (alias control-plane),
+# worker-1 .20 et worker-2 .30 ; un compte « formation » (ou UTILISATEUR_SSH) avec sudo sans mot de passe
+# sur les 3 machines, et SSH ouvert du client vers les workers et vers lui-même.
+# Pas de Docker sur le client : il sert au jour 1 seulement (voir guide-installation-lab.md, section 1). Le script crée la clé SSH et la copie (mot de passe demandé une fois par nœud).
 #
 # Relançable sans risque : chaque étape vérifie ce qui est déjà fait. Bilan à la fin (lab/verifier-lab.sh).
 set -euo pipefail
 
 UTILISATEUR_SSH=${UTILISATEUR_SSH:-formation}
-CP=192.168.56.20
-WORKERS=("192.168.56.30:worker-1" "192.168.56.40:worker-2")
+CP=10.10.0.10                 # le poste client lui-même
+WORKERS=("10.10.0.20:worker-1" "10.10.0.30:worker-2")
 VERSION_K8S=v1.36
 VERSION_HELM=v4.3.1
 VERSION_CALICO=v3.32.1
@@ -27,26 +28,25 @@ SSH="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10"
 etape() { echo; echo "=================== $*"; }
 
 # ---------------------------------------------------------------- 1. le client
-etape "1/9 Client : paquets, Docker, kubectl, Helm"
+etape "1/9 Client : paquets, kubectl, Helm"
 sudo apt-get update -q
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q ca-certificates curl gpg jq openssl git bash-completion
-grep -q "192.168.56.20 control-plane" /etc/hosts || sudo tee -a /etc/hosts >/dev/null <<'EOF'
-192.168.56.10 client
-192.168.56.20 control-plane
-192.168.56.30 worker-1
-192.168.56.40 worker-2
-192.168.56.200 huiteo.lab beta.huiteo.lab
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q ca-certificates curl gpg jq openssl git bash-completion openssh-server
+grep -q "10.10.0.10 control-plane" /etc/hosts || sudo tee -a /etc/hosts >/dev/null <<'EOF'
+10.10.0.10 client
+10.10.0.10 control-plane
+10.10.0.20 worker-1
+10.10.0.30 worker-2
+10.10.0.200 huiteo.lab beta.huiteo.lab
 EOF
 
-if ! command -v docker >/dev/null; then
-  sudo install -m 0755 -d /etc/apt/keyrings
-  $CURL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
-  echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
-    | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-  sudo apt-get update -q
-  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+# Le poste devient le control plane : Docker et Kubernetes sur la même machine se gênent (containerd, règles réseau).
+if command -v docker >/dev/null; then
+  echo "Docker est installé sur ce poste, qui va devenir le control plane : désinstallez-le d'abord" >&2
+  echo "(guide-installation-lab.md, section 1), puis relancez ce script." >&2
+  exit 1
 fi
-sudo usermod -aG docker "$USER"
+sudo systemctl enable --now ssh >/dev/null 2>&1 || true
+sudo install -m 0755 -d /etc/apt/keyrings
 
 if ! command -v kubectl >/dev/null; then
   $CURL "https://pkgs.k8s.io/core:/stable:/$VERSION_K8S/deb/Release.key" | sudo gpg --dearmor --yes -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
@@ -67,7 +67,7 @@ EOF
 # ---------------------------------------------------------------- 2. SSH vers les nœuds
 etape "2/9 Clé SSH vers les nœuds"
 [ -f ~/.ssh/id_ed25519 ] || ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519 -q
-for ip in $CP 192.168.56.30 192.168.56.40; do
+for ip in $CP 10.10.0.20 10.10.0.30; do
   $SSH -o BatchMode=yes "$UTILISATEUR_SSH@$ip" true 2>/dev/null || ssh-copy-id -o StrictHostKeyChecking=accept-new "$UTILISATEUR_SSH@$ip"
 done
 
@@ -90,7 +90,8 @@ $SSH "$UTILISATEUR_SSH@$CP" "sudo test -f /etc/kubernetes/admin.conf" || \
     > /tmp/kubeadm-init.log 2>&1 || { echo "kubeadm init a échoué : /tmp/kubeadm-init.log" >&2; exit 1; }
 $SSH "$UTILISATEUR_SSH@$CP" 'mkdir -p ~/.kube && sudo cp /etc/kubernetes/admin.conf ~/.kube/config && sudo chown $(id -u):$(id -g) ~/.kube/config'
 mkdir -p ~/.kube
-scp -q "$UTILISATEUR_SSH@$CP:.kube/config" ~/.kube/config
+# Le control plane est ce poste : avec le même compte, ~/.kube/config est déjà en place.
+[ "$USER" = "$UTILISATEUR_SSH" ] || scp -q "$UTILISATEUR_SSH@$CP:.kube/config" ~/.kube/config
 chmod 600 ~/.kube/config
 
 etape "5/9 Réseau des pods : Calico $VERSION_CALICO"
@@ -132,21 +133,7 @@ helm upgrade --install traefik traefik/traefik -n traefik --create-namespace -f 
 helm upgrade --install headlamp headlamp/headlamp -n headlamp --create-namespace --wait --timeout 5m >/dev/null \
   || echo "Headlamp non installé (facultatif, TP 05 bonus)."
 
-etape "9/9 Images téléchargées à l'avance"
-IMAGES_CLIENT=(
-  mirror.gcr.io/library/hello-world:latest
-  mirror.gcr.io/library/python:3.13
-  mirror.gcr.io/library/python:3.13-slim
-  mirror.gcr.io/library/postgres:17-alpine
-  mirror.gcr.io/library/registry:2
-  mirror.gcr.io/library/busybox:1.37
-  ghcr.io/nginx/nginx-unprivileged:1.28-alpine
-  ghcr.io/aquasecurity/trivy:latest
-)
-for img in "${IMAGES_CLIENT[@]}"; do sg docker -c "docker pull -q $img" >/dev/null || echo "  échec : $img"; done
-# Base de vulnérabilités de Trivy (TP 04) : téléchargée une fois ici, dans le volume que le TP réutilise.
-sg docker -c "docker run --rm -v trivy-cache:/root/.cache ghcr.io/aquasecurity/trivy:latest image --download-db-only" >/dev/null 2>&1 \
-  || echo "  base Trivy non préchargée (elle sera téléchargée au TP 04)"
+etape "9/9 Images des TP téléchargées à l'avance sur les workers"
 IMAGES_NOEUDS="mirror.gcr.io/library/postgres:17-alpine mirror.gcr.io/library/busybox:1.37 \
   ghcr.io/$COMPTE_IMAGES/huiteo-api:1.0 ghcr.io/$COMPTE_IMAGES/huiteo-api:1.1 \
   ghcr.io/$COMPTE_IMAGES/huiteo-front:1.0 ghcr.io/$COMPTE_IMAGES/huiteo-front:1.1"
@@ -157,5 +144,3 @@ done
 
 echo
 bash "$ICI/verifier-lab.sh"
-echo
-echo "Fermez la session puis rouvrez-la (bureau compris) pour pouvoir lancer docker sans sudo."

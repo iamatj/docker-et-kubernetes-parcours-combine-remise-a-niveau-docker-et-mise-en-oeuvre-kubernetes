@@ -27,7 +27,7 @@ kubectl -n huiteo delete deployment postgres --ignore-not-found   # si la base e
 kubectl apply -f k8s/
 kubectl -n huiteo rollout status statefulset postgres
 kubectl -n huiteo rollout status deployment api
-curl -s http://192.168.56.201/api/info | jq -r .version
+curl -s http://10.10.0.201/api/info | jq -r .version
 ```
 
 Si vous n'aviez pas fini le TP 09, la base est neuve (un nouveau volume) : l'API recrée les tables, sans rendez-vous.
@@ -164,7 +164,7 @@ Le pod `pirate`, lancé par n'importe qui dans le namespace, joint l'API et la b
 cp tp/10-securite/securite/20-networkpolicies.yaml k8s/securite/
 kubectl apply -f k8s/securite/20-networkpolicies.yaml
 kubectl -n huiteo get networkpolicy
-curl -s -m 5 -o /dev/null -w "%{http_code}\n" http://192.168.56.201/api/info
+curl -s -m 5 -o /dev/null -w "%{http_code}\n" http://10.10.0.201/api/info
 ```
 
 Le fichier contient `refus-par-defaut` (plus rien n'entre dans les pods de `huiteo`) et `front-ouvert` (le site reste joignable sur 8080). Résultat : `504` ou `502`. Le site répond, mais il ne joint plus l'API : on vient de reproduire une panne.
@@ -215,7 +215,7 @@ spec:
 
 ```bash
 kubectl apply -f k8s/securite/20-networkpolicies.yaml
-curl -s -m 5 http://192.168.56.201/api/etudes | jq length
+curl -s -m 5 http://10.10.0.201/api/etudes | jq length
 kubectl -n huiteo run pirate --rm -i --restart=Never --image=mirror.gcr.io/library/busybox:1.37 -- \
   sh -c 'wget -qO- -T 3 http://api:8000/api/info || echo "API fermée"; nc -w 3 postgres 5432 </dev/null && echo "base joignable" || echo "base fermée"'
 kubectl -n huiteo exec deployment/front -- wget -qO- -T 3 http://api:8000/healthz
@@ -290,7 +290,7 @@ kubectl -n huiteo rollout status deployment api
 kubectl -n huiteo rollout status deployment front
 kubectl -n huiteo exec deployment/api -- sh -c 'id; touch /app/pirate'
 kubectl -n huiteo exec deployment/api -- sh -c 'touch /tmp/ok && echo "/tmp inscriptible"'
-curl -s http://192.168.56.201/api/info | jq -r .version
+curl -s http://10.10.0.201/api/info | jq -r .version
 kubectl label --dry-run=server --overwrite namespace huiteo pod-security.kubernetes.io/enforce=restricted
 ```
 

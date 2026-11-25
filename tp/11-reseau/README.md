@@ -28,7 +28,7 @@ kubectl get ingressclass,gatewayclass
 grep huiteo.lab /etc/hosts
 ```
 
-Traefik est installé sur le lab : il sert à la fois de contrôleur **Ingress** (IngressClass `traefik`) et de contrôleur **Gateway API** (GatewayClass `traefik`). Son Service LoadBalancer a l'adresse `192.168.56.200`. Le fichier `/etc/hosts` du poste fait pointer `huiteo.lab` et `beta.huiteo.lab` vers cette adresse.
+Traefik est installé sur le lab : il sert à la fois de contrôleur **Ingress** (IngressClass `traefik`) et de contrôleur **Gateway API** (GatewayClass `traefik`). Son Service LoadBalancer a l'adresse `10.10.0.200`. Le fichier `/etc/hosts` du poste fait pointer `huiteo.lab` et `beta.huiteo.lab` vers cette adresse.
 
 ## Partie A – Le réseau du cluster et la découverte de services (15 min)
 
@@ -40,7 +40,7 @@ kubectl -n huiteo get pods -o wide | awk '{print $1, $6, $7}'
 kubectl -n huiteo get services
 ```
 
-Les nœuds sont en `192.168.56.x`, les pods en `10.244.x.x` (une plage par nœud, donnée par Calico), les Services en `10.96.x.x` à `10.111.x.x`.
+Les nœuds sont en `10.10.0.x`, les pods en `10.244.x.x` (une plage par nœud, donnée par Calico), les Services en `10.96.x.x` à `10.111.x.x`.
 
 ### A2. Pod vers pod, pod vers Service
 

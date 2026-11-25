@@ -1,6 +1,6 @@
 # Correction du TP 05 – Explorer le cluster
 
-**1.** À l'API Server, `https://192.168.56.20:6443`. L'identité est un certificat client (`kubernetes-admin`, membre du groupe des administrateurs) contenu dans le fichier `~/.kube/config`, copié depuis `/etc/kubernetes/admin.conf` du control-plane par le script du lab. Tous les droits : on fera mieux au TP 10.
+**1.** À l'API Server, `https://10.10.0.10:6443`. L'identité est un certificat client (`kubernetes-admin`, membre du groupe des administrateurs) contenu dans le fichier `~/.kube/config`, copié depuis `/etc/kubernetes/admin.conf` du control-plane par le script du lab. Tous les droits : on fera mieux au TP 10.
 
 **2.** `v1.36.x`, runtime `containerd://…`, Ubuntu 24.04. Le nœud `control-plane` porte la **taint** `node-role.kubernetes.io/control-plane:NoSchedule` : le scheduler n'y place que les pods qui la tolèrent (les composants système). Les applications vont sur `worker-1` et `worker-2`.
 
