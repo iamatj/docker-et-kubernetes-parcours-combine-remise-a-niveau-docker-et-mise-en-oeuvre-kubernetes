@@ -115,18 +115,18 @@ helm install huiteo helm/huiteo -n huiteo-preprod --create-namespace \
   -f helm/huiteo/values-preprod.yaml --set db.motDePasse=Preprod-2026 --wait --timeout 3m
 helm -n huiteo-preprod list
 kubectl -n huiteo-preprod get all,pvc
-curl -s http://10.10.0.20:30081/api/info | jq
-curl -s http://10.10.0.20:30080/api/info | jq -r .message
+curl -s http://10.10.0.11:30081/api/info | jq
+curl -s http://10.10.0.11:30080/api/info | jq -r .message
 ```
 
-Attendu : la préproduction répond sur `30081` avec le message `PRÉPRODUCTION – rendez-vous fictifs` et l'API `1.0` ; la production, sur `30080`, n'a pas bougé. Ouvrez <http://10.10.0.20:30081>.
+Attendu : la préproduction répond sur `30081` avec le message `PRÉPRODUCTION – rendez-vous fictifs` et l'API `1.0` ; la production, sur `30080`, n'a pas bougé. Ouvrez <http://10.10.0.11:30081>.
 
 ### 6. Mettre à jour, revenir en arrière (12 min)
 
 ```bash
 helm upgrade huiteo helm/huiteo -n huiteo-preprod -f helm/huiteo/values-preprod.yaml \
   --set db.motDePasse=Preprod-2026 --set api.image.tag=1.1 --set front.image.tag=1.1 --wait
-curl -s http://10.10.0.20:30081/api/info | jq -r .version
+curl -s http://10.10.0.11:30081/api/info | jq -r .version
 helm -n huiteo-preprod history huiteo
 helm -n huiteo-preprod get values huiteo
 ```
@@ -135,7 +135,7 @@ Attendu : `1.1`, et le site en bleu. Revenez à la révision 1 :
 
 ```bash
 helm -n huiteo-preprod rollback huiteo 1 --wait
-curl -s http://10.10.0.20:30081/api/info | jq -r .version
+curl -s http://10.10.0.11:30081/api/info | jq -r .version
 helm -n huiteo-preprod history huiteo
 ```
 
