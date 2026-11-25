@@ -12,7 +12,7 @@ set -euo pipefail
 
 UTILISATEUR_SSH=${UTILISATEUR_SSH:-formation}
 CP=10.10.0.10                 # le poste client lui-même
-WORKERS=("10.10.0.20:worker-1" "10.10.0.30:worker-2")
+WORKERS=("10.10.0.11:worker-1" "10.10.0.12:worker-2")
 VERSION_K8S=v1.36
 VERSION_HELM=v4.3.1
 VERSION_CALICO=v3.32.1
@@ -34,8 +34,8 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q ca-certificates curl g
 grep -q "10.10.0.10 control-plane" /etc/hosts || sudo tee -a /etc/hosts >/dev/null <<'EOF'
 10.10.0.10 client
 10.10.0.10 control-plane
-10.10.0.20 worker-1
-10.10.0.30 worker-2
+10.10.0.11 worker-1
+10.10.0.12 worker-2
 10.10.0.200 huiteo.lab beta.huiteo.lab
 EOF
 
@@ -67,7 +67,7 @@ EOF
 # ---------------------------------------------------------------- 2. SSH vers les nœuds
 etape "2/9 Clé SSH vers les nœuds"
 [ -f ~/.ssh/id_ed25519 ] || ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519 -q
-for ip in $CP 10.10.0.20 10.10.0.30; do
+for ip in $CP 10.10.0.11 10.10.0.12; do
   $SSH -o BatchMode=yes "$UTILISATEUR_SSH@$ip" true 2>/dev/null || ssh-copy-id -o StrictHostKeyChecking=accept-new "$UTILISATEUR_SSH@$ip"
 done
 
