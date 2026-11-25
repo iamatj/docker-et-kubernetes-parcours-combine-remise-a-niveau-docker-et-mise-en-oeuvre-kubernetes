@@ -17,8 +17,8 @@ echo "== $NOM : nom d'hôte et /etc/hosts"
 grep -q "10.10.0.10 control-plane" /etc/hosts || cat >> /etc/hosts <<'EOF'
 10.10.0.10 client
 10.10.0.10 control-plane
-10.10.0.20 worker-1
-10.10.0.30 worker-2
+10.10.0.11 worker-1
+10.10.0.12 worker-2
 EOF
 
 echo "== $NOM : swap désactivé"
