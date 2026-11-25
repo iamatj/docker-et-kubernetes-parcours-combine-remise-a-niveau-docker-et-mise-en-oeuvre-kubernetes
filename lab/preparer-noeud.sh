@@ -37,9 +37,9 @@ EOF
 sysctl --system >/dev/null
 
 echo "== $NOM : paquets de base et containerd"
-apt-get update -q
-apt-get install -y -q apt-transport-https ca-certificates curl gpg conntrack socat jq
-dpkg -s containerd.io >/dev/null 2>&1 || apt-get install -y -q containerd
+apt-get -o DPkg::Lock::Timeout=600 update -q
+apt-get -o DPkg::Lock::Timeout=600 install -y -q apt-transport-https ca-certificates curl gpg conntrack socat jq
+dpkg -s containerd.io >/dev/null 2>&1 || apt-get -o DPkg::Lock::Timeout=600 install -y -q containerd
 mkdir -p /etc/containerd
 if ! grep -q "SystemdCgroup = true" /etc/containerd/config.toml 2>/dev/null; then
   containerd config default > /etc/containerd/config.toml
@@ -52,8 +52,8 @@ echo "== $NOM : dépôt Kubernetes $VERSION_K8S"
 mkdir -p /etc/apt/keyrings
 $CURL "https://pkgs.k8s.io/core:/stable:/$VERSION_K8S/deb/Release.key" | gpg --dearmor --yes -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$VERSION_K8S/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
-apt-get update -q
-apt-get install -y -q kubelet kubeadm kubectl cri-tools   # cri-tools : crictl (plus tiré par kubeadm depuis 1.36)
+apt-get -o DPkg::Lock::Timeout=600 update -q
+apt-get -o DPkg::Lock::Timeout=600 install -y -q kubelet kubeadm kubectl cri-tools   # cri-tools : crictl (plus tiré par kubeadm depuis 1.36)
 apt-mark hold kubelet kubeadm kubectl cri-tools >/dev/null
 systemctl enable kubelet >/dev/null
 
