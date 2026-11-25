@@ -24,7 +24,7 @@ git stash -u
 git checkout tp-08-configuration
 kubectl apply -f k8s/
 kubectl -n huiteo rollout status deployment api
-curl -s http://192.168.56.201/api/info
+curl -s http://10.10.0.201/api/info
 ```
 
 `k8s/` contient la correction du TP 07 (API 1.1, stratégie sans indisponibilité, LoadBalancer).
@@ -150,7 +150,7 @@ grep -rn "Neige-2026" k8s/          # rien ne doit s'afficher : dans 02-secret.y
 kubectl apply -f k8s/
 kubectl -n huiteo rollout status deployment postgres
 kubectl -n huiteo rollout status deployment api
-curl -s http://192.168.56.201/api/info | jq -r .message
+curl -s http://10.10.0.201/api/info | jq -r .message
 ```
 
 Attendu : `Rendez-vous de décembre : réservez votre créneau !`.
@@ -163,10 +163,10 @@ Changez le message dans `k8s/01-configmap.yaml` (par exemple `Derniers créneaux
 
 ```bash
 kubectl apply -f k8s/01-configmap.yaml
-curl -s http://192.168.56.201/api/info | jq -r .message
+curl -s http://10.10.0.201/api/info | jq -r .message
 kubectl -n huiteo rollout restart deployment api
 kubectl -n huiteo rollout status deployment api
-curl -s http://192.168.56.201/api/info | jq -r .message
+curl -s http://10.10.0.201/api/info | jq -r .message
 ```
 
 **Question 3** – Pourquoi le message n'a-t-il changé qu'après le `rollout restart` ? Citez une façon de faire en sorte que ce soit automatique.
@@ -234,7 +234,7 @@ Ajoutez au site (`k8s/30-front.yaml`, sous `ports`) une readinessProbe et une li
 ### C3. Une mise à jour sans aucune erreur
 
 ```bash
-sonde() { : > /tmp/sonde.log; while true; do curl -s -m 2 -o /dev/null -w "%{http_code}\n" http://192.168.56.201/api/info; sleep 0.2; done >> /tmp/sonde.log & }
+sonde() { : > /tmp/sonde.log; while true; do curl -s -m 2 -o /dev/null -w "%{http_code}\n" http://10.10.0.201/api/info; sleep 0.2; done >> /tmp/sonde.log & }
 bilan() { kill %1 2>/dev/null; sleep 0.5; sort /tmp/sonde.log | uniq -c; }
 sonde
 kubectl -n huiteo rollout restart deployment api
