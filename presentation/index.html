@@ -1509,8 +1509,11 @@ postgres</pre>
   #c8-journee .piece.loin { opacity:.45 }
   #c8-journee .piece h2 { position:absolute; left:22px; top:16px; font-size:26px }
   #c8-journee .piece h2 small { display:block; font-family:'JetBrains Mono',monospace; font-size:19px; color:#2E7D6B; font-weight:700 }
-  #c8-journee .decor { position:absolute; left:0; right:0; bottom:174px; height:150px; display:flex; align-items:flex-end; justify-content:center; font-size:120px; line-height:1 }
-  #c8-journee .sol { position:absolute; left:0; right:0; bottom:160px; height:14px; background:#E3E8EE }
+  #c8-journee .decor { position:absolute; left:0; right:0; bottom:302px; height:120px; display:flex; align-items:flex-end; justify-content:center; font-size:100px; line-height:1 }
+  #c8-journee .sol { position:absolute; left:0; right:0; bottom:288px; height:14px; background:#E3E8EE }
+  #c8-journee .tech { position:absolute; left:18px; right:18px; bottom:156px; height:120px; border-radius:10px; background:#F2C14E26; border-left:6px solid #F2C14E; padding:8px 12px; font-size:16px; line-height:1.32; color:#3A4556 }
+  #c8-journee .tech b { display:block; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; color:#8A6A12 }
+  #c8-journee .tech code { font-family:'JetBrains Mono',monospace; font-size:15px; color:#1F2A44 }
   #c8-journee .yaml { position:absolute; left:18px; right:18px; bottom:18px; height:126px; font-family:'JetBrains Mono',monospace; font-size:16px; line-height:1.45; background:#1F2A44; color:#E3E8EE; border-radius:10px; padding:10px 14px; white-space:pre }
   #c8-journee .yaml b { color:#F2C14E; font-weight:400 }
   #c8-journee .score { position:absolute; right:20px; top:20px; text-align:right; font-size:19px; color:#5B6676 }
@@ -1520,9 +1523,9 @@ postgres</pre>
   #c8-journee .svc { position:absolute; left:22px; top:92px; font-size:18px; font-weight:700; border-radius:8px; padding:5px 12px }
   #c8-journee .svc.non { background:#E4572E1F; color:#9A3412 }
   #c8-journee .svc.oui { background:#2E7D6B1F; color:#1F5C4F }
-  #c8-journee .kubelet { position:absolute; top:300px; font-size:74px; line-height:1; text-align:center; transition: left .5s, opacity .4s; z-index:2 }
+  #c8-journee .kubelet { position:absolute; top:205px; font-size:74px; line-height:1; text-align:center; transition: left .5s, opacity .4s; z-index:2 }
   #c8-journee .kubelet small { display:block; font-family:'JetBrains Mono',monospace; font-size:16px; color:#5B6676; margin-top:10px }
-  #c8-journee .perso { position:absolute; top:370px; font-size:110px; line-height:1; transition: left .9s ease-in-out; z-index:2 }
+  #c8-journee .perso { position:absolute; top:236px; font-size:96px; line-height:1; transition: left .9s ease-in-out; z-index:2 }
   #c8-journee .bulle { position:absolute; z-index:3; background:#1F2A44; color:#F4F6F8; font-size:22px; font-weight:700; border-radius:14px; padding:10px 16px; white-space:nowrap; opacity:0 }
   #c8-journee .bulle.q { animation: bulle 3.2s .2s infinite }
   #c8-journee .bulle.r { background:#F2C14E; color:#1F2A44; animation: bulle 3.2s 1.1s infinite }
@@ -1539,6 +1542,7 @@ postgres</pre>
     <div class="piece" data-piece="0" style="left:0">
       <h2>La chambre<small>startupProbe</small></h2>
       <div class="decor">🛏️</div><div class="sol"></div>
+      <div class="tech"><b>Chez Huiteo, pendant le réveil</b><code>demarrer()</code> attend PostgreSQL, crée les tables, remplit les études. Tant que Flask n'écoute pas, <code>GET /healthz</code> : connexion refusée. Ailleurs : une JVM qui chauffe, des migrations.</div>
       <div class="score" data-score="0"></div>
 <div class="yaml">startupProbe:
   httpGet: {path: /healthz, port: 8000}
@@ -1549,6 +1553,7 @@ postgres</pre>
       <h2>La porte<small>readinessProbe</small></h2>
       <span class="svc" data-svc="1"></span>
       <div class="decor">🚪</div><div class="sol"></div>
+      <div class="tech"><b>Chez Huiteo, « prêt ? »</b><code>GET /readyz</code> lance <code>SELECT 1</code> sur PostgreSQL. Base injoignable : <code>503</code>, plus de clients, sans redémarrage : redémarrer ne réparerait pas la base.</div>
       <div class="score" data-score="1"></div>
 <div class="yaml">readinessProbe:
   httpGet: {path: /readyz, port: 8000}
@@ -1559,6 +1564,7 @@ postgres</pre>
       <h2>Le bureau<small>livenessProbe</small></h2>
       <span class="svc" data-svc="2"></span>
       <div class="decor">🖥️</div><div class="sol"></div>
+      <div class="tech"><b>Chez Huiteo, « tu travailles ? »</b><code>GET /healthz</code> répond <code>{"statut": "ok"}</code> <b style="display:inline;font-size:16px;letter-spacing:0;text-transform:none;color:#1F2A44">sans toucher à la base</b> : sinon, une panne de PostgreSQL redémarrerait tous les pods.</div>
       <div class="score" data-score="2"></div>
 <div class="yaml">livenessProbe:
   httpGet: {path: /healthz, port: 8000}
@@ -1617,8 +1623,8 @@ postgres</pre>
     // les bulles : on les recrée pour relancer leur animation
     ['q', 'r'].forEach(k => { const b = r(k), n = b.cloneNode(); b.replaceWith(n); });
     const q = r('q'), rep = r('r');
-    q.textContent = e.q; q.style.left = (x + 24) + 'px'; q.style.top = '230px';
-    rep.textContent = e.rep; rep.style.left = (x + 330) + 'px'; rep.style.top = '300px';
+    q.textContent = e.q; q.style.left = (x + 24) + 'px'; q.style.top = '138px';
+    rep.textContent = e.rep; rep.style.left = (x + 330) + 'px'; rep.style.top = '190px';
     r('num').textContent = (i + 1) + ' / ' + ETAPES.length;
     r('texte').innerHTML = e.texte;
     const n = ETAPES.slice(0, i + 1).filter(s => s.restart).length;
