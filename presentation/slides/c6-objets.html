@@ -1,3 +1,119 @@
-<section id="c6-objets" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
-<p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Les objets fondamentaux</h1><table style="font-size:26px;table-layout:fixed;color:#1F2A44"><tr><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Objet</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Rôle</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Géré par</th></tr><tr><td style="padding:12px 18px;background:#FFFFFF">Namespace</td><td style="padding:12px 18px;background:#FFFFFF">un espace de noms pour ranger et isoler</td><td style="padding:12px 18px;background:#FFFFFF">vous</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">Pod</td><td style="padding:12px 18px;background:#E3E8EE">un ou plusieurs conteneurs, une IP</td><td style="padding:12px 18px;background:#E3E8EE">le kubelet</td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">ReplicaSet</td><td style="padding:12px 18px;background:#FFFFFF">garde N pods identiques</td><td style="padding:12px 18px;background:#FFFFFF">le contrôleur ReplicaSet</td></tr><tr><td style="padding:12px 18px;background:#F2C14E55">Deployment</td><td style="padding:12px 18px;background:#F2C14E55">versions et mises à jour des ReplicaSets</td><td style="padding:12px 18px;background:#F2C14E55">le contrôleur Deployment</td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">Service</td><td style="padding:12px 18px;background:#FFFFFF">une adresse stable devant des pods</td><td style="padding:12px 18px;background:#FFFFFF">kube-proxy, CoreDNS</td></tr></table><p style="font-size:28px;color:#5B6676">Distributions : Minikube et kind (poste), kubeadm (vos serveurs, ce lab), K3s (léger), EKS / AKS / GKE (managé). Projet de la CNCF.</p>
+<section id="c6-objets" data-transition="fade">
+<style>
+  #c6-objets { background:#F4F6F8; padding:56px 90px 40px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+  #c6-objets .ent { display:flex; align-items:center; gap:28px; margin-bottom:26px }
+  #c6-objets .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px }
+  #c6-objets h1 { font-family:'Fraunces',serif; font-size:50px; line-height:1.05; font-weight:700 }
+  #c6-objets .corps { display:grid; grid-template-columns: 1240px 1fr; gap:34px }
+  #c6-objets .schema { position:relative; height:790px }
+  #c6-objets .schema svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible }
+  #c6-objets .o { position:absolute; border-radius:14px; background:#FFFFFF; border:3px solid #2F4858; padding:12px 16px; transition: opacity .45s, box-shadow .45s, transform .45s }
+  #c6-objets .o b { display:block; font-size:24px }
+  #c6-objets .o i { display:block; font-style:normal; font-size:15px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#5B6676 }
+  #c6-objets .o code { display:block; font-family:'JetBrains Mono',monospace; font-size:16px; color:#5B6676; margin-top:4px }
+  #c6-objets .lbl { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:15px; background:#F2C14E; color:#1F2A44; border-radius:6px; padding:1px 8px; margin-top:6px }
+  #c6-objets .noeud-chip { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:15px; background:#2F485818; border-radius:6px; padding:1px 8px; margin-top:6px; margin-left:6px }
+  #c6-objets .ns { position:absolute; left:0; top:0; width:1240px; height:470px; border:4px dashed #2E7D6B; border-radius:20px; background:#2E7D6B0D; transition: opacity .45s }
+  #c6-objets .ns > span { position:absolute; left:22px; top:-20px; background:#F4F6F8; padding:0 10px; font-size:24px; font-weight:700; color:#2E7D6B }
+  #c6-objets .ns2 { position:absolute; left:0; top:500px; width:380px; height:110px; border:4px dashed #5B6676; border-radius:20px; padding:22px; color:#5B6676; font-size:19px; line-height:1.3; transition: opacity .45s }
+  #c6-objets .ns2 b { color:#1F2A44 }
+  #c6-objets .global { position:absolute; left:0; top:640px; width:380px; height:150px; border-radius:16px; background:#1F2A44; color:#E3E8EE; padding:20px 22px; font-size:19px; line-height:1.35; transition: opacity .45s }
+  #c6-objets .global b { color:#F2C14E; display:block; font-size:21px; margin-bottom:6px }
+  #c6-objets .noeuds { position:absolute; left:420px; top:500px; width:820px; height:290px; border-radius:18px; background:#2F4858; padding:18px 22px; display:flex; flex-direction:column; gap:14px; transition: opacity .45s }
+  #c6-objets .noeuds > p { color:#F4F6F8; font-size:20px; font-weight:700; letter-spacing:2px; text-transform:uppercase }
+  #c6-objets .noeuds > p small { font-size:17px; letter-spacing:0; text-transform:none; font-weight:400; color:#C9D2DC }
+  #c6-objets .rangn { display:flex; gap:16px; flex:1 }
+  #c6-objets .n { flex:1; background:#FFFFFF; border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:10px }
+  #c6-objets .n b { font-size:22px }
+  #c6-objets .n small { font-size:16px; color:#5B6676 }
+  #c6-objets .mini { font-family:'JetBrains Mono',monospace; font-size:16px; background:#2E7D6B; color:#FFFFFF; border-radius:8px; padding:6px 10px; align-self:flex-start }
+  #c6-objets .eteint { opacity:.13 }
+  #c6-objets .vif { box-shadow:0 0 0 6px #F2C14E; transform:scale(1.02) }
+  #c6-objets svg .f { transition: opacity .45s }
+  #c6-objets .cote { display:flex; flex-direction:column; gap:14px }
+  #c6-objets .e { border-radius:12px; padding:14px 18px; background:#FFFFFF; border-left:8px solid #C9D2DC; transition: all .45s }
+  #c6-objets .e p { font-size:20px; line-height:1.35; color:#5B6676 }
+  #c6-objets .e p b { color:#1F2A44 }
+  #c6-objets .e h3 { font-size:22px; display:flex; align-items:center; gap:10px; margin-bottom:4px }
+  #c6-objets .e h3 svg { flex:none }
+  #c6-objets .e.futur { opacity:.25 }
+  #c6-objets .e.ici { border-left-color:#F2C14E; background:#F2C14E26 }
+  #c6-objets .e.passe { border-left-color:#2E7D6B }
+  #c6-objets .cmd { font-family:'JetBrains Mono',monospace; font-size:17px; background:#1F2A44; color:#F2C14E; border-radius:6px; padding:2px 8px; white-space:nowrap }
+</style>
+  <div class="ent"><p class="tag">Le concept</p><h1>Les objets, et ce qui les relie</h1></div>
+  <div class="corps">
+    <div class="schema">
+      <div class="ns" data-s="1"><span>Namespace huiteo</span></div>
+      <svg viewBox="0 0 1240 790" aria-hidden="true">
+        <defs>
+          <marker id="c6o-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2F4858"/></marker>
+          <marker id="c6o-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#E4572E"/></marker>
+        </defs>
+        <g class="f" data-s="2" stroke="#2F4858" stroke-width="4" fill="none" marker-end="url(#c6o-p)">
+          <path d="M300,235 L362,235"/>
+        </g>
+        <text class="f" data-s="2" x="331" y="212" text-anchor="middle" font-size="16" font-weight="700" fill="#2F4858" stroke="#ECF0F1" stroke-width="5" paint-order="stroke">possède</text>
+        <g class="f" data-s="3" stroke="#2F4858" stroke-width="4" fill="none" marker-end="url(#c6o-p)">
+          <path d="M620,235 C660,235 650,105 712,105"/>
+          <path d="M620,235 L712,235"/>
+          <path d="M620,235 C660,235 650,365 712,365"/>
+        </g>
+        <text class="f" data-s="3" x="666" y="222" text-anchor="middle" font-size="16" font-weight="700" fill="#2F4858" stroke="#ECF0F1" stroke-width="5" paint-order="stroke">possède</text>
+        <g class="f" data-s="4" stroke="#E4572E" stroke-width="4" stroke-dasharray="10 8" fill="none" marker-end="url(#c6o-s)">
+          <path d="M992,235 C960,235 975,105 952,105"/>
+          <path d="M992,235 L952,235"/>
+          <path d="M992,235 C960,235 975,365 952,365"/>
+        </g>
+      </svg>
+      <div class="o" data-s="2" style="left:40px;top:165px;width:258px"><i>Deployment</i><b>api</b><code>image : huiteo-api:1.0</code><code>replicas : 3</code></div>
+      <div class="o" data-s="3" style="left:366px;top:165px;width:252px"><i>ReplicaSet</i><b>api-7d9f</b><code>garde 3 pods</code><code>version 1.0</code></div>
+      <div class="o" data-s="3" style="left:716px;top:48px;width:234px;height:114px"><i>Pod</i><b>api-7d9f-a</b><span class="lbl">app=api</span><span class="noeud-chip" data-s="5">worker-1</span></div>
+      <div class="o" data-s="3" style="left:716px;top:178px;width:234px;height:114px"><i>Pod</i><b>api-7d9f-b</b><span class="lbl">app=api</span><span class="noeud-chip" data-s="5">worker-2</span></div>
+      <div class="o" data-s="3" style="left:716px;top:308px;width:234px;height:114px"><i>Pod</i><b>api-7d9f-c</b><span class="lbl">app=api</span><span class="noeud-chip" data-s="5">worker-1</span></div>
+      <div class="o" data-s="4" style="left:996px;top:150px;width:222px;border-color:#E4572E"><i style="color:#E4572E">Service</i><b>api</b><code>sélecteur :</code><span class="lbl">app=api</span><code>api:8000</code></div>
+      <div class="ns2" data-s="1"><b>Namespace huiteo-preprod</b> : un autre rangement, mêmes noms possibles (TP 12)</div>
+      <div class="global" data-s="5"><b>Hors de tout namespace</b>les nœuds, les Namespaces eux-mêmes, les PersistentVolumes, les StorageClasses</div>
+      <div class="noeuds" data-s="5"><p>Les nœuds <small>· la place physique, où les pods tournent</small></p>
+        <div class="rangn">
+          <div class="n"><b>control-plane</b><small>taint : pas d'applications</small></div>
+          <div class="n"><b>worker-1</b><span class="mini">api-7d9f-a</span><span class="mini">api-7d9f-c</span></div>
+          <div class="n"><b>worker-2</b><span class="mini">api-7d9f-b</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cote">
+      <div class="e" data-e="1"><h3>1 · Le Namespace range</h3><p>Les noms sont <b>uniques dans un namespace</b>. Droits (RBAC) et quotas s'y appliquent. <span class="cmd">kubectl -n huiteo</span></p></div>
+      <div class="e" data-e="2"><h3><svg width="44" height="14"><path d="M2,7 L34,7" stroke="#2F4858" stroke-width="4" marker-end="url(#c6o-p)"/></svg>2 · Le Deployment possède</h3><p>un <b>ReplicaSet par version</b>. Une mise à jour en crée un nouveau (TP 07).</p></div>
+      <div class="e" data-e="3"><h3><svg width="44" height="14"><path d="M2,7 L34,7" stroke="#2F4858" stroke-width="4" marker-end="url(#c6o-p)"/></svg>3 · Le ReplicaSet possède</h3><p>ses pods, et en garde le nombre voulu. <b>Supprimez-en un : il revient.</b></p></div>
+      <div class="e" data-e="4"><h3><svg width="44" height="14"><path d="M2,7 L34,7" stroke="#E4572E" stroke-width="4" stroke-dasharray="8 6" marker-end="url(#c6o-s)"/></svg>4 · Le Service sélectionne</h3><p>les pods <b>par label, pas par nom</b> : une adresse stable devant des pods qui changent.</p></div>
+      <div class="e" data-e="5"><h3>5 · Le pod tourne sur un nœud</h3><p>Namespace = rangement <b>logique</b>, nœud = place <b>physique</b>. Un namespace s'étale sur tous les nœuds.</p></div>
+      <p style="font-size:18px;line-height:1.35;color:#5B6676;margin-top:4px">Distributions : Minikube et kind (poste), kubeadm (vos serveurs, ce lab), K3s (léger), EKS / AKS / GKE (managé).</p>
+    </div>
+  </div>
+<script>
+(() => {
+  const S = document.getElementById('c6-objets');
+  const N = 5;
+  let i = 0;
+  function rendre() {
+    S.querySelectorAll('[data-s]').forEach(el => {
+      const s = +el.dataset.s;
+      el.classList.toggle('eteint', i > 0 && s > i);
+      if (!el.matches('.f, .noeud-chip')) el.classList.toggle('vif', s === i && el.classList.contains('o'));
+    });
+    S.querySelectorAll('[data-e]').forEach(el => {
+      const e = +el.dataset.e;
+      el.className = 'e ' + (i === 0 ? '' : e < i ? 'passe' : e === i ? 'ici' : 'futur');
+    });
+  }
+  (window.etapes = window.etapes || {})['c6-objets'] = {
+    suivant() { if (i < N) { i++; rendre(); return true; } return false; },
+    precedent() { if (i > 0) { i--; rendre(); return true; } return false; },
+    debut() { i = 1; rendre(); },
+    fin() { i = N; rendre(); },
+  };
+  i = 1; rendre();
+})();
+</script>
 </section>

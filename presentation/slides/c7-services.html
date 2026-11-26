@@ -1,3 +1,127 @@
-<section id="c7-services" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
-<p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Exposer : ClusterIP, NodePort, LoadBalancer</h1><table style="font-size:26px;table-layout:fixed;color:#1F2A44"><tr><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Type</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Joignable par</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Chez Huiteo</th></tr><tr><td style="padding:12px 18px;background:#FFFFFF">ClusterIP</td><td style="padding:12px 18px;background:#FFFFFF">le cluster seulement (DNS : <code>api</code>)</td><td style="padding:12px 18px;background:#FFFFFF">l'API, la base</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">NodePort</td><td style="padding:12px 18px;background:#E3E8EE">tout nœud, port 30000 – 32767</td><td style="padding:12px 18px;background:#E3E8EE">le site, <code>:30080</code></td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">LoadBalancer</td><td style="padding:12px 18px;background:#FFFFFF">une adresse externe (MetalLB ou le cloud)</td><td style="padding:12px 18px;background:#FFFFFF">le site, <code>10.10.0.201</code> (TP 07)</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">port-forward</td><td style="padding:12px 18px;background:#E3E8EE">votre poste, le temps d'une session</td><td style="padding:12px 18px;background:#E3E8EE">déboguer</td></tr></table>
+<section id="c7-services" data-transition="fade">
+<style>
+  #c7-services { background:#F4F6F8; padding:52px 90px 40px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+  #c7-services .ent { display:flex; align-items:center; gap:28px; margin-bottom:24px }
+  #c7-services .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px }
+  #c7-services h1 { font-family:'Fraunces',serif; font-size:50px; line-height:1.05; font-weight:700 }
+  #c7-services .corps { display:grid; grid-template-columns:1240px 1fr; gap:34px }
+  #c7-services .schema { position:relative; height:700px }
+  #c7-services .bx { position:absolute; border-radius:14px; transition: opacity .4s, box-shadow .4s }
+  #c7-services .poste { left:0; top:250px; width:200px; height:200px; background:#1F2A44; color:#F4F6F8; padding:18px; display:flex; flex-direction:column; gap:10px }
+  #c7-services .poste p { font-size:15px; letter-spacing:2px; text-transform:uppercase; color:#F2C14E; font-weight:700 }
+  #c7-services .poste span { font-size:21px }
+  #c7-services .cluster { left:236px; top:0; width:1004px; height:700px; border:4px solid #2F4858; background:#FFFFFF }
+  #c7-services .cluster > p { position:absolute; left:20px; top:12px; font-size:18px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:#2F4858 }
+  #c7-services .svc { top:56px; height:112px; border:3px solid #E4572E; background:#FFF6F2; padding:10px 14px }
+  #c7-services .svc i, #c7-services .n i { display:block; font-style:normal; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#E4572E; font-weight:700 }
+  #c7-services .svc b { display:block; font-size:22px }
+  #c7-services .svc code { display:block; font-family:'JetBrains Mono',monospace; font-size:15px; color:#5B6676 }
+  #c7-services .lb { left:256px; top:56px; width:250px; height:112px; border:3px dashed #2E7D6B; background:#2E7D6B12; padding:10px 14px }
+  #c7-services .lb i { display:block; font-style:normal; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#2E7D6B; font-weight:700 }
+  #c7-services .lb b { display:block; font-family:'JetBrains Mono',monospace; font-size:21px }
+  #c7-services .lb small { font-size:15px; color:#5B6676 }
+  #c7-services .n { top:196px; width:300px; height:484px; background:#F4F6F8; border:3px solid #C9D2DC; padding:14px; display:flex; flex-direction:column; gap:10px }
+  #c7-services .n i { color:#2F4858 }
+  #c7-services .n > b { font-size:24px; display:flex; justify-content:space-between; align-items:baseline }
+  #c7-services .n > b code { font-family:'JetBrains Mono',monospace; font-size:16px; color:#5B6676; font-weight:400 }
+  #c7-services .c { border-radius:10px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:17px; transition: box-shadow .4s, opacity .4s }
+  #c7-services .kp { background:#E4572E1F; color:#9A3412; font-size:15px; padding:6px 12px; align-self:flex-start; border-radius:8px }
+  #c7-services .pf { background:#2E7D6B; color:#FFFFFF }
+  #c7-services .pa { background:#2F4858; color:#FFFFFF }
+  #c7-services .sys { background:#1F2A44; color:#F2C14E }
+  #c7-services .vif { box-shadow:0 0 0 5px #F2C14E }
+  #c7-services .eteint { opacity:.25 }
+  #c7-services .fiche-mv { position:absolute; z-index:5; left:0; top:0; padding:6px 12px; border-radius:8px; background:#E4572E; color:#FFFFFF; font-size:17px; font-weight:700; white-space:nowrap; box-shadow:0 4px 14px #0004; opacity:0; transition: left .7s ease-in-out, top .7s ease-in-out, opacity .2s; pointer-events:none }
+  #c7-services .cote { display:flex; flex-direction:column; gap:14px }
+  #c7-services .e { border-radius:12px; padding:14px 18px; background:#FFFFFF; border-left:8px solid #C9D2DC; transition: all .4s }
+  #c7-services .e h3 { font-size:23px; margin-bottom:4px }
+  #c7-services .e h3 small { font-size:17px; font-weight:400; color:#5B6676 }
+  #c7-services .e p { font-size:19px; line-height:1.35; color:#5B6676 }
+  #c7-services .e p b { color:#1F2A44 }
+  #c7-services .e.futur { opacity:.3 }
+  #c7-services .e.ici { border-left-color:#F2C14E; background:#F2C14E26 }
+  #c7-services .e.passe { border-left-color:#2E7D6B }
+  #c7-services .gigogne { font-size:17px; color:#5B6676; line-height:1.4 }
+</style>
+  <div class="ent"><p class="tag">Le concept</p><h1>Exposer : par où passe une requête ?</h1></div>
+  <div class="corps">
+    <div class="schema">
+      <div class="bx poste" data-p="poste"><p>Votre poste</p><span>🦊 Firefox</span><span>⌨️ kubectl</span></div>
+      <div class="bx cluster"><p>Cluster · réseau du lab 10.10.0.0/24</p></div>
+      <div class="bx lb" data-p="lb" data-k="3"><i>LoadBalancer · MetalLB</i><b>10.10.0.201</b><small>annoncée par un nœud</small></div>
+      <div class="bx svc" data-p="svc-api" data-k="1" style="left:526px;width:330px"><i>Service api · ClusterIP</i><b>api:8000</b><code>10.96.12.7 (IP virtuelle)</code></div>
+      <div class="bx svc" data-p="svc-front" data-k="2 3" style="left:870px;width:350px"><i>Service front · NodePort</i><b>:30080 sur chaque nœud</b><code>LoadBalancer : + 10.10.0.201</code></div>
+      <div class="bx n" style="left:256px"><b>control-plane <code>.10</code></b>
+        <span class="c kp" data-p="kp0">kube-proxy</span>
+        <span class="c sys" data-p="apiserver" data-k="4">API Server</span>
+        <span class="c sys" data-p="coredns" data-k="1">CoreDNS</span>
+        <i style="margin-top:auto;color:#5B6676;text-transform:none;letter-spacing:0;font-weight:400;font-size:16px">taint : pas d'applications</i>
+      </div>
+      <div class="bx n" style="left:586px" data-p="w1"><b>worker-1 <code>.11</code></b>
+        <span class="c kp" data-p="kp1" data-k="1 3">kube-proxy</span>
+        <span class="c pf" data-p="front-a" data-k="1 2">front-a</span>
+        <span class="c pa" data-p="api-a" data-k="4">api-a</span>
+        <span class="c pa" data-p="api-c">api-c</span>
+      </div>
+      <div class="bx n" style="left:916px" data-p="w2"><b>worker-2 <code>.12</code></b>
+        <span class="c kp" data-p="kp2" data-k="2">kube-proxy</span>
+        <span class="c pf" data-p="front-b" data-k="3">front-b</span>
+        <span class="c pa" data-p="api-b" data-k="1">api-b</span>
+      </div>
+      <div class="fiche-mv" data-r="fiche"></div>
+    </div>
+    <div class="cote">
+      <div class="e" data-e="1"><h3>1 · ClusterIP <small>le défaut</small></h3><p>Joignable <b>depuis le cluster seulement</b> : un nom DNS (<code>api</code>) et une IP virtuelle stable. kube-proxy choisit un pod, sur n'importe quel nœud. Chez Huiteo : l'API, la base.</p></div>
+      <div class="e" data-e="2"><h3>2 · NodePort</h3><p><b>N'importe quel nœud</b>, port 30000 – 32767, même un nœud sans le pod. Chez Huiteo : le site sur <code>:30080</code> (TP 06).</p></div>
+      <div class="e" data-e="3"><h3>3 · LoadBalancer</h3><p><b>Une adresse externe</b> : MetalLB dans ce lab, le cloud ailleurs. Elle arrive sur un nœud, puis suit le chemin du NodePort. Le site sur <code>10.10.0.201</code> (TP 07).</p></div>
+      <div class="e" data-e="4"><h3>4 · port-forward <small>pas un Service</small></h3><p>Un tunnel <b>de votre poste vers un pod</b>, à travers l'API Server, le temps d'une session. Pour déboguer, jamais pour les clients.</p></div>
+      <p class="gigogne">Gigognes : un LoadBalancer crée un NodePort, qui crée un ClusterIP.</p>
+    </div>
+  </div>
+<script>
+(() => {
+  const S = document.getElementById('c7-services');
+  const p = k => S.querySelector(`[data-p="${k}"]`);
+  const fiche = S.querySelector('[data-r="fiche"]'), schema = S.querySelector('.schema');
+  const TRAJETS = {
+    1: [['front-a', 'coredns', 'api ?'], ['coredns', 'front-a', '10.96.12.7'], ['front-a', 'kp1', '10.96.12.7:8000'], ['kp1', 'api-b', 'un pod api, au choix']],
+    2: [['poste', 'kp2', '10.10.0.12:30080'], ['kp2', 'front-a', 'un pod front, même ailleurs']],
+    3: [['poste', 'lb', '10.10.0.201:80'], ['lb', 'kp1', 'worker-1 répond pour .201'], ['kp1', 'front-b', 'puis comme un NodePort']],
+    4: [['poste', 'apiserver', 'kubectl port-forward'], ['apiserver', 'api-a', 'localhost:8000 → api-a']],
+  };
+  const N = 4;
+  let i = 1, jeu = 0;
+  function centre(el) {
+    const k = schema.getBoundingClientRect().width / schema.offsetWidth;
+    const a = el.getBoundingClientRect(), b = schema.getBoundingClientRect();
+    return [(a.left - b.left + a.width / 2) / k, (a.top - b.top + a.height / 2) / k];
+  }
+  function trajets(liste, n) {
+    if (n !== jeu) return;
+    if (!liste.length) { setTimeout(() => { if (n === jeu) { fiche.style.opacity = 0; setTimeout(() => n === jeu && trajets(TRAJETS[i], n), 600); } }, 1200); return; }
+    const [de, a, mot] = liste[0];
+    fiche.style.transition = 'none'; fiche.textContent = mot;
+    const [x0, y0] = centre(p(de)); const w = fiche.offsetWidth / 2, h = fiche.offsetHeight / 2;
+    fiche.style.left = (x0 - w) + 'px'; fiche.style.top = (y0 - h) + 'px'; fiche.style.opacity = 1;
+    fiche.offsetWidth; fiche.style.transition = '';
+    const [x1, y1] = centre(p(a));
+    fiche.style.left = (x1 - w) + 'px'; fiche.style.top = (y1 - h) + 'px';
+    setTimeout(() => trajets(liste.slice(1), n), 1300);
+  }
+  function rendre() {
+    S.querySelectorAll('[data-k]').forEach(el => el.classList.toggle('vif', el.dataset.k.split(' ').includes(String(i))));
+    S.querySelectorAll('.c.pf, .c.pa').forEach(el => el.classList.toggle('eteint', !el.classList.contains('vif')));
+    S.querySelector('.lb').classList.toggle('eteint', i < 3);
+    S.querySelectorAll('[data-e]').forEach(el => { const e = +el.dataset.e; el.className = 'e ' + (e < i ? 'passe' : e === i ? 'ici' : 'futur'); });
+    trajets(TRAJETS[i], ++jeu);   // le trajet de l'étape se rejoue en boucle
+  }
+  (window.etapes = window.etapes || {})['c7-services'] = {
+    suivant() { if (i < N) { i++; rendre(); return true; } return false; },
+    precedent() { if (i > 1) { i--; rendre(); return true; } return false; },
+    debut() { i = 1; rendre(); },
+    fin() { i = N; rendre(); },
+  };
+  rendre();
+})();
+</script>
 </section>

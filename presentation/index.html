@@ -8,6 +8,147 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
 <style>
+/* Slides de stratégies de déploiement (section.strat), avec trafic.js. Inclus dans <head> par construire.py. */
+section.strat { background:#F4F6F8; padding:46px 90px 36px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+.strat .ent { display:flex; align-items:center; gap:28px; margin-bottom:12px }
+.strat .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px; flex:none }
+.strat h1 { font-family:'Fraunces',serif; font-size:48px; line-height:1.05; font-weight:700 }
+.strat .corps { display:grid; grid-template-columns:1180px 1fr; gap:34px }
+.strat .trafic { position:relative; width:1180px; height:770px }
+.strat .t-lignes { position:absolute; left:0; top:0; stroke:#C9D2DC; stroke-width:2; fill:none }
+.strat .t-u { position:absolute; width:46px; height:46px }
+.strat .t-legende { position:absolute; font-size:17px; color:#5B6676; width:170px; text-align:center }
+.strat .t-rout { position:absolute; width:220px; height:124px; border-radius:16px; background:#1F2A44; color:#F4F6F8; padding:14px 18px; display:flex; flex-direction:column; gap:2px; z-index:1 }
+.strat .t-rout i { font-style:normal; font-size:15px; letter-spacing:2px; text-transform:uppercase; color:#C9D2DC }
+.strat .t-rout b { font-family:'JetBrains Mono',monospace; font-size:21px; color:#F2C14E }
+.strat .t-err { font-size:17px; color:#C9D2DC; margin-top:auto }
+.strat .t-err.on { color:#FF8A6B; font-weight:700 }
+.strat .t-voie { position:absolute; border:4px solid; border-radius:18px; background:#FFFFFF; padding:16px 20px; transition:opacity .4s }
+.strat .t-voie.vide { opacity:.35; border-style:dashed }
+.strat .t-tete { display:flex; justify-content:space-between; align-items:baseline }
+.strat .t-tete b { font-family:'JetBrains Mono',monospace; font-size:30px }
+.strat .t-pct { font-family:'Fraunces',serif; font-size:40px; font-weight:700 }
+.strat .t-pods { position:absolute; left:20px; top:150px; display:flex; gap:14px }
+.strat .t-pod { width:96px; height:112px; border-radius:12px; border:3px solid; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; transition:all .4s; animation:t-entre .4s }
+.strat .t-pod small { font-size:15px; font-weight:700; color:#FFFFFF }
+.strat .t-pod.demarre { background:repeating-linear-gradient(135deg,#FFFFFF 0 10px,#E3E8EE 10px 20px) }
+.strat .t-pod.demarre small, .strat .t-pod.arret small { color:#5B6676 }
+.strat .t-pod.arret { opacity:.4; border-style:dashed }
+.strat .t-points { position:absolute; inset:0; pointer-events:none; z-index:2 }
+.strat .t-pt { position:absolute; left:0; top:0; width:18px; height:18px; border-radius:50%; box-shadow:0 0 0 2px #FFFFFF; font-size:13px; font-weight:700; color:#FFFFFF; display:flex; align-items:center; justify-content:center }
+.strat .t-pt.ko { background:#E4572E !important; width:26px; height:26px; font-size:16px }
+.strat .t-pt.fantome { background:transparent; border:3px dashed #2E7D6B; box-shadow:none; color:#2E7D6B }
+.strat .fiche { display:flex; flex-direction:column; gap:14px }
+.strat .bloc { background:#FFFFFF; border-radius:12px; padding:14px 18px }
+.strat .bloc h3 { font-size:17px; letter-spacing:2px; text-transform:uppercase; color:#2E7D6B; margin-bottom:6px }
+.strat .bloc p, .strat .bloc li { font-size:19px; line-height:1.35; color:#3A4556 }
+.strat .bloc ul { padding-left:1.1em }
+.strat .bloc pre { font-family:'JetBrains Mono',monospace; font-size:15px; line-height:1.4; background:#1F2A44; color:#E3E8EE; border-radius:8px; padding:10px 12px; white-space:pre }
+.strat .bloc pre b { color:#F2C14E; font-weight:400 }
+.strat .recit { position:absolute; left:90px; right:90px; bottom:28px; background:#1F2A44; color:#F4F6F8; border-radius:14px; padding:14px 26px; display:flex; gap:24px; align-items:center; min-height:96px }
+.strat .recit .num { font-family:'Fraunces',serif; font-size:38px; color:#F2C14E; flex:none; width:96px }
+.strat .recit p { font-size:24px; line-height:1.36 }
+.strat .recit p b { color:#F2C14E }
+@keyframes t-entre { from { opacity:0; transform:scale(.8) } to { opacity:1; transform:none } }
+</style>
+<script>
+// Moteur des slides de stratégies de déploiement (c7b-*) : des utilisateurs, un routeur,
+// deux versions, et des requêtes animées qui vont là où l'étape en cours les envoie.
+// Inclus dans <head> par construire.py. Une slide l'utilise ainsi :
+//   Trafic('c7b-canary', { routeur: 'HTTPRoute api', etapes: [ { texte, v1: [...], v2: [...], poids: [90, 10] }, ... ] })
+// v1 / v2 : un état par pod : 'ok' (sert), 'demarre', 'arret'.
+// poids : part du trafic [v1, v2] ; segments: true (A/B : les utilisateurs du groupe B vont en v2) ;
+// miroir: true (shadow : chaque requête est copiée vers v2, la réponse est ignorée).
+function Trafic(id, cfg) {
+  const S = document.getElementById(id);
+  const zone = S.querySelector('.trafic');
+  const W = 1180, H = 740, NB_UTIL = 8;
+  const UTIL_X = 70, ROUT_X = 400, ROUT_Y = H / 2, VOIE_X = 700, VOIE_W = 470, VOIE_H = 330;
+  const VOIES = [{ y: 20, nom: 'v1.0', coul: '#2F4858' }, { y: H - 20 - VOIE_H, nom: 'v1.1', coul: '#2E7D6B' }];
+  const POD_W = 96, POD_H = 112, POD_G = 14;
+  const POD_Y = 150;
+
+  const util = [...Array(NB_UTIL)].map((_, k) => ({ x: UTIL_X, y: 40 + k * ((H - 80) / (NB_UTIL - 1)), b: k % 2 === 1 }));
+  const svgUtil = c => `<svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="15" r="10" fill="${c}"/><path d="M5,44 C5,30 13,26 23,26 C33,26 41,30 41,44 Z" fill="${c}"/></svg>`;
+
+  const lignes = util.map(u => `<line x1="${u.x + 26}" y1="${u.y}" x2="${ROUT_X - 110}" y2="${ROUT_Y}"/>`).join('')
+    + VOIES.map(v => `<path d="M${ROUT_X + 110},${ROUT_Y} C${ROUT_X + 200},${ROUT_Y} ${VOIE_X - 90},${v.y + VOIE_H / 2} ${VOIE_X},${v.y + VOIE_H / 2}"/>`).join('');
+  zone.innerHTML = `
+    <svg class="t-lignes" width="${W}" height="${H}">${lignes}</svg>
+    <div class="t-util">${util.map((u, k) => `<span class="t-u" data-k="${k}" style="left:${u.x - 23}px;top:${u.y - 23}px">${svgUtil('#5B6676')}</span>`).join('')}
+      <span class="t-legende" style="left:${UTIL_X - 60}px;top:${H + 6}px">utilisateurs</span></div>
+    <div class="t-rout" style="left:${ROUT_X - 110}px;top:${ROUT_Y - 62}px"><i>routeur</i><b>${cfg.routeur}</b><span class="t-err">0 erreur</span></div>
+    ${VOIES.map((v, n) => `<div class="t-voie" data-n="${n}" style="left:${VOIE_X}px;top:${v.y}px;width:${VOIE_W}px;height:${VOIE_H}px;border-color:${v.coul}">
+      <p class="t-tete"><b style="color:${v.coul}">${v.nom}</b><span class="t-pct" style="color:${v.coul}"></span></p><div class="t-pods"></div></div>`).join('')}
+    <div class="t-points"></div>`;
+  const pts = zone.querySelector('.t-points');
+  const errEl = zone.querySelector('.t-err');
+  const num = S.querySelector('[data-r="num"]'), texte = S.querySelector('[data-r="texte"]');
+  let i = 0, erreurs = 0;
+
+  function podXY(n, k) {
+    return [VOIE_X + 20 + k * (POD_W + POD_G) + POD_W / 2, VOIES[n].y + POD_Y + POD_H / 2];
+  }
+  function rendre() {
+    const e = cfg.etapes[i];
+    num.textContent = (i + 1) + ' / ' + cfg.etapes.length;
+    texte.innerHTML = e.texte;
+    [e.v1 || [], e.v2 || []].forEach((pods, n) => {
+      const voie = zone.querySelector(`.t-voie[data-n="${n}"]`);
+      voie.querySelector('.t-pods').innerHTML = pods.map(p => `<span class="t-pod ${p}" style="background:${p === 'ok' ? VOIES[n].coul : ''};border-color:${VOIES[n].coul}">
+        <small>${p === 'ok' ? 'sert' : p === 'demarre' ? 'démarre' : 'arrêt'}</small></span>`).join('');
+      voie.classList.toggle('vide', !pods.length);
+      const pct = e.miroir && n === 1 ? 'copie' : (e.segments ? (n ? 'groupe B' : 'groupe A') : (e.poids[n] + ' %'));
+      voie.querySelector('.t-pct').textContent = pods.length ? pct : '';
+    });
+    zone.querySelectorAll('.t-u').forEach((u, k) => u.innerHTML = svgUtil(e.segments ? (util[k].b ? '#E4572E' : '#2F4858') : '#5B6676'));
+    erreurs = 0; errEl.textContent = '0 erreur'; errEl.classList.remove('on');
+  }
+
+  function trajet(el, etapes, duree, fin) {
+    const a = el.animate(etapes.map(([x, y]) => ({ transform: `translate(${x - 9}px, ${y - 9}px)` })), { duration: duree, easing: 'linear', fill: 'forwards' });
+    a.onfinish = fin;
+  }
+  function requete() {
+    if (!S.classList.contains('active') && !S.dataset.toujours) return;
+    const e = cfg.etapes[i];
+    const k = Math.floor(Math.random() * NB_UTIL), u = util[k];
+    let n;
+    if (e.segments) n = u.b ? 1 : 0;
+    else n = Math.random() * 100 < e.poids[0] ? 0 : 1;
+    const servants = (n ? e.v2 : e.v1 || []).map((p, j) => [p, j]).filter(([p]) => p === 'ok');
+    const coul = e.segments ? (u.b ? '#E4572E' : '#2F4858') : '#F2C14E';
+    const d = document.createElement('span'); d.className = 't-pt'; d.style.background = coul; pts.appendChild(d);
+    if (!servants.length) {
+      trajet(d, [[u.x + 24, u.y], [ROUT_X - 110, ROUT_Y]], 700, () => {
+        d.textContent = '✕'; d.classList.add('ko'); erreurs++;
+        errEl.textContent = erreurs + (erreurs > 1 ? ' erreurs' : ' erreur'); errEl.classList.add('on');
+        setTimeout(() => d.remove(), 500);
+      });
+      return;
+    }
+    const [, j] = servants[Math.floor(Math.random() * servants.length)];
+    trajet(d, [[u.x + 24, u.y], [ROUT_X, ROUT_Y], podXY(n, j)], 1300, () => d.remove());
+    if (e.miroir) {
+      const s2 = (e.v2 || []).map((p, j2) => [p, j2]).filter(([p]) => p === 'ok');
+      if (!s2.length) return;
+      const g = document.createElement('span'); g.className = 't-pt fantome'; pts.appendChild(g);
+      const cible = podXY(1, s2[Math.floor(Math.random() * s2.length)][1]);
+      trajet(g, [[ROUT_X, ROUT_Y], [ROUT_X, ROUT_Y], cible], 1300, () => { g.textContent = '∅'; setTimeout(() => g.remove(), 400); });
+    }
+  }
+  setInterval(requete, 260);
+
+  (window.etapes = window.etapes || {})[id] = {
+    suivant() { if (i < cfg.etapes.length - 1) { i++; rendre(); return true; } return false; },
+    precedent() { if (i > 0) { i--; rendre(); return true; } return false; },
+    debut() { i = 0; rendre(); },
+    fin() { i = cfg.etapes.length - 1; rendre(); },
+  };
+  rendre();
+}
+</script>
+<style>
   html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
   #scene { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; }
   /* les slides portent leur propre display en ligne : on masque avec visibility */
@@ -348,8 +489,124 @@
 })();
 </script>
 </section>
-<section id="c6-objets" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
-<p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Les objets fondamentaux</h1><table style="font-size:26px;table-layout:fixed;color:#1F2A44"><tr><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Objet</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Rôle</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Géré par</th></tr><tr><td style="padding:12px 18px;background:#FFFFFF">Namespace</td><td style="padding:12px 18px;background:#FFFFFF">un espace de noms pour ranger et isoler</td><td style="padding:12px 18px;background:#FFFFFF">vous</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">Pod</td><td style="padding:12px 18px;background:#E3E8EE">un ou plusieurs conteneurs, une IP</td><td style="padding:12px 18px;background:#E3E8EE">le kubelet</td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">ReplicaSet</td><td style="padding:12px 18px;background:#FFFFFF">garde N pods identiques</td><td style="padding:12px 18px;background:#FFFFFF">le contrôleur ReplicaSet</td></tr><tr><td style="padding:12px 18px;background:#F2C14E55">Deployment</td><td style="padding:12px 18px;background:#F2C14E55">versions et mises à jour des ReplicaSets</td><td style="padding:12px 18px;background:#F2C14E55">le contrôleur Deployment</td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">Service</td><td style="padding:12px 18px;background:#FFFFFF">une adresse stable devant des pods</td><td style="padding:12px 18px;background:#FFFFFF">kube-proxy, CoreDNS</td></tr></table><p style="font-size:28px;color:#5B6676">Distributions : Minikube et kind (poste), kubeadm (vos serveurs, ce lab), K3s (léger), EKS / AKS / GKE (managé). Projet de la CNCF.</p>
+<section id="c6-objets" data-transition="fade">
+<style>
+  #c6-objets { background:#F4F6F8; padding:56px 90px 40px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+  #c6-objets .ent { display:flex; align-items:center; gap:28px; margin-bottom:26px }
+  #c6-objets .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px }
+  #c6-objets h1 { font-family:'Fraunces',serif; font-size:50px; line-height:1.05; font-weight:700 }
+  #c6-objets .corps { display:grid; grid-template-columns: 1240px 1fr; gap:34px }
+  #c6-objets .schema { position:relative; height:790px }
+  #c6-objets .schema svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible }
+  #c6-objets .o { position:absolute; border-radius:14px; background:#FFFFFF; border:3px solid #2F4858; padding:12px 16px; transition: opacity .45s, box-shadow .45s, transform .45s }
+  #c6-objets .o b { display:block; font-size:24px }
+  #c6-objets .o i { display:block; font-style:normal; font-size:15px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#5B6676 }
+  #c6-objets .o code { display:block; font-family:'JetBrains Mono',monospace; font-size:16px; color:#5B6676; margin-top:4px }
+  #c6-objets .lbl { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:15px; background:#F2C14E; color:#1F2A44; border-radius:6px; padding:1px 8px; margin-top:6px }
+  #c6-objets .noeud-chip { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:15px; background:#2F485818; border-radius:6px; padding:1px 8px; margin-top:6px; margin-left:6px }
+  #c6-objets .ns { position:absolute; left:0; top:0; width:1240px; height:470px; border:4px dashed #2E7D6B; border-radius:20px; background:#2E7D6B0D; transition: opacity .45s }
+  #c6-objets .ns > span { position:absolute; left:22px; top:-20px; background:#F4F6F8; padding:0 10px; font-size:24px; font-weight:700; color:#2E7D6B }
+  #c6-objets .ns2 { position:absolute; left:0; top:500px; width:380px; height:110px; border:4px dashed #5B6676; border-radius:20px; padding:22px; color:#5B6676; font-size:19px; line-height:1.3; transition: opacity .45s }
+  #c6-objets .ns2 b { color:#1F2A44 }
+  #c6-objets .global { position:absolute; left:0; top:640px; width:380px; height:150px; border-radius:16px; background:#1F2A44; color:#E3E8EE; padding:20px 22px; font-size:19px; line-height:1.35; transition: opacity .45s }
+  #c6-objets .global b { color:#F2C14E; display:block; font-size:21px; margin-bottom:6px }
+  #c6-objets .noeuds { position:absolute; left:420px; top:500px; width:820px; height:290px; border-radius:18px; background:#2F4858; padding:18px 22px; display:flex; flex-direction:column; gap:14px; transition: opacity .45s }
+  #c6-objets .noeuds > p { color:#F4F6F8; font-size:20px; font-weight:700; letter-spacing:2px; text-transform:uppercase }
+  #c6-objets .noeuds > p small { font-size:17px; letter-spacing:0; text-transform:none; font-weight:400; color:#C9D2DC }
+  #c6-objets .rangn { display:flex; gap:16px; flex:1 }
+  #c6-objets .n { flex:1; background:#FFFFFF; border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:10px }
+  #c6-objets .n b { font-size:22px }
+  #c6-objets .n small { font-size:16px; color:#5B6676 }
+  #c6-objets .mini { font-family:'JetBrains Mono',monospace; font-size:16px; background:#2E7D6B; color:#FFFFFF; border-radius:8px; padding:6px 10px; align-self:flex-start }
+  #c6-objets .eteint { opacity:.13 }
+  #c6-objets .vif { box-shadow:0 0 0 6px #F2C14E; transform:scale(1.02) }
+  #c6-objets svg .f { transition: opacity .45s }
+  #c6-objets .cote { display:flex; flex-direction:column; gap:14px }
+  #c6-objets .e { border-radius:12px; padding:14px 18px; background:#FFFFFF; border-left:8px solid #C9D2DC; transition: all .45s }
+  #c6-objets .e p { font-size:20px; line-height:1.35; color:#5B6676 }
+  #c6-objets .e p b { color:#1F2A44 }
+  #c6-objets .e h3 { font-size:22px; display:flex; align-items:center; gap:10px; margin-bottom:4px }
+  #c6-objets .e h3 svg { flex:none }
+  #c6-objets .e.futur { opacity:.25 }
+  #c6-objets .e.ici { border-left-color:#F2C14E; background:#F2C14E26 }
+  #c6-objets .e.passe { border-left-color:#2E7D6B }
+  #c6-objets .cmd { font-family:'JetBrains Mono',monospace; font-size:17px; background:#1F2A44; color:#F2C14E; border-radius:6px; padding:2px 8px; white-space:nowrap }
+</style>
+  <div class="ent"><p class="tag">Le concept</p><h1>Les objets, et ce qui les relie</h1></div>
+  <div class="corps">
+    <div class="schema">
+      <div class="ns" data-s="1"><span>Namespace huiteo</span></div>
+      <svg viewBox="0 0 1240 790" aria-hidden="true">
+        <defs>
+          <marker id="c6o-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2F4858"/></marker>
+          <marker id="c6o-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="16" markerHeight="16" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#E4572E"/></marker>
+        </defs>
+        <g class="f" data-s="2" stroke="#2F4858" stroke-width="4" fill="none" marker-end="url(#c6o-p)">
+          <path d="M300,235 L362,235"/>
+        </g>
+        <text class="f" data-s="2" x="331" y="212" text-anchor="middle" font-size="16" font-weight="700" fill="#2F4858" stroke="#ECF0F1" stroke-width="5" paint-order="stroke">possède</text>
+        <g class="f" data-s="3" stroke="#2F4858" stroke-width="4" fill="none" marker-end="url(#c6o-p)">
+          <path d="M620,235 C660,235 650,105 712,105"/>
+          <path d="M620,235 L712,235"/>
+          <path d="M620,235 C660,235 650,365 712,365"/>
+        </g>
+        <text class="f" data-s="3" x="666" y="222" text-anchor="middle" font-size="16" font-weight="700" fill="#2F4858" stroke="#ECF0F1" stroke-width="5" paint-order="stroke">possède</text>
+        <g class="f" data-s="4" stroke="#E4572E" stroke-width="4" stroke-dasharray="10 8" fill="none" marker-end="url(#c6o-s)">
+          <path d="M992,235 C960,235 975,105 952,105"/>
+          <path d="M992,235 L952,235"/>
+          <path d="M992,235 C960,235 975,365 952,365"/>
+        </g>
+      </svg>
+      <div class="o" data-s="2" style="left:40px;top:165px;width:258px"><i>Deployment</i><b>api</b><code>image : huiteo-api:1.0</code><code>replicas : 3</code></div>
+      <div class="o" data-s="3" style="left:366px;top:165px;width:252px"><i>ReplicaSet</i><b>api-7d9f</b><code>garde 3 pods</code><code>version 1.0</code></div>
+      <div class="o" data-s="3" style="left:716px;top:48px;width:234px;height:114px"><i>Pod</i><b>api-7d9f-a</b><span class="lbl">app=api</span><span class="noeud-chip" data-s="5">worker-1</span></div>
+      <div class="o" data-s="3" style="left:716px;top:178px;width:234px;height:114px"><i>Pod</i><b>api-7d9f-b</b><span class="lbl">app=api</span><span class="noeud-chip" data-s="5">worker-2</span></div>
+      <div class="o" data-s="3" style="left:716px;top:308px;width:234px;height:114px"><i>Pod</i><b>api-7d9f-c</b><span class="lbl">app=api</span><span class="noeud-chip" data-s="5">worker-1</span></div>
+      <div class="o" data-s="4" style="left:996px;top:150px;width:222px;border-color:#E4572E"><i style="color:#E4572E">Service</i><b>api</b><code>sélecteur :</code><span class="lbl">app=api</span><code>api:8000</code></div>
+      <div class="ns2" data-s="1"><b>Namespace huiteo-preprod</b> : un autre rangement, mêmes noms possibles (TP 12)</div>
+      <div class="global" data-s="5"><b>Hors de tout namespace</b>les nœuds, les Namespaces eux-mêmes, les PersistentVolumes, les StorageClasses</div>
+      <div class="noeuds" data-s="5"><p>Les nœuds <small>· la place physique, où les pods tournent</small></p>
+        <div class="rangn">
+          <div class="n"><b>control-plane</b><small>taint : pas d'applications</small></div>
+          <div class="n"><b>worker-1</b><span class="mini">api-7d9f-a</span><span class="mini">api-7d9f-c</span></div>
+          <div class="n"><b>worker-2</b><span class="mini">api-7d9f-b</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cote">
+      <div class="e" data-e="1"><h3>1 · Le Namespace range</h3><p>Les noms sont <b>uniques dans un namespace</b>. Droits (RBAC) et quotas s'y appliquent. <span class="cmd">kubectl -n huiteo</span></p></div>
+      <div class="e" data-e="2"><h3><svg width="44" height="14"><path d="M2,7 L34,7" stroke="#2F4858" stroke-width="4" marker-end="url(#c6o-p)"/></svg>2 · Le Deployment possède</h3><p>un <b>ReplicaSet par version</b>. Une mise à jour en crée un nouveau (TP 07).</p></div>
+      <div class="e" data-e="3"><h3><svg width="44" height="14"><path d="M2,7 L34,7" stroke="#2F4858" stroke-width="4" marker-end="url(#c6o-p)"/></svg>3 · Le ReplicaSet possède</h3><p>ses pods, et en garde le nombre voulu. <b>Supprimez-en un : il revient.</b></p></div>
+      <div class="e" data-e="4"><h3><svg width="44" height="14"><path d="M2,7 L34,7" stroke="#E4572E" stroke-width="4" stroke-dasharray="8 6" marker-end="url(#c6o-s)"/></svg>4 · Le Service sélectionne</h3><p>les pods <b>par label, pas par nom</b> : une adresse stable devant des pods qui changent.</p></div>
+      <div class="e" data-e="5"><h3>5 · Le pod tourne sur un nœud</h3><p>Namespace = rangement <b>logique</b>, nœud = place <b>physique</b>. Un namespace s'étale sur tous les nœuds.</p></div>
+      <p style="font-size:18px;line-height:1.35;color:#5B6676;margin-top:4px">Distributions : Minikube et kind (poste), kubeadm (vos serveurs, ce lab), K3s (léger), EKS / AKS / GKE (managé).</p>
+    </div>
+  </div>
+<script>
+(() => {
+  const S = document.getElementById('c6-objets');
+  const N = 5;
+  let i = 0;
+  function rendre() {
+    S.querySelectorAll('[data-s]').forEach(el => {
+      const s = +el.dataset.s;
+      el.classList.toggle('eteint', i > 0 && s > i);
+      if (!el.matches('.f, .noeud-chip')) el.classList.toggle('vif', s === i && el.classList.contains('o'));
+    });
+    S.querySelectorAll('[data-e]').forEach(el => {
+      const e = +el.dataset.e;
+      el.className = 'e ' + (i === 0 ? '' : e < i ? 'passe' : e === i ? 'ici' : 'futur');
+    });
+  }
+  (window.etapes = window.etapes || {})['c6-objets'] = {
+    suivant() { if (i < N) { i++; rendre(); return true; } return false; },
+    precedent() { if (i > 0) { i--; rendre(); return true; } return false; },
+    debut() { i = 1; rendre(); },
+    fin() { i = N; rendre(); },
+  };
+  i = 1; rendre();
+})();
+</script>
 </section>
 <section id="c6-tp" data-transition="fade" style="background:#2F4858;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#F4F6F8">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#1F2A44;background:#F2C14E;align-self:flex-start;padding:8px 18px;border-radius:8px">À vous de jouer</p><div style="display:flex;align-items:baseline;gap:34px"><p style="font-family:'Fraunces',serif;font-size:150px;font-weight:700;color:#F2C14E;line-height:1">TP 05</p><div><h1 style="font-family:'Fraunces',serif;font-size:66px;line-height:1.08;font-weight:700;color:#F4F6F8">Explorer le cluster</h1><p style="font-size:30px;color:#B8C2D1;margin-top:14px"><x-icon data-g="◷" style="color:#F2C14E;width:34px;height:34px"></x-icon> 70 min · <span style="font-family:'JetBrains Mono',monospace;background:#141C2E;color:#8EC5FF;padding:4px 14px;border-radius:6px">tp-05-cluster</span></p></div></div><div style="display:flex;gap:56px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-size:32px;font-weight:700;color:#F2C14E">Vous allez</p><ul style="font-size:30px;line-height:1.35;color:#F4F6F8;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">lire le kubeconfig et les nœuds</li><li style="margin:0 0 18px;padding-left:10px">trouver les composants du control plane</li><li style="margin:0 0 18px;padding-left:10px">voir un Deployment recréer un pod</li><li style="margin:0 0 18px;padding-left:10px">interroger l'API REST et Headlamp</li></ul></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-size:32px;font-weight:700;color:#F2C14E">C'est réussi quand</p><ul style="font-size:30px;line-height:1.35;color:#F4F6F8;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">vous savez qui lance les pods statiques</li><li style="margin:0 0 18px;padding-left:10px">vous avez dessiné Deployment → ReplicaSet → Pod</li><li style="margin:0 0 18px;padding-left:10px">le namespace essai est supprimé</li></ul></div></div>
@@ -366,8 +623,132 @@
 <section id="c7-yaml" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Un Deployment en YAML</h1><div style="display:flex;gap:56px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-family:'JetBrains Mono',monospace;font-size:21px;line-height:1.5;white-space:nowrap;background:#141C2E;color:#F4F6F8;padding:30px 36px;border-radius:14px;overflow:hidden">apiVersion: apps/v1<br>kind: <span style="color:#F2C14E">Deployment</span><br>metadata:<br>&#160;&#160;name: api<br>&#160;&#160;namespace: huiteo<br>spec:<br>&#160;&#160;<span style="color:#F2C14E">replicas: 3</span><br>&#160;&#160;selector:<br>&#160;&#160;&#160;&#160;matchLabels: {<span style="color:#F2C14E">app: api</span>}<br>&#160;&#160;template:<br>&#160;&#160;&#160;&#160;metadata:<br>&#160;&#160;&#160;&#160;&#160;&#160;labels: {<span style="color:#F2C14E">app: api</span>}<br>&#160;&#160;&#160;&#160;spec:<br>&#160;&#160;&#160;&#160;&#160;&#160;containers:<br>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;- name: api<br>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;image: ghcr.io/iamatj/huiteo-api:1.0</p></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><ul style="font-size:28px;line-height:1.35;color:#1F2A44;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">indentation par espaces, jamais de tabulation</li><li style="margin:0 0 18px;padding-left:10px"><code>yes</code>, <code>3</code> ne sont pas des chaînes : <code>"yes"</code></li><li style="margin:0 0 18px;padding-left:10px">le <code>selector</code> doit correspondre aux étiquettes, et il est immuable</li><li style="margin:0 0 18px;padding-left:10px"><code>kubectl apply --dry-run=server</code> valide sans créer</li></ul></div></div>
 </section>
-<section id="c7-services" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
-<p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Exposer : ClusterIP, NodePort, LoadBalancer</h1><table style="font-size:26px;table-layout:fixed;color:#1F2A44"><tr><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Type</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Joignable par</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Chez Huiteo</th></tr><tr><td style="padding:12px 18px;background:#FFFFFF">ClusterIP</td><td style="padding:12px 18px;background:#FFFFFF">le cluster seulement (DNS : <code>api</code>)</td><td style="padding:12px 18px;background:#FFFFFF">l'API, la base</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">NodePort</td><td style="padding:12px 18px;background:#E3E8EE">tout nœud, port 30000 – 32767</td><td style="padding:12px 18px;background:#E3E8EE">le site, <code>:30080</code></td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">LoadBalancer</td><td style="padding:12px 18px;background:#FFFFFF">une adresse externe (MetalLB ou le cloud)</td><td style="padding:12px 18px;background:#FFFFFF">le site, <code>10.10.0.201</code> (TP 07)</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">port-forward</td><td style="padding:12px 18px;background:#E3E8EE">votre poste, le temps d'une session</td><td style="padding:12px 18px;background:#E3E8EE">déboguer</td></tr></table>
+<section id="c7-services" data-transition="fade">
+<style>
+  #c7-services { background:#F4F6F8; padding:52px 90px 40px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+  #c7-services .ent { display:flex; align-items:center; gap:28px; margin-bottom:24px }
+  #c7-services .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px }
+  #c7-services h1 { font-family:'Fraunces',serif; font-size:50px; line-height:1.05; font-weight:700 }
+  #c7-services .corps { display:grid; grid-template-columns:1240px 1fr; gap:34px }
+  #c7-services .schema { position:relative; height:700px }
+  #c7-services .bx { position:absolute; border-radius:14px; transition: opacity .4s, box-shadow .4s }
+  #c7-services .poste { left:0; top:250px; width:200px; height:200px; background:#1F2A44; color:#F4F6F8; padding:18px; display:flex; flex-direction:column; gap:10px }
+  #c7-services .poste p { font-size:15px; letter-spacing:2px; text-transform:uppercase; color:#F2C14E; font-weight:700 }
+  #c7-services .poste span { font-size:21px }
+  #c7-services .cluster { left:236px; top:0; width:1004px; height:700px; border:4px solid #2F4858; background:#FFFFFF }
+  #c7-services .cluster > p { position:absolute; left:20px; top:12px; font-size:18px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color:#2F4858 }
+  #c7-services .svc { top:56px; height:112px; border:3px solid #E4572E; background:#FFF6F2; padding:10px 14px }
+  #c7-services .svc i, #c7-services .n i { display:block; font-style:normal; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#E4572E; font-weight:700 }
+  #c7-services .svc b { display:block; font-size:22px }
+  #c7-services .svc code { display:block; font-family:'JetBrains Mono',monospace; font-size:15px; color:#5B6676 }
+  #c7-services .lb { left:256px; top:56px; width:250px; height:112px; border:3px dashed #2E7D6B; background:#2E7D6B12; padding:10px 14px }
+  #c7-services .lb i { display:block; font-style:normal; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#2E7D6B; font-weight:700 }
+  #c7-services .lb b { display:block; font-family:'JetBrains Mono',monospace; font-size:21px }
+  #c7-services .lb small { font-size:15px; color:#5B6676 }
+  #c7-services .n { top:196px; width:300px; height:484px; background:#F4F6F8; border:3px solid #C9D2DC; padding:14px; display:flex; flex-direction:column; gap:10px }
+  #c7-services .n i { color:#2F4858 }
+  #c7-services .n > b { font-size:24px; display:flex; justify-content:space-between; align-items:baseline }
+  #c7-services .n > b code { font-family:'JetBrains Mono',monospace; font-size:16px; color:#5B6676; font-weight:400 }
+  #c7-services .c { border-radius:10px; padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:17px; transition: box-shadow .4s, opacity .4s }
+  #c7-services .kp { background:#E4572E1F; color:#9A3412; font-size:15px; padding:6px 12px; align-self:flex-start; border-radius:8px }
+  #c7-services .pf { background:#2E7D6B; color:#FFFFFF }
+  #c7-services .pa { background:#2F4858; color:#FFFFFF }
+  #c7-services .sys { background:#1F2A44; color:#F2C14E }
+  #c7-services .vif { box-shadow:0 0 0 5px #F2C14E }
+  #c7-services .eteint { opacity:.25 }
+  #c7-services .fiche-mv { position:absolute; z-index:5; left:0; top:0; padding:6px 12px; border-radius:8px; background:#E4572E; color:#FFFFFF; font-size:17px; font-weight:700; white-space:nowrap; box-shadow:0 4px 14px #0004; opacity:0; transition: left .7s ease-in-out, top .7s ease-in-out, opacity .2s; pointer-events:none }
+  #c7-services .cote { display:flex; flex-direction:column; gap:14px }
+  #c7-services .e { border-radius:12px; padding:14px 18px; background:#FFFFFF; border-left:8px solid #C9D2DC; transition: all .4s }
+  #c7-services .e h3 { font-size:23px; margin-bottom:4px }
+  #c7-services .e h3 small { font-size:17px; font-weight:400; color:#5B6676 }
+  #c7-services .e p { font-size:19px; line-height:1.35; color:#5B6676 }
+  #c7-services .e p b { color:#1F2A44 }
+  #c7-services .e.futur { opacity:.3 }
+  #c7-services .e.ici { border-left-color:#F2C14E; background:#F2C14E26 }
+  #c7-services .e.passe { border-left-color:#2E7D6B }
+  #c7-services .gigogne { font-size:17px; color:#5B6676; line-height:1.4 }
+</style>
+  <div class="ent"><p class="tag">Le concept</p><h1>Exposer : par où passe une requête ?</h1></div>
+  <div class="corps">
+    <div class="schema">
+      <div class="bx poste" data-p="poste"><p>Votre poste</p><span>🦊 Firefox</span><span>⌨️ kubectl</span></div>
+      <div class="bx cluster"><p>Cluster · réseau du lab 10.10.0.0/24</p></div>
+      <div class="bx lb" data-p="lb" data-k="3"><i>LoadBalancer · MetalLB</i><b>10.10.0.201</b><small>annoncée par un nœud</small></div>
+      <div class="bx svc" data-p="svc-api" data-k="1" style="left:526px;width:330px"><i>Service api · ClusterIP</i><b>api:8000</b><code>10.96.12.7 (IP virtuelle)</code></div>
+      <div class="bx svc" data-p="svc-front" data-k="2 3" style="left:870px;width:350px"><i>Service front · NodePort</i><b>:30080 sur chaque nœud</b><code>LoadBalancer : + 10.10.0.201</code></div>
+      <div class="bx n" style="left:256px"><b>control-plane <code>.10</code></b>
+        <span class="c kp" data-p="kp0">kube-proxy</span>
+        <span class="c sys" data-p="apiserver" data-k="4">API Server</span>
+        <span class="c sys" data-p="coredns" data-k="1">CoreDNS</span>
+        <i style="margin-top:auto;color:#5B6676;text-transform:none;letter-spacing:0;font-weight:400;font-size:16px">taint : pas d'applications</i>
+      </div>
+      <div class="bx n" style="left:586px" data-p="w1"><b>worker-1 <code>.11</code></b>
+        <span class="c kp" data-p="kp1" data-k="1 3">kube-proxy</span>
+        <span class="c pf" data-p="front-a" data-k="1 2">front-a</span>
+        <span class="c pa" data-p="api-a" data-k="4">api-a</span>
+        <span class="c pa" data-p="api-c">api-c</span>
+      </div>
+      <div class="bx n" style="left:916px" data-p="w2"><b>worker-2 <code>.12</code></b>
+        <span class="c kp" data-p="kp2" data-k="2">kube-proxy</span>
+        <span class="c pf" data-p="front-b" data-k="3">front-b</span>
+        <span class="c pa" data-p="api-b" data-k="1">api-b</span>
+      </div>
+      <div class="fiche-mv" data-r="fiche"></div>
+    </div>
+    <div class="cote">
+      <div class="e" data-e="1"><h3>1 · ClusterIP <small>le défaut</small></h3><p>Joignable <b>depuis le cluster seulement</b> : un nom DNS (<code>api</code>) et une IP virtuelle stable. kube-proxy choisit un pod, sur n'importe quel nœud. Chez Huiteo : l'API, la base.</p></div>
+      <div class="e" data-e="2"><h3>2 · NodePort</h3><p><b>N'importe quel nœud</b>, port 30000 – 32767, même un nœud sans le pod. Chez Huiteo : le site sur <code>:30080</code> (TP 06).</p></div>
+      <div class="e" data-e="3"><h3>3 · LoadBalancer</h3><p><b>Une adresse externe</b> : MetalLB dans ce lab, le cloud ailleurs. Elle arrive sur un nœud, puis suit le chemin du NodePort. Le site sur <code>10.10.0.201</code> (TP 07).</p></div>
+      <div class="e" data-e="4"><h3>4 · port-forward <small>pas un Service</small></h3><p>Un tunnel <b>de votre poste vers un pod</b>, à travers l'API Server, le temps d'une session. Pour déboguer, jamais pour les clients.</p></div>
+      <p class="gigogne">Gigognes : un LoadBalancer crée un NodePort, qui crée un ClusterIP.</p>
+    </div>
+  </div>
+<script>
+(() => {
+  const S = document.getElementById('c7-services');
+  const p = k => S.querySelector(`[data-p="${k}"]`);
+  const fiche = S.querySelector('[data-r="fiche"]'), schema = S.querySelector('.schema');
+  const TRAJETS = {
+    1: [['front-a', 'coredns', 'api ?'], ['coredns', 'front-a', '10.96.12.7'], ['front-a', 'kp1', '10.96.12.7:8000'], ['kp1', 'api-b', 'un pod api, au choix']],
+    2: [['poste', 'kp2', '10.10.0.12:30080'], ['kp2', 'front-a', 'un pod front, même ailleurs']],
+    3: [['poste', 'lb', '10.10.0.201:80'], ['lb', 'kp1', 'worker-1 répond pour .201'], ['kp1', 'front-b', 'puis comme un NodePort']],
+    4: [['poste', 'apiserver', 'kubectl port-forward'], ['apiserver', 'api-a', 'localhost:8000 → api-a']],
+  };
+  const N = 4;
+  let i = 1, jeu = 0;
+  function centre(el) {
+    const k = schema.getBoundingClientRect().width / schema.offsetWidth;
+    const a = el.getBoundingClientRect(), b = schema.getBoundingClientRect();
+    return [(a.left - b.left + a.width / 2) / k, (a.top - b.top + a.height / 2) / k];
+  }
+  function trajets(liste, n) {
+    if (n !== jeu) return;
+    if (!liste.length) { setTimeout(() => { if (n === jeu) { fiche.style.opacity = 0; setTimeout(() => n === jeu && trajets(TRAJETS[i], n), 600); } }, 1200); return; }
+    const [de, a, mot] = liste[0];
+    fiche.style.transition = 'none'; fiche.textContent = mot;
+    const [x0, y0] = centre(p(de)); const w = fiche.offsetWidth / 2, h = fiche.offsetHeight / 2;
+    fiche.style.left = (x0 - w) + 'px'; fiche.style.top = (y0 - h) + 'px'; fiche.style.opacity = 1;
+    fiche.offsetWidth; fiche.style.transition = '';
+    const [x1, y1] = centre(p(a));
+    fiche.style.left = (x1 - w) + 'px'; fiche.style.top = (y1 - h) + 'px';
+    setTimeout(() => trajets(liste.slice(1), n), 1300);
+  }
+  function rendre() {
+    S.querySelectorAll('[data-k]').forEach(el => el.classList.toggle('vif', el.dataset.k.split(' ').includes(String(i))));
+    S.querySelectorAll('.c.pf, .c.pa').forEach(el => el.classList.toggle('eteint', !el.classList.contains('vif')));
+    S.querySelector('.lb').classList.toggle('eteint', i < 3);
+    S.querySelectorAll('[data-e]').forEach(el => { const e = +el.dataset.e; el.className = 'e ' + (e < i ? 'passe' : e === i ? 'ici' : 'futur'); });
+    trajets(TRAJETS[i], ++jeu);   // le trajet de l'étape se rejoue en boucle
+  }
+  (window.etapes = window.etapes || {})['c7-services'] = {
+    suivant() { if (i < N) { i++; rendre(); return true; } return false; },
+    precedent() { if (i > 1) { i--; rendre(); return true; } return false; },
+    debut() { i = 1; rendre(); },
+    fin() { i = N; rendre(); },
+  };
+  rendre();
+})();
+</script>
 </section>
 <section id="c7-tp" data-transition="fade" style="background:#2F4858;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#F4F6F8">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#1F2A44;background:#F2C14E;align-self:flex-start;padding:8px 18px;border-radius:8px">À vous de jouer</p><div style="display:flex;align-items:baseline;gap:34px"><p style="font-family:'Fraunces',serif;font-size:150px;font-weight:700;color:#F2C14E;line-height:1">TP 06</p><div><h1 style="font-family:'Fraunces',serif;font-size:66px;line-height:1.08;font-weight:700;color:#F4F6F8">Déployer Huiteo</h1><p style="font-size:30px;color:#B8C2D1;margin-top:14px"><x-icon data-g="◷" style="color:#F2C14E;width:34px;height:34px"></x-icon> 70 min · <span style="font-family:'JetBrains Mono',monospace;background:#141C2E;color:#8EC5FF;padding:4px 14px;border-radius:6px">tp-06-deploiement</span></p></div></div><div style="display:flex;gap:56px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-size:32px;font-weight:700;color:#F2C14E">Vous allez</p><ul style="font-size:30px;line-height:1.35;color:#F4F6F8;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">corriger un YAML cassé</li><li style="margin:0 0 18px;padding-left:10px">déployer la base, l'API et le site</li><li style="margin:0 0 18px;padding-left:10px">les relier par des Services</li><li style="margin:0 0 18px;padding-left:10px">changer le nombre de replicas</li></ul></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-size:32px;font-weight:700;color:#F2C14E">C'est réussi quand</p><ul style="font-size:30px;line-height:1.35;color:#F4F6F8;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">le site répond sur :30080 sur les trois nœuds</li><li style="margin:0 0 18px;padding-left:10px">un rendez-vous passe dans Firefox</li><li style="margin:0 0 18px;padding-left:10px">k8s/20-api.yaml dit replicas: 3</li></ul></div></div>
@@ -378,8 +759,479 @@
 <section id="c7b-incident" data-transition="fade" style="background:#1F2A44;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#F4F6F8">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#1F2A44;background:#F2C14E;align-self:flex-start;padding:8px 18px;border-radius:8px">Chapitre 7 · l&#x27;incident</p><p style="font-size:30px;color:#B8C2D1">Samedi · 8h02</p><h1 style="font-family:'Fraunces',serif;font-size:70px;line-height:1.08;font-weight:700;color:#F4F6F8">La 1.1 a coupé le site</h1><blockquote style="font-family:'Fraunces',serif;font-size:40px;line-height:1.3;color:#F2C14E;border-left:8px solid #E4572E;padding-left:34px;font-style:italic">« Et à 8h20, quelqu&#x27;un a livré une 1.2 qui n&#x27;existe pas. »<br><span style="font-family:'DM Sans',sans-serif;font-size:26px;font-style:normal;color:#B8C2D1">— Sophie</span></blockquote><ul style="font-size:30px;line-height:1.35;color:#F4F6F8;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">Pendant une minute, une partie des clients voit « API injoignable ».</li><li style="margin:0 0 18px;padding-left:10px">Personne ne sait quelle version tournait juste avant.</li></ul>
 </section>
+<section id="c7b-strategies" data-transition="fade">
+<style>
+  #c7b-strategies { background:#F4F6F8; padding:52px 90px 40px; display:flex; flex-direction:column; gap:20px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+  #c7b-strategies .ent { display:flex; align-items:center; gap:28px }
+  #c7b-strategies .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px }
+  #c7b-strategies h1 { font-family:'Fraunces',serif; font-size:50px; line-height:1.05; font-weight:700 }
+  #c7b-strategies table { border-collapse:separate; border-spacing:0 8px; width:100%; font-size:21px }
+  #c7b-strategies th { text-align:left; font-size:16px; letter-spacing:2px; text-transform:uppercase; color:#5B6676; padding:0 16px; font-weight:700 }
+  #c7b-strategies td { background:#FFFFFF; padding:12px 16px; vertical-align:middle; line-height:1.3 }
+  #c7b-strategies td:first-child { border-radius:12px 0 0 12px; width:330px }
+  #c7b-strategies td:last-child { border-radius:0 12px 12px 0 }
+  #c7b-strategies td b { display:block; font-size:25px }
+  #c7b-strategies td small { display:block; font-size:17px; color:#5B6676 }
+  #c7b-strategies code { font-family:'JetBrains Mono',monospace; font-size:17px; background:#1F2A440F; border-radius:5px; padding:1px 6px }
+  #c7b-strategies .ko { color:#E4572E; font-weight:700 }
+  #c7b-strategies .huiteo { background:#1F2A44; color:#E3E8EE; border-radius:14px; padding:18px 26px; display:flex; gap:24px; align-items:baseline; font-size:22px; line-height:1.4 }
+  #c7b-strategies .huiteo > b { color:#F2C14E; font-size:24px; flex:none }
+  #c7b-strategies .huiteo code { background:#FFFFFF1A; color:#F2C14E }
+  #c7b-strategies .huiteo span b { color:#FFFFFF }
+  #c7b-strategies td { padding:16px 16px }
+  #c7b-strategies .leg { display:flex; gap:28px; font-size:18px; color:#5B6676; align-items:center }
+  #c7b-strategies .leg i { display:inline-block; width:22px; height:14px; border-radius:3px; margin-right:8px; vertical-align:-1px }
+</style>
+  <div class="ent"><p class="tag">Le concept</p><h1>Six façons de livrer une nouvelle version</h1></div>
+  <div class="leg"><span>Part du trafic au fil de la livraison :</span><span><i style="background:#2F4858"></i>1.0</span><span><i style="background:#2E7D6B"></i>1.1</span><span><i style="background:#E4572E"></i>coupure</span><span><i style="background:repeating-linear-gradient(90deg,#7FD1B9 0 6px,transparent 6px 11px)"></i>prête ou copiée, sans clients</span></div>
+  <table>
+    <tr><th>Stratégie</th><th>Le trafic</th><th>Coupure ?</th><th>Ressources en plus</th><th>Retour arrière</th><th>Dans Kubernetes</th></tr>
+    <tr><td><b>Recreate</b><small>tout arrêter, tout relancer</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><rect width="100" height="64" fill="#2F4858"/><rect x="100" width="40" height="64" fill="#E4572E"/><rect x="140" width="110" height="64" fill="#2E7D6B"/></svg></td><td><span class="ko">oui</span></td><td>aucune</td><td>redéployer : nouvelle coupure</td><td><code>strategy: Recreate</code></td></tr><tr><td><b>Rolling update</b><small>pod par pod (par défaut)</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 75,64 175,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 75,64 175,0 250,0 250,64" fill="#2E7D6B"/></svg></td><td>non, avec des sondes</td><td>+1 pod (<code>maxSurge</code>)</td><td><code>rollout undo</code>, progressif</td><td><code>strategy: RollingUpdate</code></td></tr><tr><td><b>Blue/green</b><small>tout prêt à côté, puis bascule</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 125,64 125,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 125,64 125,0 250,0 250,64" fill="#2E7D6B"/><line x1="62" y1="61" x2="125" y2="61" stroke="#7FD1B9" stroke-width="5" stroke-dasharray="6 5"/></svg></td><td>non</td><td>×2 pendant la bascule</td><td>instantané : le sélecteur</td><td>2 Deployments + Service</td></tr><tr><td><b>Canary</b><small>une petite part au hasard</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 55,64 55,58 125,58 125,32 188,32 188,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 55,64 55,58 125,58 125,32 188,32 188,0 250,0 250,64" fill="#2E7D6B"/></svg></td><td>non</td><td>quelques pods</td><td>instantané : poids à 0</td><td>Gateway API, <code>weight</code></td></tr><tr><td><b>A/B testing</b><small>un groupe choisi, une mesure métier</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 55,64 55,32 195,32 195,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 55,64 55,32 195,32 195,0 250,0 250,64" fill="#2E7D6B"/><line x1="55" y1="32.0" x2="195" y2="32.0" stroke="#F4F6F8" stroke-width="2"/></svg></td><td>non</td><td>quelques pods</td><td>instantané : la règle</td><td>Gateway API, <code>matches</code></td></tr><tr><td><b>Shadow</b><small>une copie du trafic, réponse jetée</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 250,64 250,0" fill="#2F4858"/><polygon points="0,64 0,64 250,64 250,64" fill="#2E7D6B"/><line x1="62" y1="32.0" x2="250" y2="32.0" stroke="#7FD1B9" stroke-width="5" stroke-dasharray="8 6"/></svg></td><td>non, jamais exposée</td><td>×2 en calcul</td><td>rien à annuler</td><td>Gateway API, <code>RequestMirror</code></td></tr>
+  </table>
+  <div class="huiteo"><b>Chez Huiteo</b><span>L'API et le site : <b>rolling update</b>, <code>maxSurge: 1</code>, <code>maxUnavailable: 0</code> (TP 07). PostgreSQL : <b>Recreate</b>, un seul pod peut monter son volume. Canary et blue/green viendront avec la Gateway (TP 11).</span></div>
+</section>
 <section id="c7b-rolling" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Rolling update et rollback</h1><div style="display:flex;gap:56px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-family:'JetBrains Mono',monospace;font-size:22px;line-height:1.5;white-space:nowrap;background:#141C2E;color:#F4F6F8;padding:30px 36px;border-radius:14px;overflow:hidden">spec:<br>&#160;&#160;<span style="color:#F2C14E">strategy</span>:<br>&#160;&#160;&#160;&#160;type: RollingUpdate<br>&#160;&#160;&#160;&#160;rollingUpdate:<br>&#160;&#160;&#160;&#160;&#160;&#160;<span style="color:#F2C14E">maxSurge: 1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; # un pod de plus<br>&#160;&#160;&#160;&#160;&#160;&#160;<span style="color:#F2C14E">maxUnavailable: 0</span>&#160;&#160; # jamais un de moins<br>&#160;&#160;minReadySeconds: 5<br><br>kubectl rollout status deployment/api<br>kubectl rollout history deployment/api<br>kubectl rollout <span style="color:#F2C14E">undo</span> deployment/api</p></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><ul style="font-size:28px;line-height:1.35;color:#1F2A44;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">un nouveau ReplicaSet monte, l'ancien descend</li><li style="margin:0 0 18px;padding-left:10px"><code>kubernetes.io/change-cause</code> pour un historique lisible</li><li style="margin:0 0 18px;padding-left:10px">une image introuvable bloque la mise à jour, sans couper</li><li style="margin:0 0 18px;padding-left:10px">le fichier reste la référence : <code>set image</code> est un geste d'urgence</li></ul></div></div>
+</section>
+<section id="c7b-recreate" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Recreate : tout arrêter, puis tout relancer</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><pre>spec:
+  strategy:
+    <b>type: Recreate</b></pre></div>
+<div class="bloc"><h3>Quand</h3><ul><li>deux versions ne peuvent pas coexister (schéma de base, format de fichier)</li><li>un volume qu'un seul pod peut monter : PostgreSQL (TP 07, question 8)</li></ul></div>
+<div class="bloc"><h3>Pour · contre</h3><p>Simple, aucune ressource en plus. <b>Une coupure à chaque livraison</b>, et autant au retour arrière.</p></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-recreate', {
+ "routeur": "Service api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le trafic, sur 3 pods.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "Recreate <b>arrête d'abord tous les anciens pods</b>. Les requêtes n'ont plus personne pour répondre.",
+   "v1": [
+    "arret",
+    "arret",
+    "arret"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "Les pods de la <b>1.1</b> démarrent. Tant qu'ils ne sont pas prêts : <b>coupure</b>.",
+   "v1": [],
+   "v2": [
+    "demarre",
+    "demarre",
+    "demarre"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  },
+  {
+   "texte": "La 1.1 sert tout. À aucun moment <b>deux versions n'ont tourné ensemble</b> : c'est tout l'intérêt.",
+   "v1": [],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  }
+ ]
+});
+</script>
+</section>
+<section id="c7b-bluegreen" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Blue/green : deux environnements, une bascule</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Deux Deployments, <code>api-blue</code> et <code>api-green</code>, et un Service qui choisit :</p><pre>kubectl patch service api -p \
+ '{"spec":{"selector":
+   {"app":"api","<b>version":"green</b>"}}}'</pre></div>
+<div class="bloc"><h3>Pour · contre</h3><ul><li>bascule et retour <b>instantanés</b>, version testée avant le trafic</li><li><b>deux fois les ressources</b> pendant la bascule</li><li>la base est partagée : elle doit convenir aux deux versions</li></ul></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-bluegreen', {
+ "routeur": "Service api",
+ "etapes": [
+  {
+   "texte": "<b>Blue</b> (1.0) sert tout le trafic.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "On déploie <b>green</b> (1.1) à côté, au complet, <b>sans aucun trafic</b>.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "demarre",
+    "demarre",
+    "demarre"
+   ],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "Green est prêt. On le teste par un Service de test, <b>les clients ne voient toujours que blue</b>.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "<b>Bascule</b> : on change le sélecteur du Service. 100 % du trafic passe sur green, d'un coup.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  },
+  {
+   "texte": "Blue reste allumé quelques heures : <b>le retour arrière, c'est remettre le sélecteur</b>. Puis on l'éteint.",
+   "v1": [
+    "arret",
+    "arret",
+    "arret"
+   ],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  }
+ ]
+});
+</script>
+</section>
+<section id="c7b-canary" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Canary : quelques clients d'abord</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Gateway API (TP 11), des poids par version :</p><pre>backendRefs:
+- name: api-v1-0
+  port: 8000
+  <b>weight: 90</b>
+- name: api-v1-1
+  port: 8000
+  <b>weight: 10</b></pre><p style="font-size:17px;margin-top:6px">Sans Gateway : un même label <code>app=api</code> et le ratio des replicas (1 pod sur 4 ≈ 25 %).</p></div>
+<div class="bloc"><h3>Pour · contre</h3><p>Le risque est limité à une petite part de <b>vrais clients</b>. Il faut des métriques pour juger ; Argo Rollouts ou Flagger automatisent les paliers.</p></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-canary', {
+ "routeur": "HTTPRoute api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le trafic.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "Un pod <b>1.1</b> reçoit <b>10 %</b> des requêtes, prises au hasard : ce sont les canaris.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok"
+   ],
+   "poids": [
+    90,
+    10
+   ]
+  },
+  {
+   "texte": "On observe : <b>erreurs, temps de réponse</b>. Au moindre doute, poids à 0 : 90 % des clients n'ont rien vu.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok"
+   ],
+   "poids": [
+    90,
+    10
+   ]
+  },
+  {
+   "texte": "Tout va bien : <b>50 / 50</b>, avec plus de pods 1.1.",
+   "v1": [
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    50,
+    50
+   ]
+  },
+  {
+   "texte": "<b>100 %</b> sur la 1.1, la 1.0 est retirée.",
+   "v1": [],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  }
+ ]
+});
+</script>
+</section>
+<section id="c7b-ab" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>A/B testing : deux versions, deux groupes</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Gateway API : une règle par en-tête.</p><pre>rules:
+- <b>matches:</b>
+  - headers:
+    - name: X-Groupe
+      <b>value: b</b>
+  backendRefs: [{name: api-v1-1, port: 8000}]
+- backendRefs: [{name: api-v1-0, port: 8000}]</pre></div>
+<div class="bloc"><h3>Canary ou A/B ?</h3><p>Canary : une part <b>au hasard</b>, pour vérifier que ça marche. A/B : un groupe <b>choisi</b>, pour savoir ce qui marche le mieux, souvent pendant des jours.</p></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-ab', {
+ "routeur": "HTTPRoute api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le monde.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "On choisit <b>qui</b> voit la 1.1 : le groupe B (un cookie, un en-tête, les mobiles…). <b>Pas au hasard</b> : toujours les mêmes personnes.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ],
+   "segments": true
+  },
+  {
+   "texte": "On compare une mesure <b>métier</b> : le taux de rendez-vous pris en A et en B, sur une durée fixée.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ],
+   "segments": true
+  },
+  {
+   "texte": "B gagne : la 1.1 sert tout le monde. <b>Une décision de produit</b>, pas seulement un test technique.",
+   "v1": [],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  }
+ ]
+});
+</script>
+</section>
+<section id="c7b-shadow" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Shadow : la nouvelle version écoute en silence</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Gateway API : un filtre de copie.</p><pre>filters:
+- type: <b>RequestMirror</b>
+  requestMirror:
+    backendRef:
+      name: api-v1-1
+      port: 8000</pre></div>
+<div class="bloc"><h3>Pour · contre</h3><ul><li>aucun client exposé, vraie charge</li><li>deux fois le calcul</li><li><b>effets de bord</b> : écritures, mails, paiements à neutraliser</li></ul></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-shadow', {
+ "routeur": "HTTPRoute api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le trafic.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "La <b>1.1</b> reçoit <b>une copie de chaque requête</b>. Sa réponse est jetée : les clients ne la voient jamais.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ],
+   "miroir": true
+  },
+  {
+   "texte": "On compare ses journaux, ses erreurs, ses temps de réponse, <b>sous la vraie charge</b>, sans risque pour les clients.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ],
+   "miroir": true
+  },
+  {
+   "texte": "Attention : une requête copiée est <b>exécutée deux fois</b>. Un rendez-vous pris en 1.1 serait un doublon : base séparée, ou lecture seule.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ],
+   "miroir": true
+  }
+ ]
+});
+</script>
 </section>
 <section id="c7b-tp" data-transition="fade" style="background:#2F4858;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#F4F6F8">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#1F2A44;background:#F2C14E;align-self:flex-start;padding:8px 18px;border-radius:8px">À vous de jouer</p><div style="display:flex;align-items:baseline;gap:34px"><p style="font-family:'Fraunces',serif;font-size:150px;font-weight:700;color:#F2C14E;line-height:1">TP 07</p><div><h1 style="font-family:'Fraunces',serif;font-size:66px;line-height:1.08;font-weight:700;color:#F4F6F8">Mettre à jour sans couper</h1><p style="font-size:30px;color:#B8C2D1;margin-top:14px"><x-icon data-g="◷" style="color:#F2C14E;width:34px;height:34px"></x-icon> 80 min · <span style="font-family:'JetBrains Mono',monospace;background:#141C2E;color:#8EC5FF;padding:4px 14px;border-radius:6px">tp-07-mise-a-jour</span></p></div></div><div style="display:flex;gap:56px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-size:32px;font-weight:700;color:#F2C14E">Vous allez</p><ul style="font-size:30px;line-height:1.35;color:#F4F6F8;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">mesurer les erreurs d'une mise à jour</li><li style="margin:0 0 18px;padding-left:10px">régler la stratégie dans le fichier</li><li style="margin:0 0 18px;padding-left:10px">rattraper une version inexistante</li><li style="margin:0 0 18px;padding-left:10px">exposer le site par un LoadBalancer</li></ul></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-size:32px;font-weight:700;color:#F2C14E">C'est réussi quand</p><ul style="font-size:30px;line-height:1.35;color:#F4F6F8;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">la 1.2 n'a pas coupé le site</li><li style="margin:0 0 18px;padding-left:10px">rollout history montre des CHANGE-CAUSE</li><li style="margin:0 0 18px;padding-left:10px">le site répond sur 10.10.0.201</li></ul></div></div>

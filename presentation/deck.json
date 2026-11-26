@@ -61,7 +61,13 @@
     "c7-tp",
     "dejeuner-j2",
     "c7b-incident",
+    "c7b-strategies",
     "c7b-rolling",
+    "c7b-recreate",
+    "c7b-bluegreen",
+    "c7b-canary",
+    "c7b-ab",
+    "c7b-shadow",
     "c7b-tp",
     "c8-incident",
     "c8-config",
@@ -110,12 +116,12 @@
     {
       "title": "Jour 3 · Production",
       "description": "Stockage, sécurité, réseau et Helm",
-      "start": 69
+      "start": 75
     },
     {
       "title": "Clôture",
       "description": "QCM, synthèse, évaluation",
-      "start": 87
+      "start": 93
     }
   ],
   "faces": {
