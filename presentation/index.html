@@ -175,6 +175,179 @@
 <section id="c6-architecture" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">L&#x27;architecture d&#x27;un cluster</h1><div style="display:flex;gap:36px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><div style="background:#FFFFFF;border-left:10px solid #2E7D6B;border-radius:12px;padding:26px 30px"><p style="font-size:30px;font-weight:700;color:#2E7D6B;margin-bottom:10px">Control plane</p><p style="font-size:26px;line-height:1.4;color:#5B6676"><b>API Server</b> : la seule porte d'entrée · <b>etcd</b> : l'état du cluster · <b>Scheduler</b> : choisit un nœud · <b>Controller Manager</b> : fait converger le réel vers le voulu</p></div></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><div style="background:#FFFFFF;border-left:10px solid #2F4858;border-radius:12px;padding:26px 30px"><p style="font-size:30px;font-weight:700;color:#2F4858;margin-bottom:10px">Nœuds de travail</p><p style="font-size:26px;line-height:1.4;color:#5B6676"><b>kubelet</b> : lance les pods de son nœud · <b>container runtime</b> (containerd) · <b>kube-proxy</b> : les Services · le <b>CNI</b> (Calico) : le réseau des pods</p></div></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><div style="background:#FFFFFF;border-left:10px solid #E4572E;border-radius:12px;padding:26px 30px"><p style="font-size:30px;font-weight:700;color:#E4572E;margin-bottom:10px">On y accède par</p><p style="font-size:26px;line-height:1.4;color:#5B6676"><b>kubectl</b> (CLI) · une interface web (<b>Headlamp</b>, le Dashboard historique a été retiré) · l'<b>API REST</b> directement</p></div></div></div>
 </section>
+<section id="c6-equipe" data-transition="fade">
+<style>
+  #c6-equipe { background:#F4F6F8; padding:56px 90px 40px; display:flex; flex-direction:column; gap:22px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+  #c6-equipe .ent { display:flex; align-items:center; gap:28px }
+  #c6-equipe .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px }
+  #c6-equipe h1 { font-family:'Fraunces',serif; font-size:50px; line-height:1.05; font-weight:700 }
+  #c6-equipe .plan { position:relative; display:grid; grid-template-columns: 430px 1fr 560px; gap:26px; flex:1; min-height:0 }
+  #c6-equipe .zone { border-radius:16px; padding:18px 20px; display:flex; flex-direction:column; gap:14px }
+  #c6-equipe .zone > h2 { font-size:22px; letter-spacing:2px; text-transform:uppercase; font-weight:700 }
+  #c6-equipe .poste { background:#1F2A44; color:#F4F6F8 }
+  #c6-equipe .poste h2 { color:#F2C14E }
+  #c6-equipe .term { font-family:'JetBrains Mono',monospace; font-size:19px; line-height:1.45; white-space:pre-wrap; color:#E3E8EE; flex:1 }
+  #c6-equipe .term .p { color:#F2C14E }
+  #c6-equipe .term .ok { color:#7FD1B9 }
+  #c6-equipe .bureau { background:#FFFFFF; border:4px solid #2E7D6B }
+  #c6-equipe .bureau h2 { color:#2E7D6B }
+  #c6-equipe .ateliers { display:flex; flex-direction:column; gap:18px }
+  #c6-equipe .atelier { background:#FFFFFF; border:4px solid #2F4858; flex:1; transition: opacity .4s, filter .4s }
+  #c6-equipe .atelier h2 { color:#2F4858 }
+  #c6-equipe .atelier.panne { opacity:.35; filter:grayscale(1) }
+  #c6-equipe .rang { display:flex; gap:14px }
+  #c6-equipe .zone > .perso { flex:none }
+  #c6-equipe .bureau .registre { flex:1 }
+  #c6-equipe .perso { flex:1; display:flex; gap:12px; align-items:center; border-radius:12px; padding:12px 14px; background:#F4F6F8; border:3px solid transparent; transition: all .35s; opacity:.55 }
+  #c6-equipe .perso.actif { opacity:1; background:#F2C14E33; border-color:#F2C14E; transform:scale(1.03) }
+  #c6-equipe .perso .av { font-size:44px; line-height:1; width:58px; height:58px; border-radius:50%; background:#FFFFFF; display:flex; align-items:center; justify-content:center; flex:none }
+  #c6-equipe .perso b { display:block; font-size:22px }
+  #c6-equipe .perso i { display:block; font-style:normal; font-family:'JetBrains Mono',monospace; font-size:16px; color:#2E7D6B }
+  #c6-equipe .perso small { display:block; font-size:16px; color:#5B6676; line-height:1.25 }
+  #c6-equipe .registre { font-family:'JetBrains Mono',monospace; font-size:16px; line-height:1.5; background:#1F2A440D; border-radius:8px; padding:8px 12px; min-height:150px }
+  #c6-equipe .registre div { animation: entre .5s }
+  #c6-equipe .pods { display:flex; gap:10px; min-height:46px; flex-wrap:wrap }
+  #c6-equipe .pod { font-family:'JetBrains Mono',monospace; font-size:17px; padding:8px 12px; border-radius:8px; border:2px dashed #5B6676; color:#5B6676; animation: entre .5s }
+  #c6-equipe .pod.run { border:2px solid #2E7D6B; background:#2E7D6B; color:#FFFFFF }
+  #c6-equipe .recit { background:#1F2A44; color:#F4F6F8; border-radius:14px; padding:18px 26px; display:flex; gap:24px; align-items:center; min-height:118px }
+  #c6-equipe .recit .num { font-family:'Fraunces',serif; font-size:44px; color:#F2C14E; flex:none; width:96px }
+  #c6-equipe .recit p { font-size:25px; line-height:1.38 }
+  #c6-equipe .recit p b { color:#F2C14E }
+  #c6-equipe .fiche { position:absolute; z-index:5; left:0; top:0; padding:6px 12px; border-radius:8px; background:#E4572E; color:#FFFFFF; font-size:17px; font-weight:700; white-space:nowrap; box-shadow:0 4px 14px #0004; opacity:0; transition: left .7s ease-in-out, top .7s ease-in-out, opacity .2s; pointer-events:none }
+  @keyframes entre { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:none } }
+</style>
+  <div class="ent"><p class="tag">Le concept</p><h1>Qui fait quoi quand Karim lance l'API ?</h1></div>
+  <div class="plan">
+    <div class="zone poste"><h2>Le poste de Karim</h2><div class="term" data-r="term"></div>
+      <div class="perso" data-p="karim" style="background:#FFFFFF14;opacity:1;flex:none"><span class="av">👨‍💻</span><span><b style="color:#F4F6F8">Karim</b><i style="color:#F2C14E">kubectl</i></span></div>
+    </div>
+    <div class="zone bureau"><h2>Control plane · le bureau</h2>
+      <div class="perso" data-p="api"><span class="av">🛎️</span><span><b>Le guichetier</b><i>API Server</i><small>la seule porte d'entrée : vérifie qui vous êtes, ce que vous avez le droit de faire</small></span></div>
+      <div class="rang">
+        <div class="perso" data-p="etcd"><span class="av">📚</span><span><b>L'archiviste</b><i>etcd</i><small>la seule mémoire du cluster</small></span></div>
+        <div class="perso" data-p="sched"><span class="av">🧭</span><span><b>Le répartiteur</b><i>Scheduler</i><small>choisit un nœud</small></span></div>
+      </div>
+      <div class="perso" data-p="cm"><span class="av">👷</span><span><b>Le contremaître</b><i>Controller Manager</i><small>compare le voulu et le réel, et rattrape l'écart</small></span></div>
+      <div class="registre" data-r="registre"><div style="color:#5B6676">registre (etcd) : vide</div></div>
+    </div>
+    <div class="ateliers">
+      <div class="zone atelier" data-r="w1"><h2>worker-1 · atelier</h2>
+        <div class="rang">
+          <div class="perso" data-p="k1"><span class="av">🧑‍🔧</span><span><b>Chef d'atelier</b><i>kubelet</i></span></div>
+          <div class="perso" data-p="c1"><span class="av">📦</span><span><b>Manutentionnaire</b><i>containerd</i></span></div>
+        </div>
+        <div class="pods" data-r="pods1"></div>
+      </div>
+      <div class="zone atelier" data-r="w2"><h2>worker-2 · atelier</h2>
+        <div class="rang">
+          <div class="perso" data-p="k2"><span class="av">🧑‍🔧</span><span><b>Chef d'atelier</b><i>kubelet</i></span></div>
+          <div class="perso" data-p="c2"><span class="av">📦</span><span><b>Manutentionnaire</b><i>containerd</i></span></div>
+        </div>
+        <div class="pods" data-r="pods2"></div>
+      </div>
+    </div>
+    <div class="fiche" data-r="fiche"></div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+(() => {
+  const S = document.getElementById('c6-equipe');
+  const r = k => S.querySelector(`[data-r="${k}"]`);
+  const p = k => S.querySelector(`[data-p="${k}"]`);
+  const IMG = 'ghcr.io/iamatj/huiteo-api:1.0';
+
+  // Chaque étape : qui est actif, ce que dit le récit, les trajets de la fiche, et l'état affiché.
+  const ETAPES = [
+    { actifs: [], texte: "Le cluster attend. Personne ne se donne d'ordre : chacun <b>surveille le registre</b> en passant par le guichet, et réagit à ce qui le concerne.",
+      term: [], reg: [], pods1: [], pods2: [] },
+    { actifs: ['karim', 'api'], trajets: [['karim', 'api', 'Deployment api ×2']],
+      texte: "Karim demande <b>2 copies de l'API</b>. Le guichetier vérifie : qui êtes-vous (certificat du kubeconfig) ? En avez-vous le droit (RBAC) ? La demande est-elle valide (admission) ?",
+      term: ['$ kubectl create deployment api \\\n    --image=' + IMG + ' --replicas=2'], reg: [], pods1: [], pods2: [] },
+    { actifs: ['api', 'etcd', 'karim'], trajets: [['api', 'etcd', 'Deployment api'], ['api', 'karim', 'created']],
+      texte: "L'archiviste note le Deployment. Karim a sa réponse… <b>et rien ne tourne encore</b> : il a décrit ce qu'il veut, pas comment le faire.",
+      term: ['$ kubectl create deployment api \\\n    --image=' + IMG + ' --replicas=2', '<span class="ok">deployment.apps/api created</span>'],
+      reg: ['Deployment api (voulu : 2)'], pods1: [], pods2: [] },
+    { actifs: ['cm', 'api', 'etcd'], trajets: [['cm', 'api', 'ReplicaSet + 2 pods'], ['api', 'etcd', '2 pods sans nœud']],
+      texte: "Le contremaître voit un Deployment sans ReplicaSet : il en crée un. Puis 2 pods voulus, 0 existant : il crée <b>2 pods, encore sans nœud</b> (Pending).",
+      reg: ['Deployment api (voulu : 2)', 'ReplicaSet api-7d9f', 'pod api-7d9f-a → ?', 'pod api-7d9f-b → ?'], pods1: [], pods2: [] },
+    { actifs: ['sched', 'api', 'etcd'], trajets: [['sched', 'api', 'a → worker-1, b → worker-2'], ['api', 'etcd', 'nœuds choisis']],
+      texte: "Le répartiteur voit 2 pods sans nœud. Il écarte le control plane (taint), regarde la place libre, et <b>attribue un nœud</b> à chacun. Il ne lance rien lui-même.",
+      reg: ['Deployment api (voulu : 2)', 'ReplicaSet api-7d9f', 'pod api-7d9f-a → worker-1', 'pod api-7d9f-b → worker-2'], pods1: [], pods2: [] },
+    { actifs: ['api', 'k1', 'k2'], trajets: [['api', 'k1', 'pod a'], ['api', 'k2', 'pod b']],
+      texte: "Chaque chef d'atelier surveille les pods <b>attribués à son nœud</b>. Il en voit un nouveau : à lui de le faire exister.",
+      pods1: [['api-7d9f-a', 0]], pods2: [['api-7d9f-b', 0]] },
+    { actifs: ['k1', 'c1', 'k2', 'c2'], trajets: [['k1', 'c1', "tire l'image, démarre"], ['k2', 'c2', "tire l'image, démarre"]],
+      texte: "Le manutentionnaire (containerd) tire l'image et démarre le conteneur. Calico, le réseau des pods, lui donne <b>une IP en 10.244.x.x</b>.",
+      pods1: [['api-7d9f-a', 1]], pods2: [['api-7d9f-b', 1]] },
+    { actifs: ['k1', 'k2', 'api', 'etcd', 'karim'], trajets: [['k1', 'api', 'Running'], ['k2', 'api', 'Running']],
+      texte: "Les chefs d'atelier rendent compte : <b>Running</b>. L'archiviste le note, et c'est ce que Karim lit avec <code>kubectl get pods</code>.",
+      termPlus: ['$ kubectl get pods', 'api-7d9f-a   <span class="ok">Running</span>   worker-1', 'api-7d9f-b   <span class="ok">Running</span>   worker-2'],
+      reg: ['Deployment api (voulu : 2)', 'ReplicaSet api-7d9f', 'pod api-7d9f-a  worker-1  Running', 'pod api-7d9f-b  worker-2  Running'] },
+    { actifs: ['api', 'cm'], panne: true,
+      texte: "Panne : <b>worker-2 s'éteint</b>. Son chef d'atelier ne donne plus de nouvelles au guichet ; le nœud passe NotReady, et au bout de quelques minutes son pod est déclaré perdu.",
+      pods2: [],
+      reg: ['Deployment api (voulu : 2)', 'ReplicaSet api-7d9f', 'pod api-7d9f-a  worker-1  Running', 'nœud worker-2  NotReady'] },
+    { actifs: ['cm', 'sched', 'api', 'k1', 'c1'], trajets: [['cm', 'api', '1 sur 2 : nouveau pod'], ['sched', 'api', 'c → worker-1'], ['api', 'k1', 'pod c']],
+      texte: "Le contremaître compte <b>1 pod sur 2</b> : il en recrée un, le répartiteur le place sur worker-1, qui le démarre. Personne n'est intervenu : c'est la <b>boucle de réconciliation</b>.",
+      pods1: [['api-7d9f-a', 1], ['api-7d9f-c', 1]],
+      termPlus: ['$ kubectl get pods', 'api-7d9f-a   <span class="ok">Running</span>   worker-1', 'api-7d9f-c   <span class="ok">Running</span>   worker-1'],
+      reg: ['Deployment api (voulu : 2)', 'ReplicaSet api-7d9f', 'pod api-7d9f-a  worker-1  Running', 'pod api-7d9f-c  worker-1  Running', 'nœud worker-2  NotReady'] },
+  ];
+
+  // État cumulé jusqu'à l'étape i (on peut revenir en arrière).
+  function etat(i) {
+    const e = { term: [], reg: [], pods1: [], pods2: [], panne: false };
+    for (let k = 0; k <= i; k++) {
+      const s = ETAPES[k];
+      ['term', 'reg', 'pods1', 'pods2'].forEach(c => { if (s[c]) e[c] = s[c]; });
+      if (s.termPlus) e.term = e.term.concat(s.termPlus);
+      if (s.panne) e.panne = true;
+    }
+    return e;
+  }
+
+  const fiche = r('fiche'), plan = S.querySelector('.plan');
+  let i = 0, jeu = 0;
+  function centre(el) {
+    const k = plan.getBoundingClientRect().width / plan.offsetWidth;   // la scène est mise à l'échelle
+    const a = el.getBoundingClientRect(), b = plan.getBoundingClientRect();
+    return [(a.left - b.left + a.width / 2) / k, (a.top - b.top + a.height / 2) / k];
+  }
+  function trajets(liste, n) {
+    if (n !== jeu || !liste.length) { fiche.style.opacity = 0; return; }
+    const [de, a, mot] = liste[0];
+    fiche.style.transition = 'none'; fiche.textContent = mot;
+    const [x0, y0] = centre(p(de)); const w = fiche.offsetWidth / 2, h = fiche.offsetHeight / 2;
+    fiche.style.left = (x0 - w) + 'px'; fiche.style.top = (y0 - h) + 'px'; fiche.style.opacity = 1;
+    fiche.offsetWidth;
+    fiche.style.transition = '';
+    const [x1, y1] = centre(p(a));
+    fiche.style.left = (x1 - w) + 'px'; fiche.style.top = (y1 - h) + 'px';
+    setTimeout(() => trajets(liste.slice(1), n), 1100);
+  }
+  function rendre() {
+    const s = ETAPES[i], e = etat(i);
+    S.querySelectorAll('.perso[data-p]').forEach(el => { if (el.dataset.p !== 'karim') el.classList.toggle('actif', s.actifs.includes(el.dataset.p)); });
+    r('num').textContent = i === 0 ? '·' : i + ' / ' + (ETAPES.length - 1);
+    r('texte').innerHTML = s.texte;
+    r('term').innerHTML = e.term.map(l => l.startsWith('$') ? '<span class="p">$</span>' + l.slice(1) : l).join('\n');
+    r('registre').innerHTML = e.reg.length ? e.reg.map(l => `<div>${l}</div>`).join('') : '<div style="color:#5B6676">registre (etcd) : vide</div>';
+    r('pods1').innerHTML = e.pods1.map(([n, ok]) => `<span class="pod ${ok ? 'run' : ''}">${n}</span>`).join('');
+    r('pods2').innerHTML = e.pods2.map(([n, ok]) => `<span class="pod ${ok ? 'run' : ''}">${n}</span>`).join('');
+    r('w2').classList.toggle('panne', e.panne);
+    trajets(s.trajets || [], ++jeu);
+  }
+  // Interface pour le diaporama (construire.py) : true si l'étape a été consommée par la slide.
+  (window.etapes = window.etapes || {})['c6-equipe'] = {
+    suivant() { if (i < ETAPES.length - 1) { i++; rendre(); return true; } return false; },
+    precedent() { if (i > 0) { i--; rendre(); return true; } return false; },
+    debut() { i = 0; rendre(); },
+    fin() { i = ETAPES.length - 1; rendre(); },
+  };
+  rendre();
+})();
+</script>
+</section>
 <section id="c6-objets" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Les objets fondamentaux</h1><table style="font-size:26px;table-layout:fixed;color:#1F2A44"><tr><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Objet</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Rôle</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Géré par</th></tr><tr><td style="padding:12px 18px;background:#FFFFFF">Namespace</td><td style="padding:12px 18px;background:#FFFFFF">un espace de noms pour ranger et isoler</td><td style="padding:12px 18px;background:#FFFFFF">vous</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">Pod</td><td style="padding:12px 18px;background:#E3E8EE">un ou plusieurs conteneurs, une IP</td><td style="padding:12px 18px;background:#E3E8EE">le kubelet</td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">ReplicaSet</td><td style="padding:12px 18px;background:#FFFFFF">garde N pods identiques</td><td style="padding:12px 18px;background:#FFFFFF">le contrôleur ReplicaSet</td></tr><tr><td style="padding:12px 18px;background:#F2C14E55">Deployment</td><td style="padding:12px 18px;background:#F2C14E55">versions et mises à jour des ReplicaSets</td><td style="padding:12px 18px;background:#F2C14E55">le contrôleur Deployment</td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">Service</td><td style="padding:12px 18px;background:#FFFFFF">une adresse stable devant des pods</td><td style="padding:12px 18px;background:#FFFFFF">kube-proxy, CoreDNS</td></tr></table><p style="font-size:28px;color:#5B6676">Distributions : Minikube et kind (poste), kubeadm (vos serveurs, ce lab), K3s (léger), EKS / AKS / GKE (managé). Projet de la CNCF.</p>
 </section>
@@ -309,16 +482,28 @@
     const k = Math.min(innerWidth / 1920, innerHeight / 1080);
     scene.style.transform = 'translate(-50%, -50%) scale(' + k + ')';
   }
+  // Une slide à étapes (window.etapes[id]) consomme les flèches avant de passer à la suivante.
+  const etapes = () => (window.etapes || {})[slides[n].id];
+  function avancer() {
+    if (etapes() && etapes().suivant()) return;
+    n = Math.min(n + 1, slides.length - 1);
+    if (etapes()) etapes().debut();
+  }
+  function reculer() {
+    if (etapes() && etapes().precedent()) return;
+    n = Math.max(n - 1, 0);
+    if (etapes()) etapes().fin();
+  }
   addEventListener('keydown', e => {
-    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) n = Math.min(n + 1, slides.length - 1);
-    else if (['ArrowLeft', 'PageUp'].includes(e.key)) n = Math.max(n - 1, 0);
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) avancer();
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) reculer();
     else if (e.key === 'Home') n = 0;
     else if (e.key === 'End') n = slides.length - 1;
     else if (e.key === 'f' || e.key === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
     else return;
     e.preventDefault(); afficher();
   });
-  addEventListener('click', () => { n = Math.min(n + 1, slides.length - 1); afficher(); });
+  addEventListener('click', () => { avancer(); afficher(); });
   addEventListener('resize', ajuster);
   ajuster(); afficher();
 </script>

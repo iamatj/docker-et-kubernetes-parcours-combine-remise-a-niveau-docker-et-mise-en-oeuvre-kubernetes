@@ -79,16 +79,28 @@ page = f"""<!doctype html>
     const k = Math.min(innerWidth / 1920, innerHeight / 1080);
     scene.style.transform = 'translate(-50%, -50%) scale(' + k + ')';
   }}
+  // Une slide à étapes (window.etapes[id]) consomme les flèches avant de passer à la suivante.
+  const etapes = () => (window.etapes || {{}})[slides[n].id];
+  function avancer() {{
+    if (etapes() && etapes().suivant()) return;
+    n = Math.min(n + 1, slides.length - 1);
+    if (etapes()) etapes().debut();
+  }}
+  function reculer() {{
+    if (etapes() && etapes().precedent()) return;
+    n = Math.max(n - 1, 0);
+    if (etapes()) etapes().fin();
+  }}
   addEventListener('keydown', e => {{
-    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) n = Math.min(n + 1, slides.length - 1);
-    else if (['ArrowLeft', 'PageUp'].includes(e.key)) n = Math.max(n - 1, 0);
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) avancer();
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) reculer();
     else if (e.key === 'Home') n = 0;
     else if (e.key === 'End') n = slides.length - 1;
     else if (e.key === 'f' || e.key === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
     else return;
     e.preventDefault(); afficher();
   }});
-  addEventListener('click', () => {{ n = Math.min(n + 1, slides.length - 1); afficher(); }});
+  addEventListener('click', () => {{ avancer(); afficher(); }});
   addEventListener('resize', ajuster);
   ajuster(); afficher();
 </script>
