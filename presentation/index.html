@@ -1344,6 +1344,156 @@ Trafic('c7b-shadow', {
 <section id="c8-config" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Étiquettes, ConfigMap, Secret</h1><div style="display:flex;gap:56px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><ul style="font-size:28px;line-height:1.35;color:#1F2A44;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px"><b>étiquettes</b> : pour sélectionner (<code>-l tier=back</code>)</li><li style="margin:0 0 18px;padding-left:10px"><b>annotations</b> : pour décrire (responsable, change-cause)</li><li style="margin:0 0 18px;padding-left:10px"><b>ConfigMap</b> : la configuration hors de l'image</li><li style="margin:0 0 18px;padding-left:10px"><b>Secret</b> : les données sensibles… en <b>base64</b>, pas chiffrées</li></ul></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-family:'JetBrains Mono',monospace;font-size:22px;line-height:1.5;white-space:nowrap;background:#141C2E;color:#F4F6F8;padding:30px 36px;border-radius:14px;overflow:hidden">envFrom:<br>&#160;&#160;- configMapRef: {name: <span style="color:#F2C14E">huiteo-config</span>}<br>&#160;&#160;- secretRef:&#160;&#160;&#160;&#160;{name: <span style="color:#F2C14E">huiteo-db</span>}<br><br><span style="color:#8A97AB"># lire un Secret, c&#x27;est facile :</span><br>kubectl get secret huiteo-db \<br>&#160;&#160;-o jsonpath=&#x27;{.data.DB_PASSWORD}&#x27; | base64 -d</p><div style="background:#FFFFFF;border-left:10px solid #E4572E;border-radius:12px;padding:26px 30px"><p style="font-size:30px;font-weight:700;color:#E4572E;margin-bottom:10px">Les limites des Secrets</p><p style="font-size:26px;line-height:1.4;color:#5B6676">etcd non chiffré par défaut, lisibles avec un droit <code>get</code>, et dans Git en clair base64 : Sealed Secrets, External Secrets, SOPS.</p></div></div></div>
 </section>
+<section id="c8-injection" data-transition="fade">
+<style>
+  #c8-injection { background:#F4F6F8; padding:48px 90px 36px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+  #c8-injection .ent { display:flex; align-items:center; gap:28px; margin-bottom:22px }
+  #c8-injection .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px }
+  #c8-injection h1 { font-family:'Fraunces',serif; font-size:48px; line-height:1.05; font-weight:700 }
+  #c8-injection .sources { display:grid; grid-template-columns:1fr 1fr; gap:30px }
+  #c8-injection .src { border-radius:14px; padding:14px 18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
+  #c8-injection .src > b { font-size:15px; letter-spacing:2px; text-transform:uppercase; width:100%; }
+  #c8-injection .cm { background:#FFFFFF; border:3px solid #2E7D6B }
+  #c8-injection .cm > b { color:#2E7D6B }
+  #c8-injection .sec { background:#FFFFFF; border:3px solid #E4572E }
+  #c8-injection .sec > b { color:#E4572E }
+  #c8-injection .cle { font-family:'JetBrains Mono',monospace; font-size:18px; border-radius:8px; padding:6px 12px; background:#F4F6F8; border:2px solid #C9D2DC; transition: all .35s }
+  #c8-injection .cle.on { background:#F2C14E; border-color:#F2C14E; color:#1F2A44 }
+  #c8-injection .liens { position:absolute; left:0; top:0; width:1920px; height:1080px; pointer-events:none; z-index:0 }
+  #c8-injection .liens path { fill:none; stroke-width:3; stroke-dasharray:8 6; opacity:.8 }
+  #c8-injection .cols { display:grid; grid-template-columns:repeat(3, 1fr); gap:30px; margin-top:64px; position:relative; z-index:1 }
+  #c8-injection .col { background:#FFFFFF; border-radius:16px; padding:18px 20px; display:flex; flex-direction:column; gap:12px; border-top:8px solid #C9D2DC; transition: opacity .35s, border-color .35s, box-shadow .35s; height:690px }
+  #c8-injection .col.ici { border-top-color:#F2C14E; box-shadow:0 0 0 4px #F2C14E }
+  #c8-injection .col.futur { opacity:.2 }
+  #c8-injection .col h2 { font-size:30px; display:flex; align-items:baseline; gap:12px }
+  #c8-injection .col h2 span { font-family:'Fraunces',serif; color:#F2C14E; font-size:34px }
+  #c8-injection .col h2 code { font-family:'JetBrains Mono',monospace; font-size:28px }
+  #c8-injection .col .resume { font-size:20px; color:#3A4556; line-height:1.3 }
+  #c8-injection pre { font-family:'JetBrains Mono',monospace; font-size:16px; line-height:1.4; background:#1F2A44; color:#E3E8EE; border-radius:10px; padding:12px 14px; white-space:pre }
+  #c8-injection pre b { color:#F2C14E; font-weight:400 }
+  #c8-injection .vu { font-size:14px; letter-spacing:2px; text-transform:uppercase; color:#5B6676; font-weight:700 }
+  #c8-injection .term { background:#0E1420; color:#7FD1B9 }
+  #c8-injection .term i { color:#F2C14E; font-style:normal }
+  #c8-injection .change { margin-top:auto; border-radius:10px; padding:10px 14px; font-size:19px; line-height:1.3; transition: opacity .35s }
+  #c8-injection .change.non { background:#E4572E1A; color:#9A3412 }
+  #c8-injection .change.oui { background:#2E7D6B1A; color:#1F5C4F }
+  #c8-injection .change.cache { opacity:0 }
+  #c8-injection .change b { display:block; font-size:15px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:2px }
+  #c8-injection .num { position:absolute; right:90px; top:60px; font-family:'Fraunces',serif; font-size:34px; color:#F2C14E }
+</style>
+  <svg class="liens" aria-hidden="true"></svg>
+  <div class="ent"><p class="tag">Le concept</p><h1>Trois façons de donner la configuration à un pod</h1></div>
+  <div class="sources">
+    <div class="src cm"><b>ConfigMap huiteo-config</b><span class="cle" data-c="DB_HOST">DB_HOST</span><span class="cle" data-c="DB_NAME">DB_NAME</span><span class="cle" data-c="MESSAGE_ACCUEIL">MESSAGE_ACCUEIL</span></div>
+    <div class="src sec"><b>Secret huiteo-db</b><span class="cle" data-c="DB_USER">DB_USER</span><span class="cle" data-c="DB_PASSWORD">DB_PASSWORD</span></div>
+  </div>
+  <div class="cols">
+    <div class="col" data-e="1">
+      <h2><span>1</span><code>env</code></h2>
+      <p class="resume"><b>Une clé à la fois</b>, sous le nom que <b>vous</b> choisissez. Chez Huiteo : PostgreSQL attend <code>POSTGRES_*</code>.</p>
+<pre>env:
+- name: <b>POSTGRES_DB</b>
+  valueFrom:
+    configMapKeyRef:
+      name: huiteo-config
+      key: <b>DB_NAME</b>
+- name: <b>POSTGRES_PASSWORD</b>
+  valueFrom:
+    secretKeyRef:
+      name: huiteo-db
+      key: <b>DB_PASSWORD</b></pre>
+      <p class="vu">Dans le conteneur</p>
+<pre class="term"><i>$</i> env | grep POSTGRES
+POSTGRES_DB=huiteo
+POSTGRES_PASSWORD=Neige-2026</pre>
+      <p class="change non"><b>Si la ConfigMap change</b>rien, tant que le pod tourne : <code>rollout restart</code></p>
+    </div>
+    <div class="col" data-e="2">
+      <h2><span>2</span><code>envFrom</code></h2>
+      <p class="resume"><b>Toutes les clés</b> d'un coup, en gardant leur nom. Chez Huiteo : l'API, qui lit <code>DB_*</code> et <code>MESSAGE_ACCUEIL</code>.</p>
+<pre>envFrom:
+- configMapRef:
+    name: <b>huiteo-config</b>
+- secretRef:
+    name: <b>huiteo-db</b></pre>
+      <p class="vu">Dans le conteneur</p>
+<pre class="term"><i>$</i> env | grep -E 'DB_|MESSAGE'
+DB_HOST=postgres
+DB_NAME=huiteo
+MESSAGE_ACCUEIL=Rendez-vous de déc…
+DB_USER=huiteo
+DB_PASSWORD=Neige-2026</pre>
+      <p class="change non"><b>Si la ConfigMap change</b>rien non plus : les variables sont lues au démarrage (TP 08, question 3)</p>
+    </div>
+    <div class="col" data-e="3">
+      <h2><span>3</span><code>volumeMounts</code></h2>
+      <p class="resume"><b>Un fichier par clé</b>, dans un dossier. Pour de vrais fichiers de configuration : <code>nginx.conf</code>, certificats.</p>
+<pre>volumes:
+- name: config
+  configMap:
+    name: <b>huiteo-config</b>
+containers:
+- volumeMounts:
+  - name: config
+    mountPath: <b>/etc/huiteo</b>
+    readOnly: true</pre>
+      <p class="vu">Dans le conteneur</p>
+<pre class="term"><i>$</i> ls /etc/huiteo
+DB_HOST  DB_NAME  MESSAGE_ACCUEIL
+<i>$</i> cat /etc/huiteo/DB_HOST
+postgres</pre>
+      <p class="change oui"><b>Si la ConfigMap change</b>le fichier suit, en une minute environ (pas avec <code>subPath</code>). À l'appli de le relire.</p>
+    </div>
+  </div>
+  <span class="num" data-r="num"></span>
+<script>
+(() => {
+  const S = document.getElementById('c8-injection');
+  const svg = S.querySelector('.liens');
+  // Pour chaque étape : les clés utilisées par la méthode, et la colonne qui les reçoit.
+  const ETAPES = [
+    { col: 1, cles: ['DB_NAME', 'DB_PASSWORD'] },
+    { col: 2, cles: ['DB_HOST', 'DB_NAME', 'MESSAGE_ACCUEIL', 'DB_USER', 'DB_PASSWORD'] },
+    { col: 3, cles: ['DB_HOST', 'DB_NAME', 'MESSAGE_ACCUEIL'] },
+    { col: 0, cles: [] },   // 4 : et si la ConfigMap change ?
+  ];
+  let i = 0;
+  function pos(el) {
+    const k = S.getBoundingClientRect().width / S.offsetWidth;
+    const a = el.getBoundingClientRect(), b = S.getBoundingClientRect();
+    return { x: (a.left - b.left) / k, y: (a.top - b.top) / k, w: a.width / k, h: a.height / k };
+  }
+  function rendre() {
+    const e = ETAPES[i];
+    S.querySelectorAll('.cle').forEach(c => c.classList.toggle('on', e.cles.includes(c.dataset.c)));
+    S.querySelectorAll('.col').forEach(c => {
+      const n = +c.dataset.e;
+      c.className = 'col ' + (e.col === 0 ? '' : n === e.col ? 'ici' : n > e.col ? 'futur' : '');
+    });
+    S.querySelectorAll('.change').forEach(c => c.classList.toggle('cache', e.col !== 0));
+    S.querySelector('[data-r="num"]').textContent = (i + 1) + ' / ' + ETAPES.length;
+    svg.innerHTML = '';
+    if (!e.col) return;
+    const col = pos(S.querySelector(`.col[data-e="${e.col}"]`));
+    svg.innerHTML = e.cles.map((c, j) => {
+      const el = S.querySelector(`.cle[data-c="${c}"]`), p = pos(el);
+      const x0 = p.x + p.w / 2, y0 = p.y + p.h, x1 = col.x + 60 + j * (col.w - 120) / Math.max(1, e.cles.length - 1), y1 = col.y;
+      const coul = el.closest('.sec') ? '#E4572E' : '#2E7D6B';
+      return `<path d="M${x0},${y0} C${x0},${y0 + 50} ${x1},${y1 - 50} ${x1},${y1}" stroke="${coul}"/>`;
+    }).join('');
+  }
+  (window.etapes = window.etapes || {})['c8-injection'] = {
+    suivant() { if (i < ETAPES.length - 1) { i++; rendre(); return true; } return false; },
+    precedent() { if (i > 0) { i--; rendre(); return true; } return false; },
+    debut() { i = 0; rendre(); },
+    fin() { i = ETAPES.length - 1; rendre(); },
+  };
+  rendre();
+  // les polices changent la place des clés : on retrace une fois chargées
+  if (document.fonts) document.fonts.ready.then(rendre);
+})();
+</script>
+</section>
 <section id="c8-sondes" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Démarré, prêt, vivant</h1><table style="font-size:26px;table-layout:fixed;color:#1F2A44"><tr><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Sonde</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Question</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Si elle échoue</th></tr><tr><td style="padding:12px 18px;background:#FFFFFF">startupProbe</td><td style="padding:12px 18px;background:#FFFFFF">as-tu fini de démarrer ?</td><td style="padding:12px 18px;background:#FFFFFF">redémarrage au bout du délai</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">readinessProbe</td><td style="padding:12px 18px;background:#E3E8EE">peux-tu recevoir du trafic ? (<code>/readyz</code>)</td><td style="padding:12px 18px;background:#E3E8EE">retiré du Service, pas redémarré</td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">livenessProbe</td><td style="padding:12px 18px;background:#FFFFFF">es-tu encore vivant ? (<code>/healthz</code>)</td><td style="padding:12px 18px;background:#FFFFFF">redémarré</td></tr></table><p style="font-size:28px;color:#5B6676">Diagnostic : <code>get</code> → <code>describe</code> (Events) → <code>logs --previous</code> → <code>get events</code> → <code>get endpoints</code>. En ouverture : DaemonSets, affinité et anti-affinité.</p>
 </section>
