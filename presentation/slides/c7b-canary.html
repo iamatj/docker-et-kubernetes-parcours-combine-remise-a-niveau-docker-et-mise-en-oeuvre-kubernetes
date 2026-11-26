@@ -1,0 +1,95 @@
+<section id="c7b-canary" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Canary : quelques clients d'abord</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Gateway API (TP 11), des poids par version :</p><pre>backendRefs:
+- name: api-v1-0
+  port: 8000
+  <b>weight: 90</b>
+- name: api-v1-1
+  port: 8000
+  <b>weight: 10</b></pre><p style="font-size:17px;margin-top:6px">Sans Gateway : un même label <code>app=api</code> et le ratio des replicas (1 pod sur 4 ≈ 25 %).</p></div>
+<div class="bloc"><h3>Pour · contre</h3><p>Le risque est limité à une petite part de <b>vrais clients</b>. Il faut des métriques pour juger ; Argo Rollouts ou Flagger automatisent les paliers.</p></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-canary', {
+ "routeur": "HTTPRoute api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le trafic.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "Un pod <b>1.1</b> reçoit <b>10 %</b> des requêtes, prises au hasard : ce sont les canaris.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok"
+   ],
+   "poids": [
+    90,
+    10
+   ]
+  },
+  {
+   "texte": "On observe : <b>erreurs, temps de réponse</b>. Au moindre doute, poids à 0 : 90 % des clients n'ont rien vu.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok"
+   ],
+   "poids": [
+    90,
+    10
+   ]
+  },
+  {
+   "texte": "Tout va bien : <b>50 / 50</b>, avec plus de pods 1.1.",
+   "v1": [
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    50,
+    50
+   ]
+  },
+  {
+   "texte": "<b>100 %</b> sur la 1.1, la 1.0 est retirée.",
+   "v1": [],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  }
+ ]
+});
+</script>
+</section>

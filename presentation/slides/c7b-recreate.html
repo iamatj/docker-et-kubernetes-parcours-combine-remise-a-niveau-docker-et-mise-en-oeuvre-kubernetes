@@ -1,0 +1,73 @@
+<section id="c7b-recreate" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Recreate : tout arrêter, puis tout relancer</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><pre>spec:
+  strategy:
+    <b>type: Recreate</b></pre></div>
+<div class="bloc"><h3>Quand</h3><ul><li>deux versions ne peuvent pas coexister (schéma de base, format de fichier)</li><li>un volume qu'un seul pod peut monter : PostgreSQL (TP 07, question 8)</li></ul></div>
+<div class="bloc"><h3>Pour · contre</h3><p>Simple, aucune ressource en plus. <b>Une coupure à chaque livraison</b>, et autant au retour arrière.</p></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-recreate', {
+ "routeur": "Service api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le trafic, sur 3 pods.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "Recreate <b>arrête d'abord tous les anciens pods</b>. Les requêtes n'ont plus personne pour répondre.",
+   "v1": [
+    "arret",
+    "arret",
+    "arret"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "Les pods de la <b>1.1</b> démarrent. Tant qu'ils ne sont pas prêts : <b>coupure</b>.",
+   "v1": [],
+   "v2": [
+    "demarre",
+    "demarre",
+    "demarre"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  },
+  {
+   "texte": "La 1.1 sert tout. À aucun moment <b>deux versions n'ont tourné ensemble</b> : c'est tout l'intérêt.",
+   "v1": [],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  }
+ ]
+});
+</script>
+</section>

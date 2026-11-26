@@ -1,0 +1,42 @@
+/* Slides de stratégies de déploiement (section.strat), avec trafic.js. Inclus dans <head> par construire.py. */
+section.strat { background:#F4F6F8; padding:46px 90px 36px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+.strat .ent { display:flex; align-items:center; gap:28px; margin-bottom:12px }
+.strat .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px; flex:none }
+.strat h1 { font-family:'Fraunces',serif; font-size:48px; line-height:1.05; font-weight:700 }
+.strat .corps { display:grid; grid-template-columns:1180px 1fr; gap:34px }
+.strat .trafic { position:relative; width:1180px; height:770px }
+.strat .t-lignes { position:absolute; left:0; top:0; stroke:#C9D2DC; stroke-width:2; fill:none }
+.strat .t-u { position:absolute; width:46px; height:46px }
+.strat .t-legende { position:absolute; font-size:17px; color:#5B6676; width:170px; text-align:center }
+.strat .t-rout { position:absolute; width:220px; height:124px; border-radius:16px; background:#1F2A44; color:#F4F6F8; padding:14px 18px; display:flex; flex-direction:column; gap:2px; z-index:1 }
+.strat .t-rout i { font-style:normal; font-size:15px; letter-spacing:2px; text-transform:uppercase; color:#C9D2DC }
+.strat .t-rout b { font-family:'JetBrains Mono',monospace; font-size:21px; color:#F2C14E }
+.strat .t-err { font-size:17px; color:#C9D2DC; margin-top:auto }
+.strat .t-err.on { color:#FF8A6B; font-weight:700 }
+.strat .t-voie { position:absolute; border:4px solid; border-radius:18px; background:#FFFFFF; padding:16px 20px; transition:opacity .4s }
+.strat .t-voie.vide { opacity:.35; border-style:dashed }
+.strat .t-tete { display:flex; justify-content:space-between; align-items:baseline }
+.strat .t-tete b { font-family:'JetBrains Mono',monospace; font-size:30px }
+.strat .t-pct { font-family:'Fraunces',serif; font-size:40px; font-weight:700 }
+.strat .t-pods { position:absolute; left:20px; top:150px; display:flex; gap:14px }
+.strat .t-pod { width:96px; height:112px; border-radius:12px; border:3px solid; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; transition:all .4s; animation:t-entre .4s }
+.strat .t-pod small { font-size:15px; font-weight:700; color:#FFFFFF }
+.strat .t-pod.demarre { background:repeating-linear-gradient(135deg,#FFFFFF 0 10px,#E3E8EE 10px 20px) }
+.strat .t-pod.demarre small, .strat .t-pod.arret small { color:#5B6676 }
+.strat .t-pod.arret { opacity:.4; border-style:dashed }
+.strat .t-points { position:absolute; inset:0; pointer-events:none; z-index:2 }
+.strat .t-pt { position:absolute; left:0; top:0; width:18px; height:18px; border-radius:50%; box-shadow:0 0 0 2px #FFFFFF; font-size:13px; font-weight:700; color:#FFFFFF; display:flex; align-items:center; justify-content:center }
+.strat .t-pt.ko { background:#E4572E !important; width:26px; height:26px; font-size:16px }
+.strat .t-pt.fantome { background:transparent; border:3px dashed #2E7D6B; box-shadow:none; color:#2E7D6B }
+.strat .fiche { display:flex; flex-direction:column; gap:14px }
+.strat .bloc { background:#FFFFFF; border-radius:12px; padding:14px 18px }
+.strat .bloc h3 { font-size:17px; letter-spacing:2px; text-transform:uppercase; color:#2E7D6B; margin-bottom:6px }
+.strat .bloc p, .strat .bloc li { font-size:19px; line-height:1.35; color:#3A4556 }
+.strat .bloc ul { padding-left:1.1em }
+.strat .bloc pre { font-family:'JetBrains Mono',monospace; font-size:15px; line-height:1.4; background:#1F2A44; color:#E3E8EE; border-radius:8px; padding:10px 12px; white-space:pre }
+.strat .bloc pre b { color:#F2C14E; font-weight:400 }
+.strat .recit { position:absolute; left:90px; right:90px; bottom:28px; background:#1F2A44; color:#F4F6F8; border-radius:14px; padding:14px 26px; display:flex; gap:24px; align-items:center; min-height:96px }
+.strat .recit .num { font-family:'Fraunces',serif; font-size:38px; color:#F2C14E; flex:none; width:96px }
+.strat .recit p { font-size:24px; line-height:1.36 }
+.strat .recit p b { color:#F2C14E }
+@keyframes t-entre { from { opacity:0; transform:scale(.8) } to { opacity:1; transform:none } }

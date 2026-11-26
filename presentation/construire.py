@@ -29,6 +29,9 @@ for ident in deck["order"]:
     )
     slides.append(s)
 
+# Code et styles communs à plusieurs slides (stratégies de déploiement)
+commun = "<style>\n" + (ICI / "trafic.css").read_text(encoding="utf-8") + "</style>\n<script>\n" + (ICI / "trafic.js").read_text(encoding="utf-8") + "</script>"
+
 polices = "\n".join(
     f'<link rel="stylesheet" href="{f["href"]}">' for f in deck["faces"].values() if "href" in f
 )
@@ -40,6 +43,7 @@ page = f"""<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(deck["title"])}</title>
 {polices}
+{commun}
 <style>
   html, body {{ margin: 0; height: 100%; background: #111; overflow: hidden; }}
   #scene {{ position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: center; }}

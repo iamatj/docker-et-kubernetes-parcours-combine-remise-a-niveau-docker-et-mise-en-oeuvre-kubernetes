@@ -1,0 +1,87 @@
+<section id="c7b-shadow" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Shadow : la nouvelle version écoute en silence</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Gateway API : un filtre de copie.</p><pre>filters:
+- type: <b>RequestMirror</b>
+  requestMirror:
+    backendRef:
+      name: api-v1-1
+      port: 8000</pre></div>
+<div class="bloc"><h3>Pour · contre</h3><ul><li>aucun client exposé, vraie charge</li><li>deux fois le calcul</li><li><b>effets de bord</b> : écritures, mails, paiements à neutraliser</li></ul></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-shadow', {
+ "routeur": "HTTPRoute api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le trafic.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "La <b>1.1</b> reçoit <b>une copie de chaque requête</b>. Sa réponse est jetée : les clients ne la voient jamais.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ],
+   "miroir": true
+  },
+  {
+   "texte": "On compare ses journaux, ses erreurs, ses temps de réponse, <b>sous la vraie charge</b>, sans risque pour les clients.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ],
+   "miroir": true
+  },
+  {
+   "texte": "Attention : une requête copiée est <b>exécutée deux fois</b>. Un rendez-vous pris en 1.1 serait un doublon : base séparée, ou lecture seule.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ],
+   "miroir": true
+  }
+ ]
+});
+</script>
+</section>

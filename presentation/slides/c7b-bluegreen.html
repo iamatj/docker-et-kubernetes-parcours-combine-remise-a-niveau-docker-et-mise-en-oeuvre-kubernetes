@@ -1,0 +1,101 @@
+<section id="c7b-bluegreen" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Blue/green : deux environnements, une bascule</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Deux Deployments, <code>api-blue</code> et <code>api-green</code>, et un Service qui choisit :</p><pre>kubectl patch service api -p \
+ '{"spec":{"selector":
+   {"app":"api","<b>version":"green</b>"}}}'</pre></div>
+<div class="bloc"><h3>Pour · contre</h3><ul><li>bascule et retour <b>instantanés</b>, version testée avant le trafic</li><li><b>deux fois les ressources</b> pendant la bascule</li><li>la base est partagée : elle doit convenir aux deux versions</li></ul></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-bluegreen', {
+ "routeur": "Service api",
+ "etapes": [
+  {
+   "texte": "<b>Blue</b> (1.0) sert tout le trafic.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "On déploie <b>green</b> (1.1) à côté, au complet, <b>sans aucun trafic</b>.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "demarre",
+    "demarre",
+    "demarre"
+   ],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "Green est prêt. On le teste par un Service de test, <b>les clients ne voient toujours que blue</b>.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    100,
+    0
+   ]
+  },
+  {
+   "texte": "<b>Bascule</b> : on change le sélecteur du Service. 100 % du trafic passe sur green, d'un coup.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  },
+  {
+   "texte": "Blue reste allumé quelques heures : <b>le retour arrière, c'est remettre le sélecteur</b>. Puis on l'éteint.",
+   "v1": [
+    "arret",
+    "arret",
+    "arret"
+   ],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "poids": [
+    0,
+    100
+   ]
+  }
+ ]
+});
+</script>
+</section>
