@@ -1494,6 +1494,147 @@ postgres</pre>
 })();
 </script>
 </section>
+<section id="c8-journee" data-transition="fade">
+<style>
+  #c8-journee { background:#F4F6F8; padding:48px 90px 30px; font-family:'DM Sans',sans-serif; color:#1F2A44 }
+  #c8-journee .ent { display:flex; align-items:center; gap:28px; margin-bottom:20px }
+  #c8-journee .tag { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:#F4F6F8; background:#2E7D6B; padding:8px 18px; border-radius:8px }
+  #c8-journee h1 { font-family:'Fraunces',serif; font-size:48px; line-height:1.05; font-weight:700; flex:1 }
+  #c8-journee .restarts { font-family:'JetBrains Mono',monospace; font-size:22px; background:#1F2A44; color:#F4F6F8; border-radius:10px; padding:8px 16px }
+  #c8-journee .restarts b { color:#F2C14E; font-weight:700 }
+  #c8-journee .restarts.choc { animation: choc .6s }
+  #c8-journee .scene { position:relative; height:720px }
+  #c8-journee .piece { position:absolute; top:0; width:560px; height:720px; border-radius:18px; border:4px solid #C9D2DC; background:#FFFFFF; transition: border-color .4s, opacity .4s; overflow:hidden }
+  #c8-journee .piece.ici { border-color:#F2C14E; box-shadow:0 0 0 4px #F2C14E55 }
+  #c8-journee .piece.loin { opacity:.45 }
+  #c8-journee .piece h2 { position:absolute; left:22px; top:16px; font-size:26px }
+  #c8-journee .piece h2 small { display:block; font-family:'JetBrains Mono',monospace; font-size:19px; color:#2E7D6B; font-weight:700 }
+  #c8-journee .decor { position:absolute; left:0; right:0; bottom:174px; height:150px; display:flex; align-items:flex-end; justify-content:center; font-size:120px; line-height:1 }
+  #c8-journee .sol { position:absolute; left:0; right:0; bottom:160px; height:14px; background:#E3E8EE }
+  #c8-journee .yaml { position:absolute; left:18px; right:18px; bottom:18px; height:126px; font-family:'JetBrains Mono',monospace; font-size:16px; line-height:1.45; background:#1F2A44; color:#E3E8EE; border-radius:10px; padding:10px 14px; white-space:pre }
+  #c8-journee .yaml b { color:#F2C14E; font-weight:400 }
+  #c8-journee .score { position:absolute; right:20px; top:20px; text-align:right; font-size:19px; color:#5B6676 }
+  #c8-journee .score .pastille { display:inline-flex; width:58px; height:58px; border-radius:50%; align-items:center; justify-content:center; font-size:34px; font-weight:700; color:#FFFFFF; margin-bottom:4px }
+  #c8-journee .score .ok { background:#2E7D6B }
+  #c8-journee .score .ko { background:#E4572E }
+  #c8-journee .svc { position:absolute; left:22px; top:92px; font-size:18px; font-weight:700; border-radius:8px; padding:5px 12px }
+  #c8-journee .svc.non { background:#E4572E1F; color:#9A3412 }
+  #c8-journee .svc.oui { background:#2E7D6B1F; color:#1F5C4F }
+  #c8-journee .kubelet { position:absolute; top:300px; font-size:74px; line-height:1; text-align:center; transition: left .5s, opacity .4s; z-index:2 }
+  #c8-journee .kubelet small { display:block; font-family:'JetBrains Mono',monospace; font-size:16px; color:#5B6676; margin-top:10px }
+  #c8-journee .perso { position:absolute; top:370px; font-size:110px; line-height:1; transition: left .9s ease-in-out; z-index:2 }
+  #c8-journee .bulle { position:absolute; z-index:3; background:#1F2A44; color:#F4F6F8; font-size:22px; font-weight:700; border-radius:14px; padding:10px 16px; white-space:nowrap; opacity:0 }
+  #c8-journee .bulle.q { animation: bulle 3.2s .2s infinite }
+  #c8-journee .bulle.r { background:#F2C14E; color:#1F2A44; animation: bulle 3.2s 1.1s infinite }
+  #c8-journee .recit { position:absolute; left:90px; right:90px; bottom:24px; background:#1F2A44; color:#F4F6F8; border-radius:14px; padding:12px 26px; display:flex; gap:24px; align-items:center; min-height:96px }
+  #c8-journee .recit .num { font-family:'Fraunces',serif; font-size:38px; color:#F2C14E; flex:none; width:96px }
+  #c8-journee .recit p { font-size:23px; line-height:1.36 }
+  #c8-journee .recit p b { color:#F2C14E }
+  #c8-journee .recit code { font-family:'JetBrains Mono',monospace; font-size:21px; white-space:nowrap }
+  @keyframes bulle { 0% { opacity:0; transform:translateY(8px) } 10%, 80% { opacity:1; transform:none } 100% { opacity:0 } }
+  @keyframes choc { 0%, 100% { transform:none } 25% { transform:scale(1.25) } }
+</style>
+  <div class="ent"><p class="tag">Le concept</p><h1>Les sondes : la journée d'un conteneur</h1><span class="restarts">RESTARTS <b data-r="restarts">0</b></span></div>
+  <div class="scene">
+    <div class="piece" data-piece="0" style="left:0">
+      <h2>La chambre<small>startupProbe</small></h2>
+      <div class="decor">🛏️</div><div class="sol"></div>
+      <div class="score" data-score="0"></div>
+<div class="yaml">startupProbe:
+  httpGet: {path: /healthz, port: 8000}
+  <b>periodSeconds: 2</b>
+  <b>failureThreshold: 30</b>   # 60 s pour se lever</div>
+    </div>
+    <div class="piece" data-piece="1" style="left:590px">
+      <h2>La porte<small>readinessProbe</small></h2>
+      <span class="svc" data-svc="1"></span>
+      <div class="decor">🚪</div><div class="sol"></div>
+      <div class="score" data-score="1"></div>
+<div class="yaml">readinessProbe:
+  httpGet: {path: /readyz, port: 8000}
+  <b>periodSeconds: 5</b>
+  <b>failureThreshold: 2</b>    # pas de clients</div>
+    </div>
+    <div class="piece" data-piece="2" style="left:1180px">
+      <h2>Le bureau<small>livenessProbe</small></h2>
+      <span class="svc" data-svc="2"></span>
+      <div class="decor">🖥️</div><div class="sol"></div>
+      <div class="score" data-score="2"></div>
+<div class="yaml">livenessProbe:
+  httpGet: {path: /healthz, port: 8000}
+  <b>periodSeconds: 5</b>
+  <b>failureThreshold: 3</b>    # puis redémarrage</div>
+    </div>
+    <div class="kubelet" data-r="kubelet">🧑‍🔧<small>kubelet</small></div>
+    <div class="perso" data-r="perso"></div>
+    <div class="bulle q" data-r="q"></div>
+    <div class="bulle r" data-r="r"></div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+(() => {
+  const S = document.getElementById('c8-journee');
+  const r = k => S.querySelector(`[data-r="${k}"]`);
+  const X = [0, 590, 1180];   // gauche de chaque pièce
+  // piece : où se joue l'étape ; perso : son état ; q / rep : la question du kubelet et la réponse ;
+  // ok : résultat de la sonde ; compte : texte sous la pastille ; svc : le Service lui envoie-t-il des clients ?
+  const ETAPES = [
+    { piece: 0, perso: '😴', q: 'Réveillé ?', rep: 'zzz…', ok: false, compte: 'échec 1 / 30', svc: false,
+      texte: "Le conteneur démarre. Toutes les 2 s, le kubelet frappe : <b>réveillé ?</b> Pas encore, et ce n'est pas grave : il a droit à <b>30 essais</b>, soit 60 s." },
+    { piece: 0, perso: '😴', q: 'Réveillé ?', rep: 'encore 5 min…', ok: false, compte: 'échec 12 / 30', svc: false,
+      texte: "Tant que la startupProbe n'a pas réussi, <b>les deux autres sondes ne commencent même pas</b>. Sans elle, la liveness l'aurait tué en plein réveil (TP 08, C1)." },
+    { piece: 0, perso: '🥱', q: 'Réveillé ?', rep: 'Oui !', ok: true, compte: 'réussie : terminé', svc: false,
+      texte: "Réveillé ! La startupProbe a réussi <b>une fois : elle ne servira plus</b> de la vie du conteneur. Au bout de 30 échecs, il aurait été redémarré." },
+    { piece: 1, perso: '🍳', q: 'Prêt ? Mangé, habillé ?', rep: 'je déjeune…', ok: false, compte: 'pas prêt', svc: false,
+      texte: "À la porte, toutes les 5 s : <b>prêt à recevoir des clients ?</b> Pas encore : <b>le Service ne lui envoie personne</b>. Mais on ne le renvoie pas au lit." },
+    { piece: 1, perso: '🤵', q: 'Prêt ?', rep: 'Prêt !', ok: true, compte: 'prêt', svc: true,
+      texte: "Prêt : il entre dans les <b>endpoints du Service</b>, les clients arrivent. La readiness continue toute la journée : débordé, il peut en sortir un moment, puis revenir." },
+    { piece: 2, perso: '🧑‍💻', q: 'Tu travailles ?', rep: 'Oui !', ok: true, compte: 'vivant', svc: true,
+      texte: "Au bureau, toutes les 5 s : <b>es-tu encore vivant ?</b> (livenessProbe). Tant qu'il répond, on le laisse travailler." },
+    { piece: 2, perso: '😵', q: 'Tu travailles ?', rep: '…', ok: false, compte: 'échec 2 / 3', svc: false,
+      texte: "Il est <b>bloqué</b> (un verrou, une boucle sans fin) : le processus tourne, mais ne répond plus. 1 échec, 2 échecs… La readiness l'a déjà retiré du Service." },
+    { piece: 0, perso: '😴', q: '3 échecs : on recommence', rep: 'zzz…', ok: false, compte: 'échec 1 / 30', svc: false, restart: true,
+      texte: "3 échecs : <b>le kubelet redémarre le conteneur</b>. Retour au lit, et la journée recommence : <code>RESTARTS 1</code>. Pour voir pourquoi : <code>kubectl logs --previous</code>." },
+  ];
+  let i = 0;
+  function rendre() {
+    const e = ETAPES[i];
+    S.querySelectorAll('.piece').forEach(p => { const n = +p.dataset.piece; p.className = 'piece ' + (n === e.piece ? 'ici' : 'loin'); });
+    S.querySelectorAll('.score').forEach(s => {
+      const n = +s.dataset.score;
+      s.innerHTML = n === e.piece ? `<span class="pastille ${e.ok ? 'ok' : 'ko'}">${e.ok ? '✓' : '✕'}</span><br>${e.compte}` : '';
+    });
+    S.querySelectorAll('.svc').forEach(s => {
+      const n = +s.dataset.svc, vu = e.piece >= n || (e.restart && n === 1);
+      s.className = 'svc ' + (e.svc ? 'oui' : 'non');
+      s.textContent = !vu ? '' : e.svc ? '✓ le Service lui envoie des clients' : '✕ aucun client';
+      s.style.display = vu ? '' : 'none';
+    });
+    const x = X[e.piece];
+    r('kubelet').style.left = (x + 36) + 'px';
+    r('perso').style.left = (x + 330) + 'px';
+    r('perso').textContent = e.perso;
+    // les bulles : on les recrée pour relancer leur animation
+    ['q', 'r'].forEach(k => { const b = r(k), n = b.cloneNode(); b.replaceWith(n); });
+    const q = r('q'), rep = r('r');
+    q.textContent = e.q; q.style.left = (x + 24) + 'px'; q.style.top = '230px';
+    rep.textContent = e.rep; rep.style.left = (x + 330) + 'px'; rep.style.top = '300px';
+    r('num').textContent = (i + 1) + ' / ' + ETAPES.length;
+    r('texte').innerHTML = e.texte;
+    const n = ETAPES.slice(0, i + 1).filter(s => s.restart).length;
+    const rs = r('restarts'); rs.textContent = n;
+    const boite = rs.parentElement; boite.classList.remove('choc'); if (e.restart) { boite.offsetWidth; boite.classList.add('choc'); }
+  }
+  (window.etapes = window.etapes || {})['c8-journee'] = {
+    suivant() { if (i < ETAPES.length - 1) { i++; rendre(); return true; } return false; },
+    precedent() { if (i > 0) { i--; rendre(); return true; } return false; },
+    debut() { i = 0; rendre(); },
+    fin() { i = ETAPES.length - 1; rendre(); },
+  };
+  rendre();
+})();
+</script>
+</section>
 <section id="c8-sondes" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
 <p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Démarré, prêt, vivant</h1><table style="font-size:26px;table-layout:fixed;color:#1F2A44"><tr><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Sonde</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Question</th><th style="background:#1F2A44;color:#F4F6F8;padding:14px 18px">Si elle échoue</th></tr><tr><td style="padding:12px 18px;background:#FFFFFF">startupProbe</td><td style="padding:12px 18px;background:#FFFFFF">as-tu fini de démarrer ?</td><td style="padding:12px 18px;background:#FFFFFF">redémarrage au bout du délai</td></tr><tr><td style="padding:12px 18px;background:#E3E8EE">readinessProbe</td><td style="padding:12px 18px;background:#E3E8EE">peux-tu recevoir du trafic ? (<code>/readyz</code>)</td><td style="padding:12px 18px;background:#E3E8EE">retiré du Service, pas redémarré</td></tr><tr><td style="padding:12px 18px;background:#FFFFFF">livenessProbe</td><td style="padding:12px 18px;background:#FFFFFF">es-tu encore vivant ? (<code>/healthz</code>)</td><td style="padding:12px 18px;background:#FFFFFF">redémarré</td></tr></table><p style="font-size:28px;color:#5B6676">Diagnostic : <code>get</code> → <code>describe</code> (Events) → <code>logs --previous</code> → <code>get events</code> → <code>get endpoints</code>. En ouverture : DaemonSets, affinité et anti-affinité.</p>
 </section>

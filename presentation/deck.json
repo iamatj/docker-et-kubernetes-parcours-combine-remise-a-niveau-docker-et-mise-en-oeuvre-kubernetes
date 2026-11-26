@@ -72,6 +72,7 @@
     "c8-incident",
     "c8-config",
     "c8-injection",
+    "c8-journee",
     "c8-sondes",
     "pause-j2-aprem",
     "c8-tp",
@@ -117,12 +118,12 @@
     {
       "title": "Jour 3 · Production",
       "description": "Stockage, sécurité, réseau et Helm",
-      "start": 76
+      "start": 77
     },
     {
       "title": "Clôture",
       "description": "QCM, synthèse, évaluation",
-      "start": 94
+      "start": 95
     }
   ],
   "faces": {
