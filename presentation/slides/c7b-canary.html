@@ -1,38 +1,42 @@
 <section id="c7b-canary" class="strat" data-transition="fade">
-  <div class="ent"><p class="tag">Stratégie</p><h1>Canary : quelques clients d'abord</h1></div>
+  <div class="ent"><p class="tag">Stratégie</p><h1>Canary : un pod de la nouvelle version parmi les anciens</h1></div>
   <div class="corps">
     <div class="trafic"></div>
     <div class="fiche">
-<div class="bloc"><h3>Dans Kubernetes</h3><p>Gateway API (TP 11), des poids par version :</p><pre>backendRefs:
-- name: api-v1-0
-  port: 8000
-  <b>weight: 90</b>
-- name: api-v1-1
-  port: 8000
-  <b>weight: 10</b></pre><p style="font-size:17px;margin-top:6px">Sans Gateway : un même label <code>app=api</code> et le ratio des replicas (1 pod sur 4 ≈ 25 %).</p></div>
-<div class="bloc"><h3>Pour · contre</h3><p>Le risque est limité à une petite part de <b>vrais clients</b>. Il faut des métriques pour juger ; Argo Rollouts ou Flagger automatisent les paliers.</p></div>
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Deux Deployments avec le <b>même label</b> <code>app=api</code>, derrière le même Service. On déplace les replicas :</p><pre>kubectl scale deploy/api-v1-0 <b>--replicas=3</b>
+kubectl scale deploy/api-v1-1 <b>--replicas=1</b></pre><p style="font-size:17px;margin-top:6px">Pour 5 % plutôt que 25 % sans 20 pods : des poids dans la Gateway API (TP 11), <code>weight: 95</code> / <code>weight: 5</code>.</p></div>
+<div class="bloc"><h3>Rolling update ou canary ?</h3><p>Le rolling update <b>ajoute</b> un pod neuf puis en retire un ancien, et va jusqu'au bout tout seul. Le canary <b>remplace</b> un pod existant et <b>s'arrête</b> : vous décidez de la suite.</p></div>
     </div>
   </div>
   <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
 <script>
 Trafic('c7b-canary', {
- "routeur": "HTTPRoute api",
+ "routeur": "Service api",
  "etapes": [
   {
-   "texte": "La <b>1.0</b> sert tout le trafic.",
+   "texte": "La <b>1.0</b> sert tout le trafic, sur 4 pods.",
    "v1": [
+    "ok",
     "ok",
     "ok",
     "ok"
    ],
-   "v2": [],
-   "poids": [
-    100,
-    0
+   "v2": []
+  },
+  {
+   "texte": "On <b>retire un pod 1.0</b>, et un pod <b>1.1</b> démarre à sa place : le canari. Toujours 4 pods.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok",
+    "arret"
+   ],
+   "v2": [
+    "demarre"
    ]
   },
   {
-   "texte": "Un pod <b>1.1</b> reçoit <b>10 %</b> des requêtes, prises au hasard : ce sont les canaris.",
+   "texte": "Le canari est prêt. Le Service répartit sur les 4 pods : il reçoit <b>25 %</b> des requêtes.",
    "v1": [
     "ok",
     "ok",
@@ -40,14 +44,10 @@ Trafic('c7b-canary', {
    ],
    "v2": [
     "ok"
-   ],
-   "poids": [
-    90,
-    10
    ]
   },
   {
-   "texte": "On observe : <b>erreurs, temps de réponse</b>. Au moindre doute, poids à 0 : 90 % des clients n'ont rien vu.",
+   "texte": "On observe : <b>erreurs, temps de réponse</b>. Au moindre doute, le canari repasse à 0 : 75 % des clients n'ont rien vu.",
    "v1": [
     "ok",
     "ok",
@@ -55,14 +55,22 @@ Trafic('c7b-canary', {
    ],
    "v2": [
     "ok"
-   ],
-   "poids": [
-    90,
-    10
    ]
   },
   {
-   "texte": "Tout va bien : <b>50 / 50</b>, avec plus de pods 1.1.",
+   "texte": "Tout va bien : un deuxième pod 1.0 est remplacé…",
+   "v1": [
+    "ok",
+    "ok",
+    "arret"
+   ],
+   "v2": [
+    "ok",
+    "demarre"
+   ]
+  },
+  {
+   "texte": "… <b>2 et 2</b>, la moitié du trafic.",
    "v1": [
     "ok",
     "ok"
@@ -70,23 +78,16 @@ Trafic('c7b-canary', {
    "v2": [
     "ok",
     "ok"
-   ],
-   "poids": [
-    50,
-    50
    ]
   },
   {
-   "texte": "<b>100 %</b> sur la 1.1, la 1.0 est retirée.",
+   "texte": "Les 4 pods sont en <b>1.1</b>. À aucun moment il n'y a eu plus de 4 pods.",
    "v1": [],
    "v2": [
     "ok",
     "ok",
+    "ok",
     "ok"
-   ],
-   "poids": [
-    0,
-    100
    ]
   }
  ]

@@ -1,3 +1,99 @@
-<section id="c7b-rolling" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
-<p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Rolling update et rollback</h1><div style="display:flex;gap:56px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-family:'JetBrains Mono',monospace;font-size:22px;line-height:1.5;white-space:nowrap;background:#141C2E;color:#F4F6F8;padding:30px 36px;border-radius:14px;overflow:hidden">spec:<br>&#160;&#160;<span style="color:#F2C14E">strategy</span>:<br>&#160;&#160;&#160;&#160;type: RollingUpdate<br>&#160;&#160;&#160;&#160;rollingUpdate:<br>&#160;&#160;&#160;&#160;&#160;&#160;<span style="color:#F2C14E">maxSurge: 1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; # un pod de plus<br>&#160;&#160;&#160;&#160;&#160;&#160;<span style="color:#F2C14E">maxUnavailable: 0</span>&#160;&#160; # jamais un de moins<br>&#160;&#160;minReadySeconds: 5<br><br>kubectl rollout status deployment/api<br>kubectl rollout history deployment/api<br>kubectl rollout <span style="color:#F2C14E">undo</span> deployment/api</p></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><ul style="font-size:28px;line-height:1.35;color:#1F2A44;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">un nouveau ReplicaSet monte, l'ancien descend</li><li style="margin:0 0 18px;padding-left:10px"><code>kubernetes.io/change-cause</code> pour un historique lisible</li><li style="margin:0 0 18px;padding-left:10px">une image introuvable bloque la mise à jour, sans couper</li><li style="margin:0 0 18px;padding-left:10px">le fichier reste la référence : <code>set image</code> est un geste d'urgence</li></ul></div></div>
+<section id="c7b-rolling" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Rolling update : un nouveau, puis un ancien en moins</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><pre>spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      <b>maxSurge: 1</b>        # un pod de plus
+      <b>maxUnavailable: 0</b>  # jamais un de moins
+  minReadySeconds: 5</pre><pre style="margin-top:8px">kubectl rollout status  deployment/api
+kubectl rollout history deployment/api
+kubectl rollout <b>undo</b>    deployment/api</pre></div>
+<div class="bloc"><ul><li>chaque version est un <b>ReplicaSet</b> : le nouveau monte, l'ancien descend</li><li><code>kubernetes.io/change-cause</code> pour un historique lisible</li><li>une image introuvable <b>bloque</b> la mise à jour, sans couper</li><li>le fichier reste la référence : <code>set image</code> est un geste d'urgence</li></ul></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-rolling', {
+ "routeur": "Service api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le trafic, sur 3 pods.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": []
+  },
+  {
+   "texte": "<code>maxSurge: 1</code> : un pod <b>1.1 de plus</b> démarre. Il y a 4 pods, les 3 anciens servent toujours.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "demarre"
+   ]
+  },
+  {
+   "texte": "Il est prêt (sonde, puis <code>minReadySeconds</code>) : il reçoit du trafic, et <b>un ancien s'arrête</b>. <code>maxUnavailable: 0</code> : jamais moins de 3 pods prêts.",
+   "v1": [
+    "ok",
+    "ok",
+    "arret"
+   ],
+   "v2": [
+    "ok"
+   ]
+  },
+  {
+   "texte": "Et on recommence : <b>un nouveau</b>…",
+   "v1": [
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "demarre"
+   ]
+  },
+  {
+   "texte": "… <b>puis un ancien en moins</b>.",
+   "v1": [
+    "ok",
+    "arret"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "texte": "Dernier tour : un nouveau, puis le dernier ancien s'arrête.",
+   "v1": [
+    "arret"
+   ],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "texte": "Terminé, sans coupure. L'ancien ReplicaSet reste, à 0 pod : <b><code>kubectl rollout undo</code></b> le fait remonter de la même façon.",
+   "v1": [],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  }
+ ]
+});
+</script>
 </section>
