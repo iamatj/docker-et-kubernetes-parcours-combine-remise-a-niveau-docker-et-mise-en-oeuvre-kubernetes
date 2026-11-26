@@ -57,7 +57,7 @@ section.strat { background:#F4F6F8; padding:46px 90px 36px; font-family:'DM Sans
 // Inclus dans <head> par construire.py. Une slide l'utilise ainsi :
 //   Trafic('c7b-canary', { routeur: 'HTTPRoute api', etapes: [ { texte, v1: [...], v2: [...], poids: [90, 10] }, ... ] })
 // v1 / v2 : un état par pod : 'ok' (sert), 'demarre', 'arret'.
-// poids : part du trafic [v1, v2] ; segments: true (A/B : les utilisateurs du groupe B vont en v2) ;
+// poids : part du trafic [v1, v2] ; sans poids, comme un Service : chaque pod prêt reçoit autant que les autres ; segments: true (A/B : les utilisateurs du groupe B vont en v2) ;
 // miroir: true (shadow : chaque requête est copiée vers v2, la réponse est ignorée).
 function Trafic(id, cfg) {
   const S = document.getElementById(id);
@@ -98,7 +98,7 @@ function Trafic(id, cfg) {
       voie.querySelector('.t-pods').innerHTML = pods.map(p => `<span class="t-pod ${p}" style="background:${p === 'ok' ? VOIES[n].coul : ''};border-color:${VOIES[n].coul}">
         <small>${p === 'ok' ? 'sert' : p === 'demarre' ? 'démarre' : 'arrêt'}</small></span>`).join('');
       voie.classList.toggle('vide', !pods.length);
-      const pct = e.miroir && n === 1 ? 'copie' : (e.segments ? (n ? 'groupe B' : 'groupe A') : (e.poids[n] + ' %'));
+      const pct = e.miroir && n === 1 ? 'copie' : (e.segments ? (n ? 'groupe B' : 'groupe A') : (poids(e)[n] + ' %'));
       voie.querySelector('.t-pct').textContent = pods.length ? pct : '';
     });
     zone.querySelectorAll('.t-u').forEach((u, k) => u.innerHTML = svgUtil(e.segments ? (util[k].b ? '#E4572E' : '#2F4858') : '#5B6676'));
@@ -109,13 +109,18 @@ function Trafic(id, cfg) {
     const a = el.animate(etapes.map(([x, y]) => ({ transform: `translate(${x - 9}px, ${y - 9}px)` })), { duration: duree, easing: 'linear', fill: 'forwards' });
     a.onfinish = fin;
   }
+  function poids(e) {
+    if (e.poids) return e.poids;
+    const a = (e.v1 || []).filter(p => p === 'ok').length, b = (e.v2 || []).filter(p => p === 'ok').length;
+    return a + b ? [Math.round(100 * a / (a + b)), Math.round(100 * b / (a + b))] : [0, 0];
+  }
   function requete() {
     if (!S.classList.contains('active') && !S.dataset.toujours) return;
     const e = cfg.etapes[i];
     const k = Math.floor(Math.random() * NB_UTIL), u = util[k];
     let n;
     if (e.segments) n = u.b ? 1 : 0;
-    else n = Math.random() * 100 < e.poids[0] ? 0 : 1;
+    else n = Math.random() * 100 < poids(e)[0] ? 0 : 1;
     const servants = (n ? e.v2 : e.v1 || []).map((p, j) => [p, j]).filter(([p]) => p === 'ok');
     const coul = e.segments ? (u.b ? '#E4572E' : '#2F4858') : '#F2C14E';
     const d = document.createElement('span'); d.className = 't-pt'; d.style.background = coul; pts.appendChild(d);
@@ -786,12 +791,108 @@ function Trafic(id, cfg) {
   <div class="leg"><span>Part du trafic au fil de la livraison :</span><span><i style="background:#2F4858"></i>1.0</span><span><i style="background:#2E7D6B"></i>1.1</span><span><i style="background:#E4572E"></i>coupure</span><span><i style="background:repeating-linear-gradient(90deg,#7FD1B9 0 6px,transparent 6px 11px)"></i>prête ou copiée, sans clients</span></div>
   <table>
     <tr><th>Stratégie</th><th>Le trafic</th><th>Coupure ?</th><th>Ressources en plus</th><th>Retour arrière</th><th>Dans Kubernetes</th></tr>
-    <tr><td><b>Recreate</b><small>tout arrêter, tout relancer</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><rect width="100" height="64" fill="#2F4858"/><rect x="100" width="40" height="64" fill="#E4572E"/><rect x="140" width="110" height="64" fill="#2E7D6B"/></svg></td><td><span class="ko">oui</span></td><td>aucune</td><td>redéployer : nouvelle coupure</td><td><code>strategy: Recreate</code></td></tr><tr><td><b>Rolling update</b><small>pod par pod (par défaut)</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 75,64 175,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 75,64 175,0 250,0 250,64" fill="#2E7D6B"/></svg></td><td>non, avec des sondes</td><td>+1 pod (<code>maxSurge</code>)</td><td><code>rollout undo</code>, progressif</td><td><code>strategy: RollingUpdate</code></td></tr><tr><td><b>Blue/green</b><small>tout prêt à côté, puis bascule</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 125,64 125,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 125,64 125,0 250,0 250,64" fill="#2E7D6B"/><line x1="62" y1="61" x2="125" y2="61" stroke="#7FD1B9" stroke-width="5" stroke-dasharray="6 5"/></svg></td><td>non</td><td>×2 pendant la bascule</td><td>instantané : le sélecteur</td><td>2 Deployments + Service</td></tr><tr><td><b>Canary</b><small>une petite part au hasard</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 55,64 55,58 125,58 125,32 188,32 188,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 55,64 55,58 125,58 125,32 188,32 188,0 250,0 250,64" fill="#2E7D6B"/></svg></td><td>non</td><td>quelques pods</td><td>instantané : poids à 0</td><td>Gateway API, <code>weight</code></td></tr><tr><td><b>A/B testing</b><small>un groupe choisi, une mesure métier</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 55,64 55,32 195,32 195,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 55,64 55,32 195,32 195,0 250,0 250,64" fill="#2E7D6B"/><line x1="55" y1="32.0" x2="195" y2="32.0" stroke="#F4F6F8" stroke-width="2"/></svg></td><td>non</td><td>quelques pods</td><td>instantané : la règle</td><td>Gateway API, <code>matches</code></td></tr><tr><td><b>Shadow</b><small>une copie du trafic, réponse jetée</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 250,64 250,0" fill="#2F4858"/><polygon points="0,64 0,64 250,64 250,64" fill="#2E7D6B"/><line x1="62" y1="32.0" x2="250" y2="32.0" stroke="#7FD1B9" stroke-width="5" stroke-dasharray="8 6"/></svg></td><td>non, jamais exposée</td><td>×2 en calcul</td><td>rien à annuler</td><td>Gateway API, <code>RequestMirror</code></td></tr>
+    <tr><td><b>Recreate</b><small>tout arrêter, tout relancer</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><rect width="100" height="64" fill="#2F4858"/><rect x="100" width="40" height="64" fill="#E4572E"/><rect x="140" width="110" height="64" fill="#2E7D6B"/></svg></td><td><span class="ko">oui</span></td><td>aucune</td><td>redéployer : nouvelle coupure</td><td><code>strategy: Recreate</code></td></tr><tr><td><b>Rolling update</b><small>pod par pod (par défaut)</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 75,64 175,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 75,64 175,0 250,0 250,64" fill="#2E7D6B"/></svg></td><td>non, avec des sondes</td><td>+1 pod (<code>maxSurge</code>)</td><td><code>rollout undo</code>, progressif</td><td><code>strategy: RollingUpdate</code></td></tr><tr><td><b>Blue/green</b><small>tout prêt à côté, puis bascule</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 125,64 125,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 125,64 125,0 250,0 250,64" fill="#2E7D6B"/><line x1="62" y1="61" x2="125" y2="61" stroke="#7FD1B9" stroke-width="5" stroke-dasharray="6 5"/></svg></td><td>non</td><td>×2 pendant la bascule</td><td>instantané : le sélecteur</td><td>2 Deployments + Service</td></tr><tr><td><b>Canary</b><small>un pod remplacé, on observe</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 55,64 55,48 138,48 138,32 195,32 195,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 55,64 55,48 138,48 138,32 195,32 195,0 250,0 250,64" fill="#2E7D6B"/></svg></td><td>non</td><td>aucune : un pod remplacé</td><td>instantané : canari à 0</td><td>2 Deployments, même label</td></tr><tr><td><b>A/B testing</b><small>un groupe choisi, une mesure métier</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 55,64 55,32 195,32 195,0 250,0 250,0" fill="#2F4858"/><polygon points="0,64 0,64 55,64 55,32 195,32 195,0 250,0 250,64" fill="#2E7D6B"/><line x1="55" y1="32.0" x2="195" y2="32.0" stroke="#F4F6F8" stroke-width="2"/></svg></td><td>non</td><td>quelques pods</td><td>instantané : la règle</td><td>Gateway API, <code>matches</code></td></tr><tr><td><b>Shadow</b><small>une copie du trafic, réponse jetée</small></td><td><svg width="250" height="64" viewBox="0 0 250 64" style="display:block;border-radius:6px;overflow:hidden"><polygon points="0,0 0,64 250,64 250,0" fill="#2F4858"/><polygon points="0,64 0,64 250,64 250,64" fill="#2E7D6B"/><line x1="62" y1="32.0" x2="250" y2="32.0" stroke="#7FD1B9" stroke-width="5" stroke-dasharray="8 6"/></svg></td><td>non, jamais exposée</td><td>×2 en calcul</td><td>rien à annuler</td><td>Gateway API, <code>RequestMirror</code></td></tr>
   </table>
   <div class="huiteo"><b>Chez Huiteo</b><span>L'API et le site : <b>rolling update</b>, <code>maxSurge: 1</code>, <code>maxUnavailable: 0</code> (TP 07). PostgreSQL : <b>Recreate</b>, un seul pod peut monter son volume. Canary et blue/green viendront avec la Gateway (TP 11).</span></div>
 </section>
-<section id="c7b-rolling" data-transition="fade" style="background:#F4F6F8;padding:90px 110px;display:flex;flex-direction:column;gap:36px;font-family:'DM Sans',sans-serif;color:#1F2A44">
-<p style="font-family:'DM Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F4F6F8;background:#2E7D6B;align-self:flex-start;padding:8px 18px;border-radius:8px">Le concept</p><h1 style="font-family:'Fraunces',serif;font-size:60px;line-height:1.08;font-weight:700;color:#1F2A44">Rolling update et rollback</h1><div style="display:flex;gap:56px;align-items:flex-start"><div style="flex:1;display:flex;flex-direction:column;gap:22px"><p style="font-family:'JetBrains Mono',monospace;font-size:22px;line-height:1.5;white-space:nowrap;background:#141C2E;color:#F4F6F8;padding:30px 36px;border-radius:14px;overflow:hidden">spec:<br>&#160;&#160;<span style="color:#F2C14E">strategy</span>:<br>&#160;&#160;&#160;&#160;type: RollingUpdate<br>&#160;&#160;&#160;&#160;rollingUpdate:<br>&#160;&#160;&#160;&#160;&#160;&#160;<span style="color:#F2C14E">maxSurge: 1</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; # un pod de plus<br>&#160;&#160;&#160;&#160;&#160;&#160;<span style="color:#F2C14E">maxUnavailable: 0</span>&#160;&#160; # jamais un de moins<br>&#160;&#160;minReadySeconds: 5<br><br>kubectl rollout status deployment/api<br>kubectl rollout history deployment/api<br>kubectl rollout <span style="color:#F2C14E">undo</span> deployment/api</p></div><div style="flex:1;display:flex;flex-direction:column;gap:22px"><ul style="font-size:28px;line-height:1.35;color:#1F2A44;list-style:square;padding-left:40px"><li style="margin:0 0 18px;padding-left:10px">un nouveau ReplicaSet monte, l'ancien descend</li><li style="margin:0 0 18px;padding-left:10px"><code>kubernetes.io/change-cause</code> pour un historique lisible</li><li style="margin:0 0 18px;padding-left:10px">une image introuvable bloque la mise à jour, sans couper</li><li style="margin:0 0 18px;padding-left:10px">le fichier reste la référence : <code>set image</code> est un geste d'urgence</li></ul></div></div>
+<section id="c7b-rolling" class="strat" data-transition="fade">
+  <div class="ent"><p class="tag">Stratégie</p><h1>Rolling update : un nouveau, puis un ancien en moins</h1></div>
+  <div class="corps">
+    <div class="trafic"></div>
+    <div class="fiche">
+<div class="bloc"><h3>Dans Kubernetes</h3><pre>spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      <b>maxSurge: 1</b>        # un pod de plus
+      <b>maxUnavailable: 0</b>  # jamais un de moins
+  minReadySeconds: 5</pre><pre style="margin-top:8px">kubectl rollout status  deployment/api
+kubectl rollout history deployment/api
+kubectl rollout <b>undo</b>    deployment/api</pre></div>
+<div class="bloc"><ul><li>chaque version est un <b>ReplicaSet</b> : le nouveau monte, l'ancien descend</li><li><code>kubernetes.io/change-cause</code> pour un historique lisible</li><li>une image introuvable <b>bloque</b> la mise à jour, sans couper</li><li>le fichier reste la référence : <code>set image</code> est un geste d'urgence</li></ul></div>
+    </div>
+  </div>
+  <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
+<script>
+Trafic('c7b-rolling', {
+ "routeur": "Service api",
+ "etapes": [
+  {
+   "texte": "La <b>1.0</b> sert tout le trafic, sur 3 pods.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": []
+  },
+  {
+   "texte": "<code>maxSurge: 1</code> : un pod <b>1.1 de plus</b> démarre. Il y a 4 pods, les 3 anciens servent toujours.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "demarre"
+   ]
+  },
+  {
+   "texte": "Il est prêt (sonde, puis <code>minReadySeconds</code>) : il reçoit du trafic, et <b>un ancien s'arrête</b>. <code>maxUnavailable: 0</code> : jamais moins de 3 pods prêts.",
+   "v1": [
+    "ok",
+    "ok",
+    "arret"
+   ],
+   "v2": [
+    "ok"
+   ]
+  },
+  {
+   "texte": "Et on recommence : <b>un nouveau</b>…",
+   "v1": [
+    "ok",
+    "ok"
+   ],
+   "v2": [
+    "ok",
+    "demarre"
+   ]
+  },
+  {
+   "texte": "… <b>puis un ancien en moins</b>.",
+   "v1": [
+    "ok",
+    "arret"
+   ],
+   "v2": [
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "texte": "Dernier tour : un nouveau, puis le dernier ancien s'arrête.",
+   "v1": [
+    "arret"
+   ],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  },
+  {
+   "texte": "Terminé, sans coupure. L'ancien ReplicaSet reste, à 0 pod : <b><code>kubectl rollout undo</code></b> le fait remonter de la même façon.",
+   "v1": [],
+   "v2": [
+    "ok",
+    "ok",
+    "ok"
+   ]
+  }
+ ]
+});
+</script>
 </section>
 <section id="c7b-recreate" class="strat" data-transition="fade">
   <div class="ent"><p class="tag">Stratégie</p><h1>Recreate : tout arrêter, puis tout relancer</h1></div>
@@ -968,40 +1069,44 @@ Trafic('c7b-bluegreen', {
 </script>
 </section>
 <section id="c7b-canary" class="strat" data-transition="fade">
-  <div class="ent"><p class="tag">Stratégie</p><h1>Canary : quelques clients d'abord</h1></div>
+  <div class="ent"><p class="tag">Stratégie</p><h1>Canary : un pod de la nouvelle version parmi les anciens</h1></div>
   <div class="corps">
     <div class="trafic"></div>
     <div class="fiche">
-<div class="bloc"><h3>Dans Kubernetes</h3><p>Gateway API (TP 11), des poids par version :</p><pre>backendRefs:
-- name: api-v1-0
-  port: 8000
-  <b>weight: 90</b>
-- name: api-v1-1
-  port: 8000
-  <b>weight: 10</b></pre><p style="font-size:17px;margin-top:6px">Sans Gateway : un même label <code>app=api</code> et le ratio des replicas (1 pod sur 4 ≈ 25 %).</p></div>
-<div class="bloc"><h3>Pour · contre</h3><p>Le risque est limité à une petite part de <b>vrais clients</b>. Il faut des métriques pour juger ; Argo Rollouts ou Flagger automatisent les paliers.</p></div>
+<div class="bloc"><h3>Dans Kubernetes</h3><p>Deux Deployments avec le <b>même label</b> <code>app=api</code>, derrière le même Service. On déplace les replicas :</p><pre>kubectl scale deploy/api-v1-0 <b>--replicas=3</b>
+kubectl scale deploy/api-v1-1 <b>--replicas=1</b></pre><p style="font-size:17px;margin-top:6px">Pour 5 % plutôt que 25 % sans 20 pods : des poids dans la Gateway API (TP 11), <code>weight: 95</code> / <code>weight: 5</code>.</p></div>
+<div class="bloc"><h3>Rolling update ou canary ?</h3><p>Le rolling update <b>ajoute</b> un pod neuf puis en retire un ancien, et va jusqu'au bout tout seul. Le canary <b>remplace</b> un pod existant et <b>s'arrête</b> : vous décidez de la suite.</p></div>
     </div>
   </div>
   <div class="recit"><span class="num" data-r="num"></span><p data-r="texte"></p></div>
 <script>
 Trafic('c7b-canary', {
- "routeur": "HTTPRoute api",
+ "routeur": "Service api",
  "etapes": [
   {
-   "texte": "La <b>1.0</b> sert tout le trafic.",
+   "texte": "La <b>1.0</b> sert tout le trafic, sur 4 pods.",
    "v1": [
+    "ok",
     "ok",
     "ok",
     "ok"
    ],
-   "v2": [],
-   "poids": [
-    100,
-    0
+   "v2": []
+  },
+  {
+   "texte": "On <b>retire un pod 1.0</b>, et un pod <b>1.1</b> démarre à sa place : le canari. Toujours 4 pods.",
+   "v1": [
+    "ok",
+    "ok",
+    "ok",
+    "arret"
+   ],
+   "v2": [
+    "demarre"
    ]
   },
   {
-   "texte": "Un pod <b>1.1</b> reçoit <b>10 %</b> des requêtes, prises au hasard : ce sont les canaris.",
+   "texte": "Le canari est prêt. Le Service répartit sur les 4 pods : il reçoit <b>25 %</b> des requêtes.",
    "v1": [
     "ok",
     "ok",
@@ -1009,14 +1114,10 @@ Trafic('c7b-canary', {
    ],
    "v2": [
     "ok"
-   ],
-   "poids": [
-    90,
-    10
    ]
   },
   {
-   "texte": "On observe : <b>erreurs, temps de réponse</b>. Au moindre doute, poids à 0 : 90 % des clients n'ont rien vu.",
+   "texte": "On observe : <b>erreurs, temps de réponse</b>. Au moindre doute, le canari repasse à 0 : 75 % des clients n'ont rien vu.",
    "v1": [
     "ok",
     "ok",
@@ -1024,14 +1125,22 @@ Trafic('c7b-canary', {
    ],
    "v2": [
     "ok"
-   ],
-   "poids": [
-    90,
-    10
    ]
   },
   {
-   "texte": "Tout va bien : <b>50 / 50</b>, avec plus de pods 1.1.",
+   "texte": "Tout va bien : un deuxième pod 1.0 est remplacé…",
+   "v1": [
+    "ok",
+    "ok",
+    "arret"
+   ],
+   "v2": [
+    "ok",
+    "demarre"
+   ]
+  },
+  {
+   "texte": "… <b>2 et 2</b>, la moitié du trafic.",
    "v1": [
     "ok",
     "ok"
@@ -1039,23 +1148,16 @@ Trafic('c7b-canary', {
    "v2": [
     "ok",
     "ok"
-   ],
-   "poids": [
-    50,
-    50
    ]
   },
   {
-   "texte": "<b>100 %</b> sur la 1.1, la 1.0 est retirée.",
+   "texte": "Les 4 pods sont en <b>1.1</b>. À aucun moment il n'y a eu plus de 4 pods.",
    "v1": [],
    "v2": [
     "ok",
     "ok",
+    "ok",
     "ok"
-   ],
-   "poids": [
-    0,
-    100
    ]
   }
  ]

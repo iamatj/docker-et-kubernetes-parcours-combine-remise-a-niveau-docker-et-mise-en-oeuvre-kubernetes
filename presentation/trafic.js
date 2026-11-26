@@ -3,7 +3,7 @@
 // Inclus dans <head> par construire.py. Une slide l'utilise ainsi :
 //   Trafic('c7b-canary', { routeur: 'HTTPRoute api', etapes: [ { texte, v1: [...], v2: [...], poids: [90, 10] }, ... ] })
 // v1 / v2 : un état par pod : 'ok' (sert), 'demarre', 'arret'.
-// poids : part du trafic [v1, v2] ; segments: true (A/B : les utilisateurs du groupe B vont en v2) ;
+// poids : part du trafic [v1, v2] ; sans poids, comme un Service : chaque pod prêt reçoit autant que les autres ; segments: true (A/B : les utilisateurs du groupe B vont en v2) ;
 // miroir: true (shadow : chaque requête est copiée vers v2, la réponse est ignorée).
 function Trafic(id, cfg) {
   const S = document.getElementById(id);
@@ -44,7 +44,7 @@ function Trafic(id, cfg) {
       voie.querySelector('.t-pods').innerHTML = pods.map(p => `<span class="t-pod ${p}" style="background:${p === 'ok' ? VOIES[n].coul : ''};border-color:${VOIES[n].coul}">
         <small>${p === 'ok' ? 'sert' : p === 'demarre' ? 'démarre' : 'arrêt'}</small></span>`).join('');
       voie.classList.toggle('vide', !pods.length);
-      const pct = e.miroir && n === 1 ? 'copie' : (e.segments ? (n ? 'groupe B' : 'groupe A') : (e.poids[n] + ' %'));
+      const pct = e.miroir && n === 1 ? 'copie' : (e.segments ? (n ? 'groupe B' : 'groupe A') : (poids(e)[n] + ' %'));
       voie.querySelector('.t-pct').textContent = pods.length ? pct : '';
     });
     zone.querySelectorAll('.t-u').forEach((u, k) => u.innerHTML = svgUtil(e.segments ? (util[k].b ? '#E4572E' : '#2F4858') : '#5B6676'));
@@ -55,13 +55,18 @@ function Trafic(id, cfg) {
     const a = el.animate(etapes.map(([x, y]) => ({ transform: `translate(${x - 9}px, ${y - 9}px)` })), { duration: duree, easing: 'linear', fill: 'forwards' });
     a.onfinish = fin;
   }
+  function poids(e) {
+    if (e.poids) return e.poids;
+    const a = (e.v1 || []).filter(p => p === 'ok').length, b = (e.v2 || []).filter(p => p === 'ok').length;
+    return a + b ? [Math.round(100 * a / (a + b)), Math.round(100 * b / (a + b))] : [0, 0];
+  }
   function requete() {
     if (!S.classList.contains('active') && !S.dataset.toujours) return;
     const e = cfg.etapes[i];
     const k = Math.floor(Math.random() * NB_UTIL), u = util[k];
     let n;
     if (e.segments) n = u.b ? 1 : 0;
-    else n = Math.random() * 100 < e.poids[0] ? 0 : 1;
+    else n = Math.random() * 100 < poids(e)[0] ? 0 : 1;
     const servants = (n ? e.v2 : e.v1 || []).map((p, j) => [p, j]).filter(([p]) => p === 'ok');
     const coul = e.segments ? (u.b ? '#E4572E' : '#2F4858') : '#F2C14E';
     const d = document.createElement('span'); d.className = 't-pt'; d.style.background = coul; pts.appendChild(d);
