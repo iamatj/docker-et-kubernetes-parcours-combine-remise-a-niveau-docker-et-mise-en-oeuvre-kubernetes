@@ -50,6 +50,7 @@
     "j2-debut",
     "c6-incident",
     "c6-architecture",
+    "c6-equipe",
     "c6-objets",
     "c6-tp",
     "pause-j2-matin",
@@ -109,12 +110,12 @@
     {
       "title": "Jour 3 · Production",
       "description": "Stockage, sécurité, réseau et Helm",
-      "start": 68
+      "start": 69
     },
     {
       "title": "Clôture",
       "description": "QCM, synthèse, évaluation",
-      "start": 86
+      "start": 87
     }
   ],
   "faces": {
